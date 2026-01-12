@@ -1,10 +1,14 @@
 package com.example.snorly.core.common.nav
 
+import android.R.attr.onClick
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialogDefaults.containerColor
+import androidx.compose.material3.BadgeDefaults.containerColor
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,6 +24,7 @@ fun SnorlyApp() {
     val currentRoute = navBackStackEntry?.destination?.route
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (currentRoute != "alarm_create") {
                 BottomBar(navController = navController)
@@ -29,6 +34,7 @@ fun SnorlyApp() {
             // Logic: Only show FAB if we are on the Alarm Tab
             if (currentRoute == Destination.ALARM.route) {
                 FloatingActionButton(
+                    containerColor = MaterialTheme.colorScheme.primary,
                     onClick = { navController.navigate("alarm_create") }
                 ) {
                     Icon(
