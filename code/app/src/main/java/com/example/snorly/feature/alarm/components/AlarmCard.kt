@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -86,9 +87,15 @@ fun AlarmCard(
             }
 
             // Right Side: Custom Switch
-            SnorlySwitch(
+//            SnorlySwitch(
+//                checked = alarm.isActive,
+//                onCheckedChange = onToggle
+//            )
+            SnorlyMorphSwitch(
                 checked = alarm.isActive,
-                onCheckedChange = onToggle
+                onCheckedChange = onToggle,
+                // Optional: Make it slightly larger if you want to emphasize the shape
+                modifier = Modifier.scale(1f)
             )
         }
     }
