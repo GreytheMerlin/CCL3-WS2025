@@ -11,6 +11,8 @@ import com.example.snorly.feature.Home
 fun NavController(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
 
+
+
     NavHost(navController = navController, startDestination = Routes.main, modifier = modifier) {
         composable(route = Routes.main) {
             Home()
