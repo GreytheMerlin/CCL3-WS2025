@@ -1,4 +1,4 @@
-package com.example.snorly.ui.theme
+package com.example.snorly.core.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
