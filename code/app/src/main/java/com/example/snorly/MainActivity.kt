@@ -4,17 +4,49 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.snorly.core.common.nav.SnorlyApp
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.lifecycleScope
+import com.example.snorly.core.common.nav.NavController
+import com.example.snorly.core.database.AlarmDao
+import com.example.snorly.core.database.AppDatabase
+import com.example.snorly.core.database.entities.AlarmEntity
 import com.example.snorly.core.ui.theme.SnorlyTheme
+import kotlinx.coroutines.launch
+
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+    /*    val db = AppDatabase.getDatabase(this)
+        val alarmDao = db.alarmDao()
+
+        lifecycleScope.launch {
+            alarmDao.addAlarm(
+                AlarmEntity(
+                    time = "08:00",
+                    challenge = "Test",
+                    ringtone = "Default",
+                    vibration = "On",
+                    days = listOf(1, 0),
+
+                    )
+            )
+        }*/
         enableEdgeToEdge()
         setContent {
             SnorlyTheme {
-                SnorlyApp()
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    NavController(modifier = Modifier.padding(innerPadding))
+                }
             }
         }
     }
 }
+
+
+
