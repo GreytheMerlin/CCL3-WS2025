@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 val Background = Color(0xFF000000)
 val Surface = Color(0xFF0F0F0F)
-val Border = Color(0xFF303030)
+val Border = Color(0xFF323232)
 
 // Text Colors
 val TextWhite = Color(0xFFF5F5F5)
