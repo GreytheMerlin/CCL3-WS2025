@@ -10,5 +10,6 @@ data class AlarmEntity (
     val challenge: String? = null,
     val ringtone: String? = null,
     val vibration: String? = null,
-    val days: Array<Int>? = null,
+    val days: List<Int> = emptyList()
+
 )

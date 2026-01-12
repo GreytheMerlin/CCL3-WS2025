@@ -26,4 +26,6 @@ interface AlarmDao {
 
     @Query("SELECT * FROM alarms WHERE id = :id LIMIT 1")
     suspend fun getById(id: String): AlarmEntity?
+
+    companion object
 }
