@@ -1,12 +1,25 @@
 package com.example.snorly.feature.alarm
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.snorly.core.database.AppDatabase
+import com.example.snorly.core.database.entities.AlarmEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class AlarmViewModel : ViewModel() {
+class AlarmViewModel(application: Application) : AndroidViewModel(application) {
+
+
+        private val alarmDao = AppDatabase.getDatabase(application).alarmDao()
+
+        fun insert(alarm: AlarmEntity) = viewModelScope.launch {
+            alarmDao.addAlarm(alarm)
+        }
 
     // 1. The Source of Truth
     // In a real app, this would come from a Room Database

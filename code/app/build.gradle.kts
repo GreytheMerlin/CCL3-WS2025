@@ -45,10 +45,13 @@ android {
 }
 
 dependencies {
+
+    implementation("androidx.compose.material:material-icons-extended")
+
+
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
-
     implementation(libs.androidx.room.common.jvm)
     implementation(libs.androidx.room.ktx)
     val nav_version = "2.9.6"
