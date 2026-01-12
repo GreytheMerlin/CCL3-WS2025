@@ -52,7 +52,7 @@ fun AlarmScreen(
                     onToggle = { isChecked ->
                         // 3. Pass the event back to the ViewModel
                         viewModel.toggleAlarm(alarm.id, isChecked)
-                    }
+                    },
                 )
             }
         }
