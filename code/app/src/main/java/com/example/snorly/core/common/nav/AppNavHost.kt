@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.snorly.feature.alarm.AlarmCreateScreen
 import com.example.snorly.feature.alarm.AlarmScreen
 import com.example.snorly.feature.report.ReportScreen
 import com.example.snorly.feature.settings.SettingsScreen
@@ -28,6 +29,11 @@ fun AppNavHost(
                     Destination.REPORT -> ReportScreen()
                     Destination.SETTINGS -> SettingsScreen()
                 }
+            }
+            composable("alarm_create") {
+                AlarmCreateScreen(
+                    onBack = { navController.popBackStack() }
+                )
             }
         }
     }
