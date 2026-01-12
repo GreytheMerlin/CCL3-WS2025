@@ -1,7 +1,9 @@
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
     kotlin("plugin.serialization") version "2.0.21"
 }
 
@@ -43,6 +45,12 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    implementation(libs.androidx.room.common.jvm)
+    implementation(libs.androidx.room.ktx)
     val nav_version = "2.9.6"
     // Jetpack Compose integration
     implementation("androidx.navigation:navigation-compose:$nav_version")
