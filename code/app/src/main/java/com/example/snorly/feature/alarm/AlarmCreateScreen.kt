@@ -2,6 +2,7 @@
 
 package com.example.snorly.feature.alarm
 
+import android.R.attr.checked
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,7 +22,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.snorly.feature.alarm.components.SettingRow
+import com.example.snorly.feature.alarm.components.SnoozeSlider
 import com.example.snorly.feature.alarm.components.TimePickerWheel
+import com.example.snorly.feature.alarm.components.ToggleRow
 
 
 @Composable
@@ -41,7 +45,7 @@ fun AlarmCreateScreen(
     var wakeUpChecker by remember { mutableStateOf(false) }
 
     var enableSnooze by remember { mutableStateOf(true) }
-    var snoozeMinutes by remember { mutableStateOf("9") }
+    var snoozeMinutes by remember { mutableIntStateOf(5) }
 
     val bg = Color(0xFF000000)
     val card = Color(0xFF1B1B1B)
@@ -145,20 +149,17 @@ fun AlarmCreateScreen(
                 title = "Alarm Ringtones",
                 value = ringtone,
                 onClick = { /* open */ },
-                dividerColor = divider
             )
             SettingRow(
                 title = "Vibration Pattern",
                 value = vibration,
                 onClick = { /* open */ },
-                dividerColor = divider
             )
             SettingRow(
                 title = "Dismiss Challenge",
                 subtitle = "Fun games to wake you up",
                 value = dismissChallenge,
                 onClick = { /* open */ },
-                dividerColor = divider
             )
 
             Spacer(Modifier.height(10.dp))
@@ -168,139 +169,32 @@ fun AlarmCreateScreen(
                 subtitle = "Wake you at optimal time based on\nsleep cycles. Set latest wake time.",
                 checked = dynamicWake,
                 onCheckedChange = { dynamicWake = it },
-                dividerColor = divider,
-                accent = accent
             )
             ToggleRow(
                 title = "Wake Up Checker",
                 subtitle = "You will receive a notification. If you do not accept this,\nthe alarm will be triggered.",
                 checked = wakeUpChecker,
                 onCheckedChange = { wakeUpChecker = it },
-                dividerColor = divider,
-                accent = accent
             )
 
             Spacer(Modifier.height(10.dp))
 
             ToggleRow(
                 title = "Enable Snooze",
-                subtitle = "Allow snoozing alarm",
+                subtitle = "allow snoozing alarm",
                 checked = enableSnooze,
                 onCheckedChange = { enableSnooze = it },
-                dividerColor = divider,
-                accent = accent
+                showDivider = false
             )
 
-            Spacer(Modifier.height(10.dp))
-
-            Text("Snooze Duration (minutes)", color = muted)
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
+            // Animated Slider
+            SnoozeSlider(
+                visible = enableSnooze,
                 value = snoozeMinutes,
-                onValueChange = { snoozeMinutes = it.filter { ch -> ch.isDigit() }.take(3) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                enabled = enableSnooze,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = card,
-                    unfocusedContainerColor = card,
-                    disabledContainerColor = card,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    disabledTextColor = Color(0xFF888888),
-                    focusedBorderColor = divider,
-                    unfocusedBorderColor = divider,
-                    disabledBorderColor = divider,
-                    cursorColor = accent
-                ),
-                shape = RoundedCornerShape(12.dp)
+                onValueChange = { snoozeMinutes = it }
             )
 
             Spacer(Modifier.height(90.dp)) // room for bottom button
         }
-    }
-}
-
-@Composable
-private fun SettingRow(
-    title: String,
-    value: String,
-    subtitle: String? = null,
-    onClick: () -> Unit,
-    dividerColor: Color
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 14.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(title, color = Color.White, style = MaterialTheme.typography.titleLarge)
-                if (subtitle != null) {
-                    Spacer(Modifier.height(4.dp))
-                    Text(subtitle, color = Color(0xFF9B9B9B), style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(value, color = Color(0xFF9B9B9B), style = MaterialTheme.typography.bodyLarge)
-                Spacer(Modifier.width(8.dp))
-                Icon(
-                    imageVector = Icons.Filled.ChevronRight,
-                    contentDescription = null,
-                    tint = Color(0xFF9B9B9B)
-                )
-
-            }
-        }
-        Spacer(Modifier.height(14.dp))
-        HorizontalDivider(color = dividerColor)
-    }
-}
-
-@Composable
-private fun ToggleRow(
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    dividerColor: Color,
-    accent: Color
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 14.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(title, color = Color.White, style = MaterialTheme.typography.titleLarge)
-                Spacer(Modifier.height(6.dp))
-                Text(subtitle, color = Color(0xFF9B9B9B), style = MaterialTheme.typography.bodyMedium)
-            }
-
-            Switch(
-                checked = checked,
-                onCheckedChange = onCheckedChange,
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = accent,
-                    uncheckedThumbColor = accent,
-                    checkedTrackColor = Color(0xFF2E3A4A),
-                    uncheckedTrackColor = Color(0xFF2A2A2A),
-                    checkedBorderColor = Color.Transparent,
-                    uncheckedBorderColor = Color.Transparent
-                )
-            )
-        }
-        Spacer(Modifier.height(14.dp))
-        HorizontalDivider(color = dividerColor)
     }
 }
