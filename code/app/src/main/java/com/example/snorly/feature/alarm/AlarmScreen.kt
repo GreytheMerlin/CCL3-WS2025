@@ -15,15 +15,22 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.snorly.feature.alarm.components.AlarmCard
 
+
+
 @Composable
 fun AlarmScreen(
     // We inject the ViewModel here.
     // This allows you to easily swap it out for testing later if needed.
     viewModel: AlarmViewModel = viewModel()
 ) {
+
+
     // 1. Observe the state
     // Whenever the list changes in the ViewModel, 'alarms' will update here
     val alarms by viewModel.alarms.collectAsState()
+
+
+
 
     Surface(
         modifier = Modifier.fillMaxSize(),

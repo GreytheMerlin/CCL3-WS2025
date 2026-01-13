@@ -5,11 +5,12 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "alarms")
 data class AlarmEntity (
-    @PrimaryKey(autoGenerate = true) val id: Int =0,
-    val time:String? = null,
-    val challenge: String? = null,
-    val ringtone: String? = null,
-    val vibration: String? = null,
+    @PrimaryKey(autoGenerate = true) val id: Long =0L,
+    val time:String,
+    val challenge: String,
+    val ringtone: String,
+    val vibration: String,
+    val isActive: Boolean,
     val days: List<Int> = emptyList()
 
 )

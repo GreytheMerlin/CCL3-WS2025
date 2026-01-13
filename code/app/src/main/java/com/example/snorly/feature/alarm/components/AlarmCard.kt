@@ -24,7 +24,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.snorly.feature.alarm.Alarm
+import com.example.snorly.feature.alarm.AlarmViewModel
+
 
 @Composable
 fun AlarmCard(
@@ -67,11 +70,16 @@ fun AlarmCard(
 
                 // 2. Details Row (Daily • In 7h...)
                 Row(verticalAlignment = Alignment.CenterVertically) {
+
+                    val viewModel: AlarmViewModel = viewModel()
+                    val dayText = viewModel.selectedDayNames(alarm.days).joinToString(", ")
+
                     Text(
-                        text = "${alarm.pattern} • ${alarm.remaining} • ${alarm.label}",
+                        text = "${dayText.ifBlank { "No days" }} • ${alarm.ringtone} • ${alarm.vibration}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant // Muted Grey
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
                 }
 
                 Spacer(modifier = Modifier.height(2.dp))
