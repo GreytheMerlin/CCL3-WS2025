@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 interface AlarmDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun addAlarm(e: AlarmEntity)
+    suspend fun addAlarm(e: AlarmEntity): Long
 
     @Update
     suspend fun updateAlarm(alarmEntity: AlarmEntity)
@@ -29,7 +29,7 @@ interface AlarmDao {
     suspend fun deleteById(id: Long)
 
     @Query("SELECT * FROM alarms WHERE id = :id LIMIT 1")
-    suspend fun getById(id: Long): AlarmEntity?
+    suspend fun getById(id: Long): AlarmEntity
 
     companion object
 }

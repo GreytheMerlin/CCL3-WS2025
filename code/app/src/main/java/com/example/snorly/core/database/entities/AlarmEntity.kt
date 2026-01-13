@@ -11,6 +11,7 @@ data class AlarmEntity (
     val ringtone: String,
     val vibration: String,
     val isActive: Boolean,
+    val snoozeMinutes: Int,
     val days: List<Int> = emptyList()
 
 )

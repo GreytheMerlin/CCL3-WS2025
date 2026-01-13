@@ -25,11 +25,42 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
         "Sunday"
     )
 
-    fun selectedDayNames(days: List<Int>): List<String> {
-        return days.mapIndexedNotNull { index, value ->
-            if (value == 1) dayNames.getOrNull(index) else null
+    fun selectedDayNames(days: List<Int>): String {
+
+
+        // Guard: wrong size
+        if (days.size != 7) return ""
+
+        // Special cases
+        if (days.all { it == 1 }) return "Daily"
+        if (days.take(5).all { it == 1 } && days.drop(5).all { it == 0 }) return "Weekdays"
+        if (days.take(5).all { it == 0 } && days.drop(5).all { it == 1 }) return "Weekend"
+
+        val selected = days.mapIndexedNotNull { index, value -> if (value == 1) index else null }
+        if (selected.isEmpty()) return "No days"
+
+        // Build consecutive ranges (non-wrapping)
+        val ranges = mutableListOf<Pair<Int, Int>>()
+        var start = selected.first()
+        var prev = start
+
+        for (i in 1 until selected.size) {
+            val cur = selected[i]
+            if (cur == prev + 1) {
+                prev = cur
+            } else {
+                ranges += start to prev
+                start = cur
+                prev = cur
+            }
+        }
+        ranges += start to prev
+
+        return ranges.joinToString(", ") { (s, e) ->
+            if (s == e) dayNames[s] else "${dayNames[s]}–${dayNames[e]}"
         }
     }
+
 
     val alarms: StateFlow<List<Alarm>> =
         alarmDao.getAll()
@@ -41,12 +72,41 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
             )
 
     fun insert(alarm: AlarmEntity) = viewModelScope.launch {
-        alarmDao.addAlarm(alarm)
+        // 1) Insert into DB and get ID
+        val alarmId = alarmDao.addAlarm(alarm)
+
+        // 2) Parse HH:mm
+        val (hour, minute) = alarm.time.split(":").map { it.toInt() }
+
+        // 3) Compute next trigger
+        val triggerAt = nextTriggerMillis(
+            hour = hour,
+            minute = minute,
+            days = alarm.days
+        )
+
+        // 4) Schedule alarm
+        AlarmScheduler(getApplication())
+            .schedule(alarmId, triggerAt)
     }
 
     fun toggleAlarm(id: Long, newValue: Boolean) = viewModelScope.launch {
         alarmDao.updateActive(id = id, isActive = newValue)
+
+        val scheduler = AlarmScheduler(getApplication())
+
+        if (!newValue) {
+            scheduler.cancel(id)
+        } else {
+            val alarm = alarmDao.getById(id) // add DAO query
+            val (h, m) = alarm.time.split(":").map { it.toInt() }
+            scheduler.schedule(
+                id,
+                nextTriggerMillis(h, m, alarm.days)
+            )
+        }
     }
+
 }
 
 private fun AlarmEntity.toAlarm(): Alarm =
