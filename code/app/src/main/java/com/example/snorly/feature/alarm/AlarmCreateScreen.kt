@@ -41,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.snorly.core.database.entities.AlarmEntity
 import com.example.snorly.feature.alarm.components.SettingRow
 import com.example.snorly.feature.alarm.components.SnoozeSlider
 import com.example.snorly.feature.alarm.components.TimePickerWheel
@@ -50,9 +51,10 @@ import com.example.snorly.feature.alarm.components.ToggleRow
 @Composable
 fun AlarmCreateScreen(
     onClose: () -> Unit = {},
-    onCreateAlarm: () -> Unit = {},
+    onCreateAlarm: (AlarmEntity) -> Unit = {},
     onNavigateToRingtone: () -> Unit = {},
     onNavigateToVibration: () -> Unit = {},
+    onNavigateToRepeat: () -> Unit = {},
     onNavigateToChallenge: () -> Unit = {}
 ) {
     var hour by remember { mutableIntStateOf(7) }
@@ -61,6 +63,7 @@ fun AlarmCreateScreen(
     var label by remember { mutableStateOf("Alarm Name") }
     var ringtone by remember { mutableStateOf("Repeater") }
     var vibration by remember { mutableStateOf("Zig Zag") }
+    var repeat by remember { mutableStateOf("Daily") }
     var dismissChallenge by remember { mutableStateOf("Zig Zag") }
 
     var dynamicWake by remember { mutableStateOf(false) }
@@ -110,7 +113,20 @@ fun AlarmCreateScreen(
                     .padding(horizontal = 18.dp, vertical = 16.dp)
             ) {
                 Button(
-                    onClick = onCreateAlarm,
+                    onClick = {
+                        val entity = AlarmEntity(
+                            // id usually 0 so Room auto-generates (depends on your entity)
+                            time = "%02d:%02d".format(hour, minute),
+                            ringtone = ringtone,
+                            vibration = vibration, // or whatever your DB expects
+                            days = listOf(1,1,1,1,1,1,1), // TODO: useEAL days from repeat screen
+                            challenge = dismissChallenge,
+                            isActive = true,
+                            snoozeMinutes = snoozeMinutes
+                        )
+                        onCreateAlarm(entity)
+                    },
+
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -168,6 +184,11 @@ fun AlarmCreateScreen(
 
             // Rows
             Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                SettingRow(
+                    title = "Repeat",
+                    value = repeat,
+                    onClick = onNavigateToRepeat // Connect the click
+                )
                 SettingRow(
                     title = "Ringtone",
                     value = ringtone,

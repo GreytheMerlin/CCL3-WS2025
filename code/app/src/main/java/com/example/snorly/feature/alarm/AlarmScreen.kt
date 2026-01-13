@@ -43,16 +43,15 @@ fun AlarmScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             // 2. Feed the data to the list
-            items(
-                items = alarms,
-                key = { it.id } // Unique key helps Compose animate efficiently
-            ) { alarm ->
+            items(alarms) { alarm ->
+                val dayText = viewModel.selectedDayNames(alarm.days)
+
                 AlarmCard(
                     alarm = alarm,
-                    onToggle = { isChecked ->
-                        // 3. Pass the event back to the ViewModel
-                        viewModel.toggleAlarm(alarm.id, isChecked)
-                    },
+                    dayText = dayText,
+                    onToggle = { checked ->
+                        viewModel.toggleAlarm(alarm.id, checked)
+                    }
                 )
             }
         }

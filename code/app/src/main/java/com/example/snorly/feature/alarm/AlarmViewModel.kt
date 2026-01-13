@@ -2,69 +2,120 @@ package com.example.snorly.feature.alarm
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.snorly.core.database.AppDatabase
 import com.example.snorly.core.database.entities.AlarmEntity
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class AlarmViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val alarmDao = AppDatabase.getDatabase(application).alarmDao()
 
-        private val alarmDao = AppDatabase.getDatabase(application).alarmDao()
-
-        fun insert(alarm: AlarmEntity) = viewModelScope.launch {
-            alarmDao.addAlarm(alarm)
-        }
-
-    // 1. The Source of Truth
-    // In a real app, this would come from a Room Database
-    private val _alarms = MutableStateFlow(
-        listOf(
-            Alarm(
-                id = "1",
-                time = "07:00",
-                label = "Work",
-                pattern = "Mon-Fri",
-                remaining = "In 7h 26min",
-                isActive = true
-            ),
-            Alarm(
-                id = "2",
-                time = "08:30",
-                label = "Weekend",
-                pattern = "Sat-Sun",
-                remaining = "In 1d 9h",
-                isActive = false
-            ),
-            Alarm(
-                id = "3",
-                time = "09:00",
-                label = "Gym",
-                pattern = "Daily",
-                remaining = "In 9h 00min",
-                isActive = true
-            )
-        )
+    private val dayNames = listOf(
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
     )
-    // Expose as immutable flow for the UI to observe
-    val alarms: StateFlow<List<Alarm>> = _alarms.asStateFlow()
 
-    // 2. Logic to handle the toggle
-    fun toggleAlarm(id: String, newValue: Boolean) {
-        _alarms.update { currentList ->
-            currentList.map { alarm ->
-                if (alarm.id == id) {
-                    // Create a copy of the alarm with the new status
-                    alarm.copy(isActive = newValue)
-                } else {
-                    alarm
-                }
+    fun selectedDayNames(days: List<Int>): String {
+
+
+        // Guard: wrong size
+        if (days.size != 7) return ""
+
+        // Special cases
+        if (days.all { it == 1 }) return "Daily"
+        if (days.take(5).all { it == 1 } && days.drop(5).all { it == 0 }) return "Weekdays"
+        if (days.take(5).all { it == 0 } && days.drop(5).all { it == 1 }) return "Weekend"
+
+        val selected = days.mapIndexedNotNull { index, value -> if (value == 1) index else null }
+        if (selected.isEmpty()) return "No days"
+
+        // Build consecutive ranges (non-wrapping)
+        val ranges = mutableListOf<Pair<Int, Int>>()
+        var start = selected.first()
+        var prev = start
+
+        for (i in 1 until selected.size) {
+            val cur = selected[i]
+            if (cur == prev + 1) {
+                prev = cur
+            } else {
+                ranges += start to prev
+                start = cur
+                prev = cur
             }
         }
+        ranges += start to prev
+
+        return ranges.joinToString(", ") { (s, e) ->
+            if (s == e) dayNames[s] else "${dayNames[s]}–${dayNames[e]}"
+        }
     }
+
+
+    val alarms: StateFlow<List<Alarm>> =
+        alarmDao.getAll()
+            .map { entities -> entities.map { it.toAlarm() } }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000L),
+                initialValue = emptyList()
+            )
+
+    fun insert(alarm: AlarmEntity) = viewModelScope.launch {
+        // 1) Insert into DB and get ID
+        val alarmId = alarmDao.addAlarm(alarm)
+
+        // 2) Parse HH:mm
+        val (hour, minute) = alarm.time.split(":").map { it.toInt() }
+
+        // 3) Compute next trigger
+        val triggerAt = nextTriggerMillis(
+            hour = hour,
+            minute = minute,
+            days = alarm.days
+        )
+
+        // 4) Schedule alarm
+        AlarmScheduler(getApplication())
+            .schedule(alarmId, triggerAt)
+    }
+
+    fun toggleAlarm(id: Long, newValue: Boolean) = viewModelScope.launch {
+        alarmDao.updateActive(id = id, isActive = newValue)
+
+        val scheduler = AlarmScheduler(getApplication())
+
+        if (!newValue) {
+            scheduler.cancel(id)
+        } else {
+            val alarm = alarmDao.getById(id) // add DAO query
+            val (h, m) = alarm.time.split(":").map { it.toInt() }
+            scheduler.schedule(
+                id,
+                nextTriggerMillis(h, m, alarm.days)
+            )
+        }
+    }
+
 }
+
+private fun AlarmEntity.toAlarm(): Alarm =
+    Alarm(
+        id = id,
+        time = time,
+        ringtone = ringtone,
+        vibration = vibration,
+        days = days,
+        challenge = challenge,
+        isActive = isActive
+    )
