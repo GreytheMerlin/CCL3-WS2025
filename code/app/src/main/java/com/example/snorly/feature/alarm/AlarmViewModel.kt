@@ -61,6 +61,33 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun formatDays(days: List<Int>): String {
+        // Safety check: if list is missing or wrong size, treat as "Once"
+        if (days.size != 7) return "Once"
+
+        // 1. Check for "Once" (All zeros)
+        if (days.all { it == 0 }) return "Once"
+
+        // 2. Check for "Daily" (All ones)
+        if (days.all { it == 1 }) return "Daily"
+
+        // 3. Check for "Weekdays" (Mon(0)-Fri(4) are 1, Sat(5)-Sun(6) are 0)
+        // We slice the list to check specific ranges
+        val isWeekdays = days.subList(0, 5).all { it == 1 } && days.subList(5, 7).all { it == 0 }
+        if (isWeekdays) return "Weekdays"
+
+        // 4. Check for "Weekend" (Mon(0)-Fri(4) are 0, Sat(5)-Sun(6) are 1)
+        val isWeekend = days.subList(0, 5).all { it == 0 } && days.subList(5, 7).all { it == 1 }
+        if (isWeekend) return "Weekend"
+
+        // 5. Custom Formatting (e.g., "Mon, Wed")
+        val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+        val activeLabels = days.mapIndexedNotNull { index, value ->
+            if (value == 1) dayLabels[index] else null
+        }
+        return activeLabels.joinToString(", ")
+    }
+
 
     val alarms: StateFlow<List<Alarm>> =
         alarmDao.getAll()

@@ -23,41 +23,54 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.snorly.core.common.components.BackTopBar
 import com.example.snorly.feature.alarm.components.DayToggleCircle
 import com.example.snorly.feature.alarm.components.RepeatOptionCard
 
 @Composable
 fun RepeatScreen(
-    initialDays: List<Int> = emptyList(), // e.g. [1, 2, 3] passed from DB
-    onBack: () -> Unit,
-    onSelectionChange: (List<Int>) -> Unit = {} // Return the new list
+    initialDays: List<Int> = emptyList(), // e.g. [1, 1, 0] passed from DB
+    navController: NavController,
 ) {
-    // 1. Manage State locally
-    var selectedDays by remember { mutableStateOf(initialDays) }
-
-    // 2. Constants for Logic
-    val allDays = (1..7).toList()   // [1,2,3,4,5,6,7]
-    val weekDays = (1..5).toList()  // [1,2,3,4,5]
-    val weekendDays = listOf(6, 7)  // [6,7]
-
-    // 3. Determine which card should look "Selected"
-    fun getPresetType(days: List<Int>): String {
-        return when {
-            days.isEmpty() -> "Once"
-            days.containsAll(allDays) && days.size == 7 -> "Daily"
-            days.containsAll(weekDays) && days.size == 5 -> "MonToFri"
-            days.containsAll(weekendDays) && days.size == 2 -> "Weekend"
-            else -> "Custom"
-        }
+    // Manage State locally
+    var selectedDays by remember {
+        mutableStateOf(if (initialDays.size == 7) initialDays else List(7) { 0 })
     }
-    val currentPreset = getPresetType(selectedDays)
+
+    // Binary Templates for comparison
+    val dailyTemplate = List(7) { 1 }           // [1, 1, 1, 1, 1, 1, 1]
+    val weekdaysTemplate = List(7) { i -> if (i < 5) 1 else 0 } // [1, 1, 1, 1, 1, 0, 0]
+    val weekendTemplate = List(7) { i -> if (i >= 5) 1 else 0 } // [0, 0, 0, 0, 0, 1, 1]
+    val onceTemplate = List(7) { 0 }            // [0, 0, 0, 0, 0, 0, 0]
+
+    // Determine current preset based on list content
+    var isCustomExpanded by remember {
+        mutableStateOf(
+            selectedDays != onceTemplate &&
+                    selectedDays != dailyTemplate &&
+                    selectedDays != weekdaysTemplate &&
+                    selectedDays != weekendTemplate
+        )
+    }
+
+    // Local helper for subtitle (simplified version of VM logic)
+    fun getCustomSubtitle(): String {
+        val names = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+        return selectedDays.mapIndexedNotNull { index, value ->
+            if (value == 1) names[index] else null
+        }.joinToString(", ")
+    }
 
     Scaffold(
         topBar = {
-            BackTopBar(title = "Repeat", onBackClick = onBack)
-        }
-    ) { innerPadding ->
+            BackTopBar(title = "Repeat", onBackClick = {
+                navController.previousBackStackEntry?.savedStateHandle?.set(
+                    "selected_days_result", selectedDays
+                )
+                navController.popBackStack()
+            })
+        }) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -69,64 +82,42 @@ fun RepeatScreen(
             // --- Option 1: Once ---
             RepeatOptionCard(
                 title = "Once",
-                isSelected = currentPreset == "Once",
-                onClick = {
-                    selectedDays = emptyList()
-                    onSelectionChange(selectedDays)
-                }
-            )
-
-            // --- Option 2: Daily ---
+                isSelected = !isCustomExpanded && selectedDays == onceTemplate,
+                onClick = { selectedDays = onceTemplate })
             RepeatOptionCard(
                 title = "Daily",
-                isSelected = currentPreset == "Daily",
-                onClick = {
-                    selectedDays = allDays
-                    onSelectionChange(selectedDays)
-                }
-            )
-
-            // --- Option 3: Mon to Fri ---
+                isSelected = !isCustomExpanded && selectedDays == dailyTemplate,
+                onClick = { selectedDays = dailyTemplate })
             RepeatOptionCard(
                 title = "Mon To Fri",
                 subtitle = "Weekdays",
-                isSelected = currentPreset == "MonToFri",
-                onClick = {
-                    selectedDays = weekDays
-                    onSelectionChange(selectedDays)
-                }
-            )
-
-            // --- Option 4: Weekend ---
+                isSelected = !isCustomExpanded && selectedDays == weekdaysTemplate,
+                onClick = { selectedDays = weekdaysTemplate })
             RepeatOptionCard(
                 title = "Weekend",
                 subtitle = "Saturday and Sunday",
-                isSelected = currentPreset == "Weekend",
-                onClick = {
-                    selectedDays = weekendDays
-                    onSelectionChange(selectedDays)
-                }
-            )
+                isSelected = !isCustomExpanded && selectedDays == weekendTemplate,
+                onClick = { selectedDays = weekendTemplate })
 
             // --- Option 5: Custom ---
             RepeatOptionCard(
-                title = "Custom",
-                // Show currently selected days as subtitle (e.g., "Mon, Wed")
-                subtitle = if (currentPreset == "Custom") formatDays(selectedDays) else null,
-                isSelected = currentPreset == "Custom",
-                onClick = {
-                    // If we click Custom, and list was empty, default to today or Monday
-                    if (selectedDays.isEmpty()) {
-                        selectedDays = listOf(1)
-                        onSelectionChange(selectedDays)
+                title = "Custom", subtitle = if (isCustomExpanded) getCustomSubtitle() else null,
+                // Selected whenever explicitly expanded
+                isSelected = isCustomExpanded, onClick = {
+                    isCustomExpanded = true // FORCE Expansion
+
+                    // User Convenience: If list was empty (Once), default to Monday
+                    // But if it was already "Weekend", keep "Weekend" so they can edit it
+                    if (selectedDays.all { it == 0 }) {
+                        val newDays = onceTemplate.toMutableList()
+                        newDays[0] = 1 // Default to Monday
+                        selectedDays = newDays
                     }
-                    // Otherwise keep existing Custom selection
-                }
-            )
+                })
 
             // --- The Expanding Day Selector ---
             AnimatedVisibility(
-                visible = currentPreset == "Custom",
+                visible = isCustomExpanded,
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically()
             ) {
@@ -141,38 +132,18 @@ fun RepeatScreen(
                         val daysLabels = listOf("M", "T", "W", "T", "F", "S", "S")
 
                         daysLabels.forEachIndexed { index, label ->
-                            val dayValue = index + 1 // Convert index 0 -> Day 1
-                            val isDaySelected = selectedDays.contains(dayValue)
+                            val isDaySelected = selectedDays[index] == 1
 
                             DayToggleCircle(
-                                label = label,
-                                isSelected = isDaySelected,
-                                onClick = {
-                                    // Logic: Toggle the day in the list
-                                    val newSelection = if (isDaySelected) {
-                                        selectedDays - dayValue
-                                    } else {
-                                        selectedDays + dayValue
-                                    }.sorted() // Keep list sorted 1..7
-
-                                    selectedDays = newSelection
-                                    onSelectionChange(newSelection)
-                                }
-                            )
+                                label = label, isSelected = isDaySelected, onClick = {
+                                    val newDays = selectedDays.toMutableList()
+                                    newDays[index] = if (isDaySelected) 0 else 1
+                                    selectedDays = newDays
+                                })
                         }
                     }
                 }
             }
         }
     }
-}
-
-// Helper to print "Mon, Tue, Fri"
-private fun formatDays(days: List<Int>): String {
-    if (days.isEmpty()) return ""
-    val names = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-    // Safe check to avoid crashes if index is out of bounds
-    return days.filter { it in 1..7 }
-        .sorted()
-        .joinToString(", ") { names[it - 1] }
 }

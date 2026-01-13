@@ -48,6 +48,7 @@ fun AppNavHost(
         // === Alarm screens ===
         composable("alarm_create") {
             AlarmCreateScreen(
+                navController = navController,
                 onClose = { navController.popBackStack() },
                 onCreateAlarm = { entity ->
                     alarmViewModel.insert(entity)
@@ -138,8 +139,30 @@ fun AppNavHost(
                     )
                 }
             }
-            composable("alarm_repeat") {
-                RepeatScreen(onBack = { navController.popBackStack() })
+            composable(
+                route = "alarm_repeat/{currentSelection}",
+                arguments = listOf(navArgument("currentSelection") {
+                    type = NavType.StringType
+                    defaultValue = "0,0,0,0,0,0,0" // Default to all 0s
+                })
+            ) { backStackEntry ->
+                val selectionStr = backStackEntry.arguments?.getString("currentSelection") ?: ""
+
+                // Parse "1,0,1..." back to List<Int>
+                // Map safe check: must be integer, default to 0
+                val parsedList = if (selectionStr.isBlank()) {
+                    List(7) { 0 }
+                } else {
+                    selectionStr.split(",").mapNotNull { it.toIntOrNull() }
+                }
+
+                // Final safety: ensure exactly 7 items
+                val initialDays = if (parsedList.size == 7) parsedList else List(7) { 0 }
+
+                RepeatScreen(
+                    initialDays = initialDays,
+                    navController = navController
+                )
             }
         }
     }
