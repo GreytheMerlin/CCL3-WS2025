@@ -11,13 +11,15 @@ import java.util.Collections
 import kotlin.collections.toMutableList
 
 data class ChallengeUiState(
-    val isEnabled: Boolean = true,
+    val isEnabled: Boolean = false,
     val activeChallenges: List<Challenge> = emptyList(),
     // Computed property: All challenges minus the active ones
     val availableChallenges: List<Challenge> = emptyList()
 )
 
 class ChallengeViewModel : ViewModel() {
+
+
 
     private val _uiState = MutableStateFlow(ChallengeUiState())
     val uiState: StateFlow<ChallengeUiState> = _uiState.asStateFlow()

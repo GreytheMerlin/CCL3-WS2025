@@ -1,6 +1,8 @@
 package com.example.snorly.core.common.nav
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -46,7 +48,12 @@ fun AppNavHost(
             }
         }
         // === Alarm screens ===
-        composable("alarm_create") {
+        composable("alarm_create") { backStackEntry ->
+
+            val selectedChallenges by backStackEntry.savedStateHandle
+                .getStateFlow("selectedChallenges", emptyList<String>())
+                .collectAsState()
+
             AlarmCreateScreen(
                 navController = navController,
                 onClose = { navController.popBackStack() },
@@ -56,7 +63,8 @@ fun AppNavHost(
                 },// Pass navigation lambdas to the screen
                 onNavigateToRingtone = { navController.navigate("alarm_ringtone") },
                 onNavigateToVibration = { navController.navigate("alarm_vibration") },
-                onNavigateToChallenge = { navController.navigate("challenges_graph") }
+                onNavigateToChallenge = { navController.navigate("challenges_graph") },
+                selectedChallenges = selectedChallenges
             )
         }
         composable("alarm_ringtone") {
@@ -98,7 +106,12 @@ fun AppNavHost(
                 DismissChallengesScreen(
                     onBack = { navController.popBackStack() },
                     onAddClick = { navController.navigate("challenges_add") },
-                    viewModel = challengeViewModel
+                    viewModel = challengeViewModel,
+                    onResult = { selectedNames ->
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("selectedChallenges", selectedNames)
+                    }
                 )
             }
 

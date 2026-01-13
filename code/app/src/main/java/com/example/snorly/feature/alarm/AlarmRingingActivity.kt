@@ -100,7 +100,8 @@ private fun RingingRoute(
     // ---- customize these two lines to match YOUR DB values ----
 
     // "challenge in db" -> consider it enabled if not blank and not "None"
-    val hasChallenge = a.challenge.isNotBlank() && a.challenge.lowercase() != "none"
+    val hasChallenge = a.challenge.isNotEmpty()
+
 
     // Snooze time from DB (CHANGE FIELD NAME if yours is different)
     // Example expected field: a.snoozeMinutes
