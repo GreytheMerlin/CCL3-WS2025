@@ -14,17 +14,13 @@ import java.time.temporal.ChronoUnit
 class SleepViewModel(
     private val healthConnectManager: HealthConnectManager
 ): ViewModel() {
-
+    // Expose permissions so the UI Button can use them
     val requiredPermissions = healthConnectManager.permissions
 
     // state for ui to know what to show
     var hasPermission by mutableStateOf(false)
     private set
 
-    //Check permission immediately when VM starts
-    init {
-        checkPermissions()
-    }
 
     //  Holds the result string "7h 30m"
     var totalSleepDuration by mutableStateOf("Loading...")
@@ -62,6 +58,13 @@ class SleepViewModel(
             }
         }
     }
+
+    //Check permission immediately when VM starts
+
+    init {
+        checkPermissions()
+    }
+
     // Because our ViewModel needs an argument (Manager), we need a custom Factory.
     // This is "boilerplate" you will see often in Android without Hilt.
     class Factory(private val manager: HealthConnectManager) : ViewModelProvider.Factory {

@@ -13,7 +13,15 @@ class HealthConnectManager(private val context: Context) {
 
     // This is the actual entry point to the Google API.
     // We get it efficiently using getOrCreate.
-    private val healthConnectClient by lazy { HealthConnectClient.getOrCreate(context) }
+    private val healthConnectClient: HealthConnectClient? by lazy {
+        try {
+            HealthConnectClient.getOrCreate(context)
+        } catch (e: Exception) {
+            // Log the error but DO NOT CRASH
+            Log.e("HealthConnectManager", "Health Connect not available: ${e.message}")
+            null
+        }
+    }
 
     // Define Permissions
     // We need to tell the system exactly what data types we want to touch.
@@ -25,14 +33,17 @@ class HealthConnectManager(private val context: Context) {
     // Check if we have permission
     // We call this before trying to read data.
     suspend fun hasAllPermissions(): Boolean {
-        return healthConnectClient.permissionController.getGrantedPermissions()
-            .containsAll(permissions)
+        return healthConnectClient?.permissionController?.getGrantedPermissions()
+            ?.containsAll(permissions) == true
     }
 
-    //ddd Read Sleep Data
+    //Read Sleep Data
     // "suspend" means this runs in the background (Coroutines) so the UI doesn't freeze.
     // "start" and "end" define the time window we want to look at.
     suspend fun readSleepSessions(start: Instant, end: Instant): List<SleepSessionRecord> {
+        // If client is null, just return empty list
+        val client = healthConnectClient ?: return emptyList()
+
         return try {
             // A. Create the request
             // We ask for records of type 'SleepSessionRecord' within the time range.
@@ -41,10 +52,9 @@ class HealthConnectManager(private val context: Context) {
                 timeRangeFilter = TimeRangeFilter.between(start, end)
             )
 
-            // B. Execute the request
-            val response = healthConnectClient.readRecords(request)
+            val response = client.readRecords(request)
 
-            // C. Return the list of records found
+            // Return the list of records found
             response.records
         } catch (e: Exception) {
             // Log errors (e.g., user revoked permission, Health Connect not installed)
