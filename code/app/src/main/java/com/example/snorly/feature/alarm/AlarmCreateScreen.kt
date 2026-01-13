@@ -1,34 +1,60 @@
-
 @file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.example.snorly.feature.alarm
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-
+import com.example.snorly.feature.alarm.components.SettingRow
+import com.example.snorly.feature.alarm.components.SnoozeSlider
+import com.example.snorly.feature.alarm.components.TimePickerWheel
+import com.example.snorly.feature.alarm.components.ToggleRow
 
 
 @Composable
 fun AlarmCreateScreen(
     onClose: () -> Unit = {},
-    onCreateAlarm: () -> Unit = {}
+    onCreateAlarm: () -> Unit = {},
+    onNavigateToRingtone: () -> Unit = {},
+    onNavigateToVibration: () -> Unit = {},
+    onNavigateToRepeat: () -> Unit = {},
+    onNavigateToChallenge: () -> Unit = {}
 ) {
     var hour by remember { mutableIntStateOf(7) }
     var minute by remember { mutableIntStateOf(30) }
@@ -36,17 +62,18 @@ fun AlarmCreateScreen(
     var label by remember { mutableStateOf("Alarm Name") }
     var ringtone by remember { mutableStateOf("Repeater") }
     var vibration by remember { mutableStateOf("Zig Zag") }
+    var repeat by remember { mutableStateOf("Daily") }
     var dismissChallenge by remember { mutableStateOf("Zig Zag") }
 
     var dynamicWake by remember { mutableStateOf(false) }
     var wakeUpChecker by remember { mutableStateOf(false) }
 
     var enableSnooze by remember { mutableStateOf(true) }
-    var snoozeMinutes by remember { mutableStateOf("9") }
+    var snoozeMinutes by remember { mutableIntStateOf(5) }
 
     val bg = Color(0xFF000000)
     val card = Color(0xFF1B1B1B)
-    val card2 = Color(0xFF222222)
+//    val card2 = Color(0xFF222222)
     val muted = Color(0xFFB3B3B3)
     val divider = Color(0xFF2A2A2A)
     val accent = Color(0xFFFFE7A3)
@@ -110,12 +137,11 @@ fun AlarmCreateScreen(
             Spacer(Modifier.height(10.dp))
 
             // Time picker-ish (two number columns with a capsule highlight)
-            TimePickerMock(
+            TimePickerWheel(
                 hour = hour,
                 minute = minute,
                 onHourChange = { hour = it },
-                onMinuteChange = { minute = it },
-                highlightColor = card2
+                onMinuteChange = { minute = it }
             )
 
             Spacer(Modifier.height(22.dp))
@@ -143,25 +169,29 @@ fun AlarmCreateScreen(
             Spacer(Modifier.height(18.dp))
 
             // Rows
-            SettingRow(
-                title = "Alarm Ringtones",
-                value = ringtone,
-                onClick = { /* open */ },
-                dividerColor = divider
-            )
-            SettingRow(
-                title = "Vibration Pattern",
-                value = vibration,
-                onClick = { /* open */ },
-                dividerColor = divider
-            )
-            SettingRow(
-                title = "Dismiss Challenge",
-                subtitle = "Fun games to wake you up",
-                value = dismissChallenge,
-                onClick = { /* open */ },
-                dividerColor = divider
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                SettingRow(
+                    title = "Repeat",
+                    value = repeat,
+                    onClick = onNavigateToRepeat // Connect the click
+                )
+                SettingRow(
+                    title = "Ringtone",
+                    value = ringtone,
+                    onClick = onNavigateToRingtone // Connect the click
+                )
+                SettingRow(
+                    title = "Vibration",
+                    value = vibration,
+                    onClick = onNavigateToVibration // Connect the click
+                )
+
+                SettingRow(
+                    title = "Dismiss Challenge",
+                    subtitle = "Complete a task to turn off alarm",
+                    value = dismissChallenge,
+                    onClick = onNavigateToChallenge // Connect the click
+                )}
 
             Spacer(Modifier.height(10.dp))
 
@@ -170,274 +200,32 @@ fun AlarmCreateScreen(
                 subtitle = "Wake you at optimal time based on\nsleep cycles. Set latest wake time.",
                 checked = dynamicWake,
                 onCheckedChange = { dynamicWake = it },
-                dividerColor = divider,
-                accent = accent
             )
             ToggleRow(
                 title = "Wake Up Checker",
                 subtitle = "You will receive a notification. If you do not accept this,\nthe alarm will be triggered.",
                 checked = wakeUpChecker,
                 onCheckedChange = { wakeUpChecker = it },
-                dividerColor = divider,
-                accent = accent
             )
 
             Spacer(Modifier.height(10.dp))
 
             ToggleRow(
                 title = "Enable Snooze",
-                subtitle = "Allow snoozing alarm",
+                subtitle = "allow snoozing alarm",
                 checked = enableSnooze,
                 onCheckedChange = { enableSnooze = it },
-                dividerColor = divider,
-                accent = accent
+                showDivider = false
             )
 
-            Spacer(Modifier.height(10.dp))
-
-            Text("Snooze Duration (minutes)", color = muted)
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
+            // Animated Slider
+            SnoozeSlider(
+                visible = enableSnooze,
                 value = snoozeMinutes,
-                onValueChange = { snoozeMinutes = it.filter { ch -> ch.isDigit() }.take(3) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                enabled = enableSnooze,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = card,
-                    unfocusedContainerColor = card,
-                    disabledContainerColor = card,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    disabledTextColor = Color(0xFF888888),
-                    focusedBorderColor = divider,
-                    unfocusedBorderColor = divider,
-                    disabledBorderColor = divider,
-                    cursorColor = accent
-                ),
-                shape = RoundedCornerShape(12.dp)
+                onValueChange = { snoozeMinutes = it }
             )
 
             Spacer(Modifier.height(90.dp)) // room for bottom button
         }
-    }
-}
-
-@Composable
-private fun TimePickerMock(
-    hour: Int,
-    minute: Int,
-    onHourChange: (Int) -> Unit,
-    onMinuteChange: (Int) -> Unit,
-    highlightColor: Color
-) {
-    val hours = (0..23).toList()
-    val minutes = (0..59).toList()
-
-    // Display-only mimic with 5 visible rows; center row highlighted
-    val visible = 5
-    val center = 2
-
-    fun wrapIndex(listSize: Int, index: Int): Int {
-        var i = index % listSize
-        if (i < 0) i += listSize
-        return i
-    }
-
-    val hourIndex = hours.indexOf(hour).coerceAtLeast(0)
-    val minuteIndex = minutes.indexOf(minute).coerceAtLeast(0)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(170.dp)
-    ) {
-        // Highlight capsule
-        Box(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .fillMaxWidth()
-                .height(56.dp)
-                .clip(RoundedCornerShape(18.dp))
-                .background(highlightColor.copy(alpha = 0.65f))
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 36.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            TimeColumn(
-                values = (0 until visible).map { offset ->
-                    hours[wrapIndex(hours.size, hourIndex + offset - center)]
-                },
-                selected = hour,
-                onIncrement = { onHourChange(hours[wrapIndex(hours.size, hourIndex + 1)]) },
-                onDecrement = { onHourChange(hours[wrapIndex(hours.size, hourIndex - 1)]) }
-            )
-
-            Text(":", color = Color.White, style = MaterialTheme.typography.headlineLarge)
-
-            TimeColumn(
-                values = (0 until visible).map { offset ->
-                    minutes[wrapIndex(minutes.size, minuteIndex + offset - center)]
-                },
-                selected = minute,
-                onIncrement = { onMinuteChange(minutes[wrapIndex(minutes.size, minuteIndex + 1)]) },
-                onDecrement = { onMinuteChange(minutes[wrapIndex(minutes.size, minuteIndex - 1)]) }
-            )
-        }
-    }
-}
-
-@Composable
-private fun TimeColumn(
-    values: List<Int>,
-    selected: Int,
-    onIncrement: () -> Unit,
-    onDecrement: () -> Unit
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // Tap zones: top half decrements, bottom half increments (simple)
-        Box(
-            modifier = Modifier
-                .width(92.dp)
-                .height(160.dp)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.SpaceEvenly,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                values.forEach { v ->
-                    val isSel = v == selected
-                    Text(
-                        text = v.toString().padStart(2, '0'),
-                        color = if (isSel) Color.White else Color(0xFF5A5A5A),
-                        style = if (isSel) MaterialTheme.typography.displaySmall else MaterialTheme.typography.displaySmall,
-                        fontWeight = if (isSel) FontWeight.SemiBold else FontWeight.Normal
-                    )
-                }
-            }
-
-            // Invisible click layers
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
-                    .align(Alignment.TopCenter)
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        onDecrement()
-                    }
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
-                    .align(Alignment.BottomCenter)
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        onIncrement()
-                    }
-            )
-
-        }
-    }
-}
-
-@Composable
-private fun SettingRow(
-    title: String,
-    value: String,
-    subtitle: String? = null,
-    onClick: () -> Unit,
-    dividerColor: Color
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 14.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(title, color = Color.White, style = MaterialTheme.typography.titleLarge)
-                if (subtitle != null) {
-                    Spacer(Modifier.height(4.dp))
-                    Text(subtitle, color = Color(0xFF9B9B9B), style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(value, color = Color(0xFF9B9B9B), style = MaterialTheme.typography.bodyLarge)
-                Spacer(Modifier.width(8.dp))
-                Icon(
-                    imageVector = Icons.Filled.ChevronRight,
-                    contentDescription = null,
-                    tint = Color(0xFF9B9B9B)
-                )
-
-            }
-        }
-        Spacer(Modifier.height(14.dp))
-        HorizontalDivider(color = dividerColor)
-    }
-}
-
-@Composable
-private fun ToggleRow(
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    dividerColor: Color,
-    accent: Color
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 14.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(title, color = Color.White, style = MaterialTheme.typography.titleLarge)
-                Spacer(Modifier.height(6.dp))
-                Text(subtitle, color = Color(0xFF9B9B9B), style = MaterialTheme.typography.bodyMedium)
-            }
-
-            Switch(
-                checked = checked,
-                onCheckedChange = onCheckedChange,
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = accent,
-                    uncheckedThumbColor = accent,
-                    checkedTrackColor = Color(0xFF2E3A4A),
-                    uncheckedTrackColor = Color(0xFF2A2A2A),
-                    checkedBorderColor = Color.Transparent,
-                    uncheckedBorderColor = Color.Transparent
-                )
-            )
-        }
-        Spacer(Modifier.height(14.dp))
-        HorizontalDivider(color = dividerColor)
     }
 }
