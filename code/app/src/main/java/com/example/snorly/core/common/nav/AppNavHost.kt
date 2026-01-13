@@ -3,8 +3,10 @@ package com.example.snorly.core.common.nav
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.snorly.feature.alarm.AlarmCreateScreen
 import com.example.snorly.feature.alarm.AlarmScreen
 import com.example.snorly.feature.alarm.screens.DismissChallengeScreen
@@ -44,7 +46,14 @@ fun AppNavHost(
                 )
             }
             composable("alarm_ringtone") {
-                RingtoneScreen(onBack = { navController.popBackStack() })
+                RingtoneScreen(
+                    onBack = { navController.popBackStack() },
+                    onCategoryClick = { categoryId ->
+                        // Route to the list screen, passing the ID
+                        // e.g. "ringtone_list/nature" or "ringtone_list/spotify"
+                        navController.navigate("ringtone_list/$categoryId")
+                    })
+
             }
             composable("alarm_vibration") {
                 VibrationScreen(onBack = { navController.popBackStack() })
@@ -52,6 +61,16 @@ fun AppNavHost(
             composable("alarm_challenge") {
                 DismissChallengeScreen(onBack = { navController.popBackStack() })
             }
+
+            // Ringtone screen
+            composable(
+                route = "ringtone_list/{categoryId}",
+                arguments = listOf(navArgument("categoryId") { type = NavType.StringType })
+            ) {
+                val id = it.arguments?.getString("categoryId")
+                // RingtoneListScreen(categoryId = id) ...
+            }
+
         }
     }
 }
