@@ -2,6 +2,7 @@ package com.example.snorly.feature.sleep
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -34,9 +35,21 @@ fun SleepScreen(
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
 
         if (viewModel.hasPermission) {
-            // A. Permission Granted
-            Text(text = "Feature Unlocked: Reading Sleep Data...")
-            // TODO: we will load the actual data here.
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+
+                // === SHOW DATA ===
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Sleep (Last 24h)",
+                        style = androidx.compose.material3.MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        // READ THE VALUE FROM VIEWMODEL
+                        text = viewModel.totalSleepDuration,
+                        style = androidx.compose.material3.MaterialTheme.typography.displayLarge
+                    )
+                }
+            }
 
         } else {
             // B. Permission Missing

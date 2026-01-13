@@ -8,12 +8,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.snorly.core.health.HealthConnectManager
 import kotlinx.coroutines.launch
-import java.security.AccessController.checkPermission
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 class SleepViewModel(
     private val healthConnectManager: HealthConnectManager
 ): ViewModel() {
-
 
     val requiredPermissions = healthConnectManager.permissions
 
@@ -26,13 +26,42 @@ class SleepViewModel(
         checkPermissions()
     }
 
-    // We launch a coroutine to check permissions involves disk I/O
-    fun checkPermissions() {
+    //  Holds the result string "7h 30m"
+    var totalSleepDuration by mutableStateOf("Loading...")
+        private set
+
+
+
+    private fun loadSleepData() {
         viewModelScope.launch {
-            hasPermission = healthConnectManager.hasAllPermissions()
+            val now = Instant.now()
+            val yesterday = now.minus(24, ChronoUnit.HOURS)
+
+            // get list form manager
+            val sessions = healthConnectManager.readSleepSessions(start = yesterday, end = now)
+
+            // sum up  duration of all sessions
+            val totalDuration = sessions.sumOf { record ->
+                java.time.Duration.between(record.startTime, record.endTime).toMinutes()
+            }
+
+            // Convert minutes to "8h 30m"
+            val hours = totalDuration / 60
+            val minutes = totalDuration % 60
+            totalSleepDuration = "${hours}h ${minutes}m"
         }
     }
 
+    fun checkPermissions(){
+        viewModelScope.launch {
+            hasPermission = healthConnectManager.hasAllPermissions()
+            if (hasPermission) {
+                loadSleepData()
+            } else {
+                totalSleepDuration = "No Permission"
+            }
+        }
+    }
     // Because our ViewModel needs an argument (Manager), we need a custom Factory.
     // This is "boilerplate" you will see often in Android without Hilt.
     class Factory(private val manager: HealthConnectManager) : ViewModelProvider.Factory {
