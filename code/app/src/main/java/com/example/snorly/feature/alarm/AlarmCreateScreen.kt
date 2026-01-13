@@ -53,6 +53,7 @@ fun AlarmCreateScreen(
     onCreateAlarm: () -> Unit = {},
     onNavigateToRingtone: () -> Unit = {},
     onNavigateToVibration: () -> Unit = {},
+    onNavigateToRepeat: () -> Unit = {},
     onNavigateToChallenge: () -> Unit = {}
 ) {
     var hour by remember { mutableIntStateOf(7) }
@@ -61,6 +62,7 @@ fun AlarmCreateScreen(
     var label by remember { mutableStateOf("Alarm Name") }
     var ringtone by remember { mutableStateOf("Repeater") }
     var vibration by remember { mutableStateOf("Zig Zag") }
+    var repeat by remember { mutableStateOf("Daily") }
     var dismissChallenge by remember { mutableStateOf("Zig Zag") }
 
     var dynamicWake by remember { mutableStateOf(false) }
@@ -169,6 +171,11 @@ fun AlarmCreateScreen(
             // Rows
             Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
                 SettingRow(
+                    title = "Repeat",
+                    value = repeat,
+                    onClick = onNavigateToRepeat // Connect the click
+                )
+                SettingRow(
                     title = "Ringtone",
                     value = ringtone,
                     onClick = onNavigateToRingtone // Connect the click
@@ -178,6 +185,7 @@ fun AlarmCreateScreen(
                     value = vibration,
                     onClick = onNavigateToVibration // Connect the click
                 )
+
                 SettingRow(
                     title = "Dismiss Challenge",
                     subtitle = "Complete a task to turn off alarm",

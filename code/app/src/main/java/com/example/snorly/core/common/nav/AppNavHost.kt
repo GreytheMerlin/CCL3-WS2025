@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import com.example.snorly.feature.alarm.AlarmCreateScreen
 import com.example.snorly.feature.alarm.AlarmScreen
 import com.example.snorly.feature.alarm.screens.DismissChallengeScreen
+import com.example.snorly.feature.alarm.screens.RepeatScreen
 import com.example.snorly.feature.alarm.screens.RingtoneScreen
 import com.example.snorly.feature.alarm.screens.VibrationScreen
 import com.example.snorly.feature.report.ReportScreen
@@ -51,6 +52,9 @@ fun AppNavHost(
             }
             composable("alarm_challenge") {
                 DismissChallengeScreen(onBack = { navController.popBackStack() })
+            }
+            composable("alarm_repeat") {
+                RepeatScreen(onBack = { navController.popBackStack() })
             }
         }
     }
