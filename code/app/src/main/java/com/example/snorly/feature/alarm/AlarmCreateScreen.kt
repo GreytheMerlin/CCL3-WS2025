@@ -199,7 +199,6 @@ fun AlarmCreateScreen(
                     value = vibration,
                     onClick = onNavigateToVibration // Connect the click
                 )
-
                 SettingRow(
                     title = "Dismiss Challenge",
                     subtitle = "Complete a task to turn off alarm",
