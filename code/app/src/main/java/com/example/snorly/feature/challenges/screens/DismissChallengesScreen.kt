@@ -1,9 +1,11 @@
 package com.example.snorly.feature.challenges.screens
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -14,9 +16,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 import com.example.snorly.core.common.components.BackTopBar
 import com.example.snorly.feature.challenges.model.Challenge
 import com.example.snorly.feature.challenges.viewmodel.ChallengeViewModel
@@ -25,9 +30,16 @@ import com.example.snorly.feature.challenges.viewmodel.ChallengeViewModel
 fun DismissChallengesScreen(
     onBack: () -> Unit,
     onAddClick: () -> Unit,
-    viewModel: ChallengeViewModel = viewModel() // Use Hilt or Factory in real app
+    viewModel: ChallengeViewModel = viewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    val listState = rememberLazyListState()
+
+    // 1. Setup Reorderable State
+    val reorderableState = rememberReorderableLazyListState(listState) { from, to ->
+        // This callback runs when items are moved
+        viewModel.moveChallenge(from.index, to.index)
+    }
 
     Scaffold(
         topBar = { BackTopBar("Dismiss Challenges", onBack) },
@@ -44,7 +56,7 @@ fun DismissChallengesScreen(
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
 
-            // 1. Master Toggle
+            // ... Master Toggle (Same as before) ...
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -61,22 +73,38 @@ fun DismissChallengesScreen(
 
             if (state.isEnabled) {
                 Text(
-                    "Active Challenges (Order matters)",
+                    "Active Challenges (Drag to reorder)",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
 
-                // 2. Draggable List (Simulated with LazyColumn)
+                // 2. The Reorderable LazyColumn
                 LazyColumn(
+                    state = listState,
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    itemsIndexed(state.activeChallenges) { index, challenge ->
-                        ActiveChallengeCard(
-                            challenge = challenge,
-                            onDelete = { viewModel.removeChallenge(challenge) }
-                        )
+                    // Use itemsIndexed to get the key and index
+                    itemsIndexed(state.activeChallenges, key = { _, item -> item.id }) { index, challenge ->
+
+                        // 3. Wrap item in ReorderableItem
+                        ReorderableItem(reorderableState, key = challenge.id) { isDragging ->
+
+                            // Visual feedback when dragging (elevation)
+                            val elevation by animateDpAsState(if (isDragging) 8.dp else 0.dp)
+
+                            ActiveChallengeCard(
+                                modifier = Modifier
+                                    .shadow(elevation, RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant), // Ensure bg is set
+                                challenge = challenge,
+                                onDelete = { viewModel.removeChallenge(challenge) },
+                                // Pass the drag handle modifier down
+                                dragModifier = Modifier.draggableHandle()
+                            )
+                        }
                     }
                 }
             } else {
@@ -90,11 +118,13 @@ fun DismissChallengesScreen(
 
 @Composable
 fun ActiveChallengeCard(
+    modifier: Modifier = Modifier, // Allow passing modifier
     challenge: Challenge,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    dragModifier: Modifier // Specific modifier for the handle
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(), // Apply the reorderable modifier here
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
@@ -102,7 +132,14 @@ fun ActiveChallengeCard(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.DragHandle, contentDescription = "Drag", tint = Color.Gray)
+            // 4. Apply the drag handle modifier to the Icon
+            Icon(
+                imageVector = Icons.Default.DragHandle,
+                contentDescription = "Drag",
+                tint = Color.Gray,
+                modifier = dragModifier // CRITICAL: This makes only the icon draggable
+            )
+
             Spacer(Modifier.width(16.dp))
 
             // Icon Box
