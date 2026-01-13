@@ -1,4 +1,3 @@
-
 @file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.example.snorly.feature.alarm
@@ -22,7 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-
+import com.example.snorly.feature.alarm.components.TimePickerWheel
 
 
 @Composable
@@ -110,12 +109,11 @@ fun AlarmCreateScreen(
             Spacer(Modifier.height(10.dp))
 
             // Time picker-ish (two number columns with a capsule highlight)
-            TimePickerMock(
+            TimePickerWheel(
                 hour = hour,
                 minute = minute,
                 onHourChange = { hour = it },
-                onMinuteChange = { minute = it },
-                highlightColor = card2
+                onMinuteChange = { minute = it }
             )
 
             Spacer(Modifier.height(22.dp))
@@ -219,141 +217,6 @@ fun AlarmCreateScreen(
             )
 
             Spacer(Modifier.height(90.dp)) // room for bottom button
-        }
-    }
-}
-
-@Composable
-private fun TimePickerMock(
-    hour: Int,
-    minute: Int,
-    onHourChange: (Int) -> Unit,
-    onMinuteChange: (Int) -> Unit,
-    highlightColor: Color
-) {
-    val hours = (0..23).toList()
-    val minutes = (0..59).toList()
-
-    // Display-only mimic with 5 visible rows; center row highlighted
-    val visible = 5
-    val center = 2
-
-    fun wrapIndex(listSize: Int, index: Int): Int {
-        var i = index % listSize
-        if (i < 0) i += listSize
-        return i
-    }
-
-    val hourIndex = hours.indexOf(hour).coerceAtLeast(0)
-    val minuteIndex = minutes.indexOf(minute).coerceAtLeast(0)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(170.dp)
-    ) {
-        // Highlight capsule
-        Box(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .fillMaxWidth()
-                .height(56.dp)
-                .clip(RoundedCornerShape(18.dp))
-                .background(highlightColor.copy(alpha = 0.65f))
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 36.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            TimeColumn(
-                values = (0 until visible).map { offset ->
-                    hours[wrapIndex(hours.size, hourIndex + offset - center)]
-                },
-                selected = hour,
-                onIncrement = { onHourChange(hours[wrapIndex(hours.size, hourIndex + 1)]) },
-                onDecrement = { onHourChange(hours[wrapIndex(hours.size, hourIndex - 1)]) }
-            )
-
-            Text(":", color = Color.White, style = MaterialTheme.typography.headlineLarge)
-
-            TimeColumn(
-                values = (0 until visible).map { offset ->
-                    minutes[wrapIndex(minutes.size, minuteIndex + offset - center)]
-                },
-                selected = minute,
-                onIncrement = { onMinuteChange(minutes[wrapIndex(minutes.size, minuteIndex + 1)]) },
-                onDecrement = { onMinuteChange(minutes[wrapIndex(minutes.size, minuteIndex - 1)]) }
-            )
-        }
-    }
-}
-
-@Composable
-private fun TimeColumn(
-    values: List<Int>,
-    selected: Int,
-    onIncrement: () -> Unit,
-    onDecrement: () -> Unit
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // Tap zones: top half decrements, bottom half increments (simple)
-        Box(
-            modifier = Modifier
-                .width(92.dp)
-                .height(160.dp)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.SpaceEvenly,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                values.forEach { v ->
-                    val isSel = v == selected
-                    Text(
-                        text = v.toString().padStart(2, '0'),
-                        color = if (isSel) Color.White else Color(0xFF5A5A5A),
-                        style = if (isSel) MaterialTheme.typography.displaySmall else MaterialTheme.typography.displaySmall,
-                        fontWeight = if (isSel) FontWeight.SemiBold else FontWeight.Normal
-                    )
-                }
-            }
-
-            // Invisible click layers
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
-                    .align(Alignment.TopCenter)
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        onDecrement()
-                    }
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
-                    .align(Alignment.BottomCenter)
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        onIncrement()
-                    }
-            )
-
         }
     }
 }
