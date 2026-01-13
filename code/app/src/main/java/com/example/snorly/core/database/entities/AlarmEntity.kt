@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 data class AlarmEntity (
     @PrimaryKey(autoGenerate = true) val id: Long =0L,
     val time:String,
-    val challenge: String,
+    val challenge: List<String> = emptyList(),
     val ringtone: String,
     val vibration: String,
     val isActive: Boolean,

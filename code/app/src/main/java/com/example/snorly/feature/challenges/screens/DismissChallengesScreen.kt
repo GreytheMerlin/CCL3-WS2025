@@ -30,11 +30,25 @@ import com.example.snorly.feature.challenges.viewmodel.ChallengeViewModel
 fun DismissChallengesScreen(
     onBack: () -> Unit,
     onAddClick: () -> Unit,
-    viewModel: ChallengeViewModel = viewModel()
+    onResult: (List<String>) -> Unit,
+    viewModel: ChallengeViewModel = viewModel(),
+
 ) {
     val state by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
 
+
+
+    fun handleBack() {
+        val result = if (state.isEnabled) {
+            state.activeChallenges.map { it.title }
+        } else {
+            emptyList()
+        }
+
+        onResult(result)
+        onBack()
+    }
     // 1. Setup Reorderable State
     val reorderableState = rememberReorderableLazyListState(listState) { from, to ->
         // This callback runs when items are moved
@@ -42,7 +56,7 @@ fun DismissChallengesScreen(
     }
 
     Scaffold(
-        topBar = { BackTopBar("Dismiss Challenges", onBack) },
+        topBar = { BackTopBar(title="Dismiss Challenges", onBackClick =  {handleBack()}) },
         floatingActionButton = {
             if (state.isEnabled) {
                 FloatingActionButton(

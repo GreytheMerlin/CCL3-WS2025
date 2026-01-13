@@ -55,8 +55,14 @@ fun AlarmCreateScreen(
     onNavigateToRingtone: () -> Unit = {},
     onNavigateToVibration: () -> Unit = {},
     onNavigateToRepeat: () -> Unit = {},
-    onNavigateToChallenge: () -> Unit = {}
+    onNavigateToChallenge: () -> Unit = {},
+    selectedChallenges: List<String> = emptyList()
 ) {
+
+    val dismissChallengeText =
+        if (selectedChallenges.isEmpty()) "Off"
+        else selectedChallenges.joinToString(", ")
+
     var hour by remember { mutableIntStateOf(7) }
     var minute by remember { mutableIntStateOf(30) }
 
@@ -64,7 +70,7 @@ fun AlarmCreateScreen(
     var ringtone by remember { mutableStateOf("Repeater") }
     var vibration by remember { mutableStateOf("Zig Zag") }
     var repeat by remember { mutableStateOf("Daily") }
-    var dismissChallenge by remember { mutableStateOf("Zig Zag") }
+
 
     var dynamicWake by remember { mutableStateOf(false) }
     var wakeUpChecker by remember { mutableStateOf(false) }
@@ -120,7 +126,7 @@ fun AlarmCreateScreen(
                             ringtone = ringtone,
                             vibration = vibration, // or whatever your DB expects
                             days = listOf(1,1,1,1,1,1,1), // TODO: useEAL days from repeat screen
-                            challenge = dismissChallenge,
+                            challenge = selectedChallenges,
                             isActive = true,
                             snoozeMinutes = snoozeMinutes
                         )
@@ -202,7 +208,7 @@ fun AlarmCreateScreen(
                 SettingRow(
                     title = "Dismiss Challenge",
                     subtitle = "Complete a task to turn off alarm",
-                    value = dismissChallenge,
+                    value = dismissChallengeText,
                     onClick = onNavigateToChallenge // Connect the click
                 )}
 
