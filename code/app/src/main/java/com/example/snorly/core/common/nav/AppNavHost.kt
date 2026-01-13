@@ -12,7 +12,6 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.example.snorly.feature.alarm.AlarmCreateScreen
 import com.example.snorly.feature.alarm.AlarmScreen
-import com.example.snorly.feature.alarm.screens.DismissChallengeScreen
 import com.example.snorly.feature.alarm.screens.RepeatScreen
 import com.example.snorly.feature.alarm.screens.RingtoneScreen
 import com.example.snorly.feature.alarm.screens.VibrationScreen
