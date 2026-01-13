@@ -74,6 +74,9 @@ dependencies {
     // Drag libery
     implementation("sh.calvin.reorderable:reorderable:3.0.0")
 
+    // Health Connect
+    implementation(libs.androidx.health.connect.client)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
