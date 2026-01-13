@@ -1,17 +1,23 @@
 package com.example.snorly.core.common.nav
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.example.snorly.feature.alarm.AlarmCreateScreen
 import com.example.snorly.feature.alarm.AlarmScreen
-import com.example.snorly.feature.alarm.screens.DismissChallengeScreen
 import com.example.snorly.feature.alarm.screens.RingtoneScreen
 import com.example.snorly.feature.alarm.screens.VibrationScreen
+import com.example.snorly.feature.challenges.screens.AddChallengeScreen
+import com.example.snorly.feature.challenges.screens.ChallengeDetailScreen
+import com.example.snorly.feature.challenges.screens.DismissChallengesScreen
+import com.example.snorly.feature.challenges.viewmodel.ChallengeViewModel
 import com.example.snorly.feature.report.ReportScreen
 import com.example.snorly.feature.settings.SettingsScreen
 import com.example.snorly.feature.sleep.SleepScreen
@@ -20,6 +26,7 @@ import com.example.snorly.feature.sleep.SleepScreen
 fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
+
 ) {
     NavHost(
         navController = navController,
@@ -35,42 +42,97 @@ fun AppNavHost(
                     Destination.SETTINGS -> SettingsScreen()
                 }
             }
-            // === Alarm screens ===
-            composable("alarm_create") {
-                AlarmCreateScreen(
-                    onClose = { navController.popBackStack() },
-                    // Pass navigation lambdas to the screen
-                    onNavigateToRingtone = { navController.navigate("alarm_ringtone") },
-                    onNavigateToVibration = { navController.navigate("alarm_vibration") },
-                    onNavigateToChallenge = { navController.navigate("alarm_challenge") }
+        }
+        // === Alarm screens ===
+        composable("alarm_create") {
+            AlarmCreateScreen(
+                onClose = { navController.popBackStack() },
+                // Pass navigation lambdas to the screen
+                onNavigateToRingtone = { navController.navigate("alarm_ringtone") },
+                onNavigateToVibration = { navController.navigate("alarm_vibration") },
+                onNavigateToChallenge = { navController.navigate("challenges_graph") }
+            )
+        }
+        composable("alarm_ringtone") {
+            RingtoneScreen(
+                onBack = { navController.popBackStack() },
+                onCategoryClick = { categoryId ->
+                    // Route to the list screen, passing the ID
+                    // e.g. "ringtone_list/nature" or "ringtone_list/spotify"
+                    navController.navigate("ringtone_list/$categoryId")
+                })
+
+        }
+        composable("alarm_vibration") {
+            VibrationScreen(onBack = { navController.popBackStack() })
+        }
+
+        // Ringtone screen
+        composable(
+            route = "ringtone_list/{categoryId}",
+            arguments = listOf(navArgument("categoryId") { type = NavType.StringType })
+        ) {
+            val id = it.arguments?.getString("categoryId")
+            // RingtoneListScreen(categoryId = id) ...
+        }
+        // === Challenges ===
+        navigation(
+            startDestination = "challenges_main",
+            route = "challenges_graph"
+        ) {
+            // A. Create the ViewModel scoped to this GRAPH, not the whole app.
+            // When you exit "challenges_graph", this ViewModel is cleared.
+            composable("challenges_main") { backStackEntry ->
+                // We get the ViewModelStoreOwner from the graph entry
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry("challenges_graph")
+                }
+                val challengeViewModel: ChallengeViewModel = viewModel(parentEntry)
+
+                DismissChallengesScreen(
+                    onBack = { navController.popBackStack() },
+                    onAddClick = { navController.navigate("challenges_add") },
+                    viewModel = challengeViewModel
                 )
             }
-            composable("alarm_ringtone") {
-                RingtoneScreen(
+
+            composable("challenges_add") { backStackEntry ->
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry("challenges_graph")
+                }
+                val challengeViewModel: ChallengeViewModel = viewModel(parentEntry)
+
+                AddChallengeScreen(
                     onBack = { navController.popBackStack() },
-                    onCategoryClick = { categoryId ->
-                        // Route to the list screen, passing the ID
-                        // e.g. "ringtone_list/nature" or "ringtone_list/spotify"
-                        navController.navigate("ringtone_list/$categoryId")
-                    })
-
-            }
-            composable("alarm_vibration") {
-                VibrationScreen(onBack = { navController.popBackStack() })
-            }
-            composable("alarm_challenge") {
-                DismissChallengeScreen(onBack = { navController.popBackStack() })
+                    onChallengeClick = { id -> navController.navigate("challenges_detail/$id") },
+                    viewModel = challengeViewModel
+                )
             }
 
-            // Ringtone screen
             composable(
-                route = "ringtone_list/{categoryId}",
-                arguments = listOf(navArgument("categoryId") { type = NavType.StringType })
-            ) {
-                val id = it.arguments?.getString("categoryId")
-                // RingtoneListScreen(categoryId = id) ...
-            }
+                route = "challenges_detail/{challengeId}",
+                arguments = listOf(navArgument("challengeId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry("challenges_graph")
+                }
+                val challengeViewModel: ChallengeViewModel = viewModel(parentEntry)
 
+                val id = backStackEntry.arguments?.getString("challengeId")
+                val challenge = challengeViewModel.getChallengeById(id ?: "")
+
+                if (challenge != null) {
+                    ChallengeDetailScreen(
+                        challenge = challenge,
+                        onBack = { navController.popBackStack() },
+                        onSave = {
+                            challengeViewModel.addChallenge(challenge)
+                            // Pop back to Main Screen, removing Add and Detail from stack
+                            navController.popBackStack("challenges_main", inclusive = false)
+                        }
+                    )
+                }
+            }
         }
     }
 }
