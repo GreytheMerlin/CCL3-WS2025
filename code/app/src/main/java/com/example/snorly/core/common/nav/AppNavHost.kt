@@ -2,6 +2,7 @@ package com.example.snorly.core.common.nav
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,6 +21,7 @@ fun AppNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
+    val alarmViewModel: com.example.snorly.feature.alarm.AlarmViewModel = viewModel()
     NavHost(
         navController = navController,
         startDestination = Destination.ALARM.route,
@@ -38,6 +40,10 @@ fun AppNavHost(
             composable("alarm_create") {
                 AlarmCreateScreen(
                     onClose = { navController.popBackStack() },
+                    onCreateAlarm = { entity ->
+                        alarmViewModel.insert(entity)
+                        navController.popBackStack()
+                    },
                     // Pass navigation lambdas to the screen
                     onNavigateToRingtone = { navController.navigate("alarm_ringtone") },
                     onNavigateToVibration = { navController.navigate("alarm_vibration") },

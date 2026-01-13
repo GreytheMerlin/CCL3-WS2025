@@ -28,11 +28,16 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 import com.example.snorly.feature.alarm.Alarm
+
+
+
 
 @Composable
 fun AlarmCard(
     alarm: Alarm,
+    dayText:String,
     onToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -93,12 +98,18 @@ fun AlarmCard(
 
                 Spacer(modifier = Modifier.height(4.dp)) // Slight breathing room
 
-                // 2. Details Row
-                Text(
-                    text = "${alarm.pattern} • ${alarm.remaining}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+
+
+
+                    Text(
+                        text = "${dayText.ifBlank { "No days" }} • ${alarm.ringtone} • ${alarm.vibration}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                }
 
                 // I moved the icons down slightly or you can keep them inline if you prefer.
                 // Based on your original code, you had them below the text.
