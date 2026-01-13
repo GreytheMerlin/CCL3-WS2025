@@ -32,7 +32,7 @@ fun AppNavHost(
             }
             composable("alarm_create") {
                 AlarmCreateScreen(
-                    onBack = { navController.popBackStack() }
+                    onClose = { navController.popBackStack() }
                 )
             }
         }
