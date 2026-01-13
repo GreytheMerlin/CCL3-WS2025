@@ -14,3 +14,4 @@ val TextMute = Color(0xFF707070)
 val MoonYellow = Color(0xFFFCDC5F) // Primary
 val Blue = Color(0xFF2B7FFF)       // Secondary
 val Danger = Color(0xFFCF6679)     // Error (Optional but good to have)
+val Space = Color(0xFF314158)

@@ -23,6 +23,7 @@ import com.example.snorly.feature.challenges.screens.ChallengeDetailScreen
 import com.example.snorly.feature.challenges.screens.DismissChallengesScreen
 import com.example.snorly.feature.challenges.viewmodel.ChallengeViewModel
 import com.example.snorly.feature.report.ReportScreen
+import com.example.snorly.feature.report.ReportViewModel
 import com.example.snorly.feature.settings.SettingsScreen
 import com.example.snorly.feature.sleep.SleepScreen
 import com.example.snorly.feature.sleep.SleepViewModel
@@ -55,7 +56,13 @@ fun AppNavHost(
                         )
                         SleepScreen(viewModel = sleepViewModel)
                     }
-                    Destination.REPORT -> ReportScreen()
+                    Destination.REPORT -> {
+                        // Reuse the SAME manager
+                        val reportViewModel: ReportViewModel = viewModel(
+                            factory = ReportViewModel.Factory(healthConnectManager)
+                        )
+                        ReportScreen(viewModel = reportViewModel)
+                    }
                     Destination.SETTINGS -> SettingsScreen()
                 }
             }
