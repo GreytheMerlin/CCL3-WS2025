@@ -1,6 +1,7 @@
 package com.example.snorly.core.common.nav
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -57,6 +58,22 @@ fun AppNavHost(
                         val sleepViewModel: SleepViewModel = viewModel(
                             factory = SleepViewModel.Factory(healthConnectManager)
                         )
+
+                        // REFRESH LOGIC
+                        // We use collectAsState to react immediately to the Handle changes
+                        val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+                        val refreshState by savedStateHandle?.getStateFlow("refresh_sleep", false)!!
+                            .collectAsState()
+
+                        LaunchedEffect(refreshState) {
+                            if (refreshState) {
+                                android.util.Log.d("NAV", "Refreshing Sleep List...")
+                                sleepViewModel.checkPermissions() // Force Reload
+                                // Reset the flag so we don't reload loop
+                                savedStateHandle["refresh_sleep"] = false
+                            }
+                        }
+
                         SleepScreen(
                             viewModel = sleepViewModel,
                             onAddSleepClick = { navController.navigate("sleep_add") },
@@ -79,9 +96,8 @@ fun AppNavHost(
         composable("alarm_create") { backStackEntry ->
 
             val selectedChallenges by backStackEntry.savedStateHandle.getStateFlow(
-                    "selectedChallenges",
-                    emptyList<String>()
-                ).collectAsState()
+                "selectedChallenges", emptyList<String>()
+            ).collectAsState()
 
             AlarmCreateScreen(
                 navController = navController,
@@ -137,9 +153,8 @@ fun AppNavHost(
                     viewModel = challengeViewModel,
                     onResult = { selectedNames ->
                         navController.previousBackStackEntry?.savedStateHandle?.set(
-                                "selectedChallenges",
-                                selectedNames
-                            )
+                            "selectedChallenges", selectedNames
+                        )
                     })
             }
 
@@ -216,12 +231,12 @@ fun AppNavHost(
                 onBack = { navController.popBackStack() },
                 onSaveSuccess = {
                     // Tell previous screen to refresh
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("refresh_sleep", true)
+                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                        "refresh_sleep",
+                        true
+                    )
                     navController.popBackStack()
-                }
-            )
+                })
         }
 
         // 2. EDIT ROUTE (With ID)
@@ -240,15 +255,15 @@ fun AppNavHost(
                 onBack = { navController.popBackStack() },
                 onSaveSuccess = {
                     // Tell detail screen to refresh
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("refresh_sleep", true)
+                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                        "refresh_sleep",
+                        true
+                    )
 
                     // Also tell the main list (two steps back) to refresh
                     // (Optional, depends on flow)
                     navController.popBackStack()
-                }
-            )
+                })
         }
 
         composable(
@@ -270,7 +285,17 @@ fun AppNavHost(
                 onEdit = { id ->
                     // Navigate to add screen, passing ID would require Edit Mode logic
                     navController.navigate("sleep_edit/$id")
-                })
+                },
+                onDeleteSuccess = {
+                    // We need to set this on the Main Sleep Screen's handle
+                    // "previousBackStackEntry" refers to the screen BEFORE Detail (which is Main Sleep)
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("refresh_sleep", true)
+
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }

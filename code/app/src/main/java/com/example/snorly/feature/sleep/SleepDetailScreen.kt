@@ -29,7 +29,8 @@ import java.time.format.DateTimeFormatter
 fun SleepDetailScreen(
     viewModel: SleepDetailViewModel,
     onBack: () -> Unit,
-    onEdit: (String) -> Unit // Pass ID to edit screen
+    onEdit: (String) -> Unit, // Pass ID to edit screen
+    onDeleteSuccess: () -> Unit
 ) {
     val record = viewModel.sleepRecord
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -195,7 +196,7 @@ fun SleepDetailScreen(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            viewModel.deleteSession(onSuccess = onBack)
+                            viewModel.deleteSession(onSuccess = onDeleteSuccess)
                             showDeleteDialog = false
                         }
                     ) {
