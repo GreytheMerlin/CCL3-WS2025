@@ -35,21 +35,28 @@
         </activity-alias>
 
         <receiver
-            android:name=".feature.alarm.AlarmReceiver"
+            android:name=".feature.alarm.wakeup.AlarmReceiver"
             android:exported="false" />
 
         <service
-            android:name=".feature.alarm.AlarmRingingService"
+            android:name=".feature.alarm.wakeup.AlarmRingingService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
 
         <activity
-            android:name=".feature.alarm.AlarmRingingActivity"
+            android:name=".feature.alarm.wakeup.AlarmRingingActivity"
             android:exported="false"
             android:launchMode="singleTask"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
             android:excludeFromRecents="true" />
+        <activity
+            android:name=".feature.alarm.wakeup.ChallengeHostActivity"
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:launchMode="singleTask" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

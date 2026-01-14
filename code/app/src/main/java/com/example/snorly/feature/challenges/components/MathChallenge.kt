@@ -1,159 +1,110 @@
+package com.example.snorly.feature.challenges.components
 
-@file:OptIn(ExperimentalMaterial3Api::class)
-package com.example.snorly.feature.alarm.components
-
-
-
-
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardBackspace
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.dp
 import kotlin.random.Random
 
 @Composable
-fun SolveChallengeScreen(
-    modifier: Modifier = Modifier,
-    title: String = "Solve to Dismiss",
-    equation: String = "48 + 14 = ?",
-    value: String,
-    onValueChange: (String) -> Unit,
-    onConfirm: () -> Unit,
-    onClose: () -> Unit,
-    maxDigits: Int = 4,
+fun MathChallengeScreen(
+    onSolved: () -> Unit
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
-        StarryGradientBackground()
+    // generate once
+    val a = remember { Random.nextInt(10, 60) }
+    val b = remember { Random.nextInt(10, 60) }
+    val answer = remember { a + b }
 
-        // Content
-        Column(
-            modifier = Modifier
+    var input by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf(false) }
+
+    val bg = Brush.verticalGradient(
+        listOf(Color(0xFF0B0F1A), Color(0xFF060812))
+    )
+
+    Surface(Modifier.fillMaxSize()) {
+        Box(
+            Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(horizontal = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(bg)
+                .padding(horizontal = 24.dp, vertical = 28.dp)
         ) {
-            TopBar(title = title, onClose = onClose)
-
-            Spacer(Modifier.height(54.dp))
-
-            Text(
-                text = equation,
-                color = Color.White,
-                fontSize = 56.sp,
-                fontWeight = FontWeight.Light,
-                letterSpacing = (-1).sp,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(Modifier.height(22.dp))
-
-            AnswerDisplay(
-                text = value.ifBlank { " " },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(Modifier.height(90.dp))
-
-            Keypad(
-                onDigit = { d ->
-                    if (value.length < maxDigits) onValueChange(value + d)
-                },
-                onBackspace = {
-                    if (value.isNotEmpty()) onValueChange(value.dropLast(1))
-                },
-                onConfirm = onConfirm
-            )
-
-            Spacer(Modifier.weight(1f))
-        }
-    }
-}
-
-@Composable
-private fun TopBar(
-    title: String,
-    onClose: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = title,
-            color = Color.White.copy(alpha = 0.95f),
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Medium
-        )
-        Spacer(Modifier.weight(1f))
-
-        Icon(
-            imageVector = Icons.Default.Close,
-            contentDescription = "Close",
-            tint = Color.White.copy(alpha = 0.95f),
-            modifier = Modifier
-                .size(28.dp)
-                .clickable(onClick = onClose)
-                .padding(2.dp)
-        )
-    }
-}
-
-@Composable
-private fun AnswerDisplay(
-    text: String,
-    modifier: Modifier = Modifier
-) {
-    val shape = RoundedCornerShape(22.dp)
-
-    Box(
-        modifier = modifier
-            .height(96.dp)
-            .clip(shape)
-            .background(
-                brush = Brush.linearGradient(
-                    listOf(
-                        Color.White.copy(alpha = 0.12f),
-                        Color.White.copy(alpha = 0.06f)
-                    ),
-                    start = Offset.Zero,
-                    end = Offset.Infinite
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Top
+            ) {
+                Text(
+                    text = "Solve to Dismiss",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.White
                 )
-            )
-            .border(
-                width = 1.dp,
-                color = Color.White.copy(alpha = 0.10f),
-                shape = shape
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            color = Color.White,
-            fontSize = 42.sp,
-            fontWeight = FontWeight.Light
-        )
+
+                Spacer(Modifier.height(80.dp))
+
+                Text(
+                    text = "$a + $b = ?",
+                    style = MaterialTheme.typography.displayMedium,
+                    color = Color.White
+                )
+
+                Spacer(Modifier.height(32.dp))
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(92.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0x22FFFFFF)
+                    )
+                ) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = if (input.isEmpty()) " " else input,
+                            style = MaterialTheme.typography.displaySmall,
+                            color = Color.White,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+
+                if (error) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = "Wrong answer. Try again.",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
+                Spacer(Modifier.weight(1f))
+
+                Keypad(
+                    onDigit = { d ->
+                        if (input.length < 6) {
+                            input += d
+                            error = false
+                        }
+                    },
+                    onBackspace = {
+                        if (input.isNotEmpty()) input = input.dropLast(1)
+                        error = false
+                    },
+                    onConfirm = {
+                        val v = input.toIntOrNull()
+                        if (v == answer) onSolved() else error = true
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -163,154 +114,61 @@ private fun Keypad(
     onBackspace: () -> Unit,
     onConfirm: () -> Unit
 ) {
-    val spacing = 16.dp
+    val keys = listOf(
+        listOf("1", "2", "3"),
+        listOf("4", "5", "6"),
+        listOf("7", "8", "9"),
+        listOf("⌫", "0", "✓")
+    )
+
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(spacing)
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(spacing)) {
-            KeypadButton(text = "1", modifier = Modifier.weight(1f)) { onDigit("1") }
-            KeypadButton(text = "2", modifier = Modifier.weight(1f)) { onDigit("2") }
-            KeypadButton(text = "3", modifier = Modifier.weight(1f)) { onDigit("3") }
-        }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(spacing)) {
-            KeypadButton(text = "4", modifier = Modifier.weight(1f)) { onDigit("4") }
-            KeypadButton(text = "5", modifier = Modifier.weight(1f)) { onDigit("5") }
-            KeypadButton(text = "6", modifier = Modifier.weight(1f)) { onDigit("6") }
-        }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(spacing)) {
-            KeypadButton(text = "7", modifier = Modifier.weight(1f)) { onDigit("7") }
-            KeypadButton(text = "8", modifier = Modifier.weight(1f)) { onDigit("8") }
-            KeypadButton(text = "9", modifier = Modifier.weight(1f)) { onDigit("9") }
-        }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(spacing)) {
-            KeypadIconButton(
-                icon = Icons.AutoMirrored.Filled.KeyboardBackspace,
-                contentDescription = "Backspace",
-                modifier = Modifier.weight(1f),
-                containerColor = Color.White.copy(alpha = 0.10f),
-                iconTint = Color.White
-            ) { onBackspace() }
-
-            KeypadButton(text = "0", modifier = Modifier.weight(1f)) { onDigit("0") }
-
-            KeypadIconButton(
-                icon = Icons.Default.Check,
-                contentDescription = "Confirm",
-                modifier = Modifier.weight(1f),
-                containerColor = Color(0xFF0D3B7A), // deep blue like screenshot
-                iconTint = Color.White
-            ) { onConfirm() }
+        keys.forEach { row ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                row.forEach { label ->
+                    KeypadButton(
+                        label = label,
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            when (label) {
+                                "⌫" -> onBackspace()
+                                "✓" -> onConfirm()
+                                else -> onDigit(label)
+                            }
+                        }
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
 private fun KeypadButton(
-    text: String,
+    label: String,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    FrostedKey(
-        modifier = modifier,
-        onClick = onClick
-    ) {
-        Text(
-            text = text,
-            color = Color.White,
-            fontSize = 26.sp,
-            fontWeight = FontWeight.Medium
-        )
-    }
-}
-
-@Composable
-private fun KeypadIconButton(
-    icon: ImageVector,
-    contentDescription: String,
-    modifier: Modifier = Modifier,
-    containerColor: Color,
-    iconTint: Color,
-    onClick: () -> Unit
-) {
-    FrostedKey(
-        modifier = modifier,
-        onClick = onClick,
-        containerColor = containerColor
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = iconTint,
-            modifier = Modifier.size(26.dp)
-        )
-    }
-}
-
-@Composable
-private fun FrostedKey(
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-    containerColor: Color = Color.White.copy(alpha = 0.10f),
-    content: @Composable BoxScope.() -> Unit
-) {
-    val shape = RoundedCornerShape(20.dp)
+    val isConfirm = label == "✓"
+    val bg = if (isConfirm) Color(0xFF0B4AA2) else Color(0x22FFFFFF)
 
     Box(
         modifier = modifier
-            .aspectRatio(1.25f) // gives that rounded-square key size feeling
-            .clip(shape)
-            .background(containerColor)
-            .border(1.dp, Color.White.copy(alpha = 0.08f), shape)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-        content = content
-    )
-}
-
-@Composable
-private fun StarryGradientBackground() {
-    // Background gradient close to the screenshot (deep navy to darker)
-    val bg = Brush.radialGradient(
-        colors = listOf(
-            Color(0xFF1B1E3A),
-            Color(0xFF0B0C17),
-            Color(0xFF05050A)
-        ),
-        center = Offset(0.5f, 0.15f),
-        radius = 1200f
-    )
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
+            .height(72.dp)
+            .clip(RoundedCornerShape(18.dp))
             .background(bg)
-            .drawWithCache {
-                val w = size.width
-                val h = size.height
-
-                val rnd = kotlin.random.Random(42)
-                val count = 140
-
-                val stars = List(count) {
-                    val x = rnd.nextFloat() * w
-                    val y = rnd.nextFloat() * h
-                    val r = rnd.nextFloat() * 2.2f + 0.6f
-                    val a = rnd.nextFloat() * 0.55f + 0.10f
-                    Star(x, y, r, a)
-                }
-
-                onDrawBehind {
-                    stars.forEach { s ->
-                        drawCircle(
-                            color = Color.White.copy(alpha = s.alpha),
-                            radius = s.radius,
-                            center = Offset(s.x, s.y)
-                        )
-                    }
-                }
-            }
-    )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.headlineSmall,
+            color = Color.White
+        )
+    }
 }
-
-private data class Star(val x: Float, val y: Float, val radius: Float, val alpha: Float)

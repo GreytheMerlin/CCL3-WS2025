@@ -1,4 +1,4 @@
-package com.example.snorly.feature.alarm
+package com.example.snorly.feature.alarm.wakeup
 
 import android.content.Intent
 import android.os.Bundle
@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.snorly.core.database.AppDatabase
@@ -41,11 +42,20 @@ class AlarmRingingActivity : ComponentActivity() {
                         finishAndRemoveTask()
                     },
                     onSnooze = { snoozeMinutes ->
-                        // schedule the same alarm id again after snooze
                         val triggerAt = System.currentTimeMillis() + snoozeMinutes * 60_000L
                         AlarmScheduler(applicationContext).schedule(alarmId, triggerAt)
 
                         stopService(Intent(this, AlarmRingingService::class.java))
+                        finishAndRemoveTask()
+                    },
+                    onOpenChallenge = {
+                        // IMPORTANT: do NOT stop the service here.
+                        val i = Intent(this, ChallengeHostActivity::class.java).apply {
+                            putExtra(ChallengeHostActivity.EXTRA_ALARM_ID, alarmId)
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                        }
+                        startActivity(i)
+                        // Optional: close ringing UI so user can't dismiss without solving
                         finishAndRemoveTask()
                     }
                 )
@@ -58,18 +68,22 @@ class AlarmRingingActivity : ComponentActivity() {
 private fun RingingRoute(
     alarmId: Long,
     onStopRinging: () -> Unit,
-    onSnooze: (snoozeMinutes: Int) -> Unit
+    onSnooze: (snoozeMinutes: Int) -> Unit,
+    onOpenChallenge: () -> Unit
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
 
     var alarm by remember { mutableStateOf<AlarmEntity?>(null) }
     var loading by remember { mutableStateOf(true) }
 
-    // Load from Room
     LaunchedEffect(alarmId) {
         loading = true
         val dao = AppDatabase.getDatabase(context.applicationContext).alarmDao()
-        alarm = dao.getById(alarmId) // if your DAO returns AlarmEntity? it's fine
+        alarm = try {
+            dao.getById(alarmId)
+        } catch (_: Exception) {
+            null
+        }
         loading = false
     }
 
@@ -84,7 +98,6 @@ private fun RingingRoute(
 
     val a = alarm
     if (a == null) {
-        // Alarm not found -> let user exit safely
         RingingScreen(
             title = "Alarm",
             subtitle = "Not found",
@@ -92,27 +105,14 @@ private fun RingingRoute(
             snoozeMinutes = 0,
             hasChallenge = false,
             onDismiss = onStopRinging,
-            onSnooze = { }
+            onDismissWithChallenge = {},
+            onSnooze = {}
         )
         return
     }
 
-    // ---- customize these two lines to match YOUR DB values ----
-
-    // "challenge in db" -> consider it enabled if not blank and not "None"
     val hasChallenge = a.challenge.isNotEmpty()
-
-
-    // Snooze time from DB (CHANGE FIELD NAME if yours is different)
-    // Example expected field: a.snoozeMinutes
-    val snoozeMinutes = try {
-        // Replace this with your real field, e.g.: a.snoozeMinutes
-        val field = AlarmEntity::class.java.getDeclaredField("snoozeMinutes")
-        field.isAccessible = true
-        field.getInt(a).coerceAtLeast(0)
-    } catch (_: Exception) {
-        0 // if field doesn't exist yet
-    }
+    val snoozeMinutes = a.snoozeMinutes
 
     RingingScreen(
         title = "Wake up",
@@ -121,6 +121,7 @@ private fun RingingRoute(
         snoozeMinutes = snoozeMinutes,
         hasChallenge = hasChallenge,
         onDismiss = onStopRinging,
+        onDismissWithChallenge = onOpenChallenge,
         onSnooze = { onSnooze(snoozeMinutes) }
     )
 }
@@ -133,10 +134,9 @@ private fun RingingScreen(
     snoozeMinutes: Int,
     hasChallenge: Boolean,
     onDismiss: () -> Unit,
+    onDismissWithChallenge: () -> Unit,
     onSnooze: () -> Unit
 ) {
-    var showChallenge by remember { mutableStateOf(false) }
-
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -157,34 +157,16 @@ private fun RingingScreen(
                 Button(
                     onClick = onSnooze,
                     modifier = Modifier.fillMaxWidth().height(56.dp)
-                ) {
-                    Text("Snooze (${snoozeMinutes} min)")
-                }
+                ) { Text("Snooze (${snoozeMinutes} min)") }
+
                 Spacer(Modifier.height(12.dp))
             }
 
-            if (!hasChallenge) {
-                // Normal dismiss
-                Button(
-                    onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth().height(56.dp)
-                ) {
-                    Text("Dismiss")
-                }
-            } else {
-                // Challenge flow: no normal dismiss
-                if (!showChallenge) {
-                    Button(
-                        onClick = { showChallenge = true },
-                        modifier = Modifier.fillMaxWidth().height(56.dp)
-                    ) {
-                        Text("Dismiss with Challenge")
-                    }
-                } else {
-                    ChallengeCard(
-                        onSolved = onDismiss
-                    )
-                }
+            Button(
+                onClick = { if (hasChallenge) onDismissWithChallenge() else onDismiss() },
+                modifier = Modifier.fillMaxWidth().height(56.dp)
+            ) {
+                Text(if (hasChallenge) "Dismiss with Challenge" else "Dismiss")
             }
         }
     }

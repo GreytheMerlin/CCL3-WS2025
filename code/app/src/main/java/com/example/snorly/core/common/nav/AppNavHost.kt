@@ -14,10 +14,11 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.example.snorly.core.health.HealthConnectManager
 import com.example.snorly.feature.alarm.AlarmCreateScreen
-import com.example.snorly.feature.alarm.AlarmScreen
+import com.example.snorly.feature.alarm.wakeup.AlarmScreen
 import com.example.snorly.feature.alarm.screens.RepeatScreen
 import com.example.snorly.feature.alarm.screens.RingtoneScreen
 import com.example.snorly.feature.alarm.screens.VibrationScreen
+import com.example.snorly.feature.alarm.wakeup.AlarmViewModel
 import com.example.snorly.feature.challenges.screens.AddChallengeScreen
 import com.example.snorly.feature.challenges.screens.ChallengeDetailScreen
 import com.example.snorly.feature.challenges.screens.DismissChallengesScreen
@@ -33,7 +34,7 @@ fun AppNavHost(
     modifier: Modifier = Modifier
 
 ) {
-    val alarmViewModel: com.example.snorly.feature.alarm.AlarmViewModel = viewModel()
+    val alarmViewModel: AlarmViewModel = viewModel()
 
     // Initialize the manager using the current context
     val context = androidx.compose.ui.platform.LocalContext.current

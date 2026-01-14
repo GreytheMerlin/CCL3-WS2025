@@ -48,12 +48,13 @@ import com.example.snorly.feature.alarm.components.SettingRow
 import com.example.snorly.feature.alarm.components.SnoozeSlider
 import com.example.snorly.feature.alarm.components.TimePickerWheel
 import com.example.snorly.feature.alarm.components.ToggleRow
+import com.example.snorly.feature.alarm.wakeup.AlarmViewModel
 
 
 @Composable
 fun AlarmCreateScreen(
     navController: NavController,
-    alarmViewModel: com.example.snorly.feature.alarm.AlarmViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    alarmViewModel: AlarmViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     onClose: () -> Unit = {},
     onCreateAlarm: (AlarmEntity) -> Unit = {},
     onNavigateToRingtone: () -> Unit = {},

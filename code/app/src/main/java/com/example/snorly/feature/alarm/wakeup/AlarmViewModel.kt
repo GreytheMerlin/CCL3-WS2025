@@ -1,10 +1,11 @@
-package com.example.snorly.feature.alarm
+package com.example.snorly.feature.alarm.wakeup
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.snorly.core.database.AppDatabase
 import com.example.snorly.core.database.entities.AlarmEntity
+import com.example.snorly.feature.alarm.Alarm
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
