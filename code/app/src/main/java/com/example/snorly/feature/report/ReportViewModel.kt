@@ -7,7 +7,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.snorly.core.health.HealthConnectManager
+import com.example.snorly.feature.sleep.model.DailySleepData
+import com.example.snorly.feature.sleep.model.SleepDataProcessor
+import com.example.snorly.feature.sleep.model.SleepDayUiModel
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.ZoneId
 import java.time.format.TextStyle
 import java.time.temporal.ChronoUnit
@@ -21,22 +25,30 @@ class ReportViewModel(
     var weeklySleepData by mutableStateOf<List<DailySleepData>>(emptyList())
         private set
 
+    var sleepHistoryList by mutableStateOf<List<SleepDayUiModel>>(emptyList())
+        private set
+
     init {
-        loadWeeklyData()
+        loadData()
     }
 
-    private fun loadWeeklyData() {
+    private fun loadData() {
         viewModelScope.launch {
-            // 1. Define Range: Last 7 Days
-            val end = java.time.Instant.now()
-            val start = end.minus(7, ChronoUnit.DAYS)
+            // 1. Define Range: Last 30 Days (for timeline)
+            val now = Instant.now()
+            val thirtyDaysAgo = now.minus(30, ChronoUnit.DAYS)
 
-            // 2. Fetch Raw Data
-            val rawRecords = healthConnectManager.readSleepSessions(start, end)
+            // 2. Fetch Raw Data once
+            val allRecords = healthConnectManager.readSleepSessions(thirtyDaysAgo, now)
 
-            // 3. The "Bucketing" Logic (The hard part!)
-            // We group records by which day of the month they started in.
-            val groupedByDay = rawRecords.groupBy { record ->
+            // 3. Process for Timeline (Newest 30 days history)
+            // We delegate the heavy logic to our new Helper Object
+            sleepHistoryList = SleepDataProcessor.processHistory(allRecords)
+
+            // 4. Process for Graph (Last 7 days only)
+
+
+            val groupedByDay = allRecords.groupBy { record ->
                 // Convert timestamp to a local Date (LocalDate)
                 record.startTime.atZone(ZoneId.systemDefault()).toLocalDate()
             }

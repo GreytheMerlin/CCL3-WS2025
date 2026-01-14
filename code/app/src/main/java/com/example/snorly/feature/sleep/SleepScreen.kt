@@ -2,23 +2,37 @@ package com.example.snorly.feature.sleep
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.health.connect.client.PermissionController
 import com.example.snorly.R
+import com.example.snorly.feature.sleep.components.SleepHistoryItem
+import com.example.snorly.feature.sleep.components.SleepStatCard
+import com.example.snorly.feature.sleep.components.SleepTrackingCard
 
 @Composable
 fun SleepScreen(
@@ -40,24 +54,72 @@ fun SleepScreen(
 
     // 2. UI Layout
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-
+        val bg = Color(0xFF000000)
+        val cardBg = Color(0xFF1C1C1E)
         if (viewModel.hasPermission) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
 
-                // === SHOW DATA ===
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(bg)
+                    .padding(horizontal = 16.dp),
+                contentPadding = PaddingValues(top = 16.dp, bottom = 80.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // 1. Header Title
+                item {
                     Text(
-                        text = "Sleep (Last 24h)",
-                        style = androidx.compose.material3.MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        // READ THE VALUE FROM VIEWMODEL
-                        text = viewModel.totalSleepDuration,
-                        style = androidx.compose.material3.MaterialTheme.typography.displayLarge
+                        "Sleep",
+                        color = Color.White,
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }
-            }
 
+                // 2. Main Action Card (Blue)
+                item {
+                    SleepTrackingCard()
+                }
+
+                // 3. Stats Row
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        SleepStatCard(
+                            title = "Avg Duration",
+                            value = viewModel.sleepStats.avgDuration,
+                            icon = Icons.Outlined.AccessTime,
+                            modifier = Modifier.weight(1f)
+                        )
+                        SleepStatCard(
+                            title = "Avg Quality",
+                            value = viewModel.sleepStats.avgQuality,
+                            icon = Icons.Filled.WbSunny, // Using Sun icon for quality
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+
+                // 4. List Header
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Recent Sleep", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+                        Text("View All", color = Color(0xFF4A90E2), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    }
+                }
+
+                // 5. The List
+                items(viewModel.sleepHistory) { day ->
+                    SleepHistoryItem(day)
+                }
+            }
         } else {
             // B. Permission Missing - Styled "Welcome" State
             Column(
