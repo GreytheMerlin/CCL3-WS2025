@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
+import com.example.snorly.core.health.HealthConnectManager
 import com.example.snorly.feature.alarm.AlarmCreateScreen
 import com.example.snorly.feature.alarm.AlarmScreen
 import com.example.snorly.feature.alarm.screens.RepeatScreen
@@ -24,6 +25,7 @@ import com.example.snorly.feature.challenges.viewmodel.ChallengeViewModel
 import com.example.snorly.feature.report.ReportScreen
 import com.example.snorly.feature.settings.SettingsScreen
 import com.example.snorly.feature.sleep.SleepScreen
+import com.example.snorly.feature.sleep.SleepViewModel
 
 @Composable
 fun AppNavHost(
@@ -32,6 +34,11 @@ fun AppNavHost(
 
 ) {
     val alarmViewModel: com.example.snorly.feature.alarm.AlarmViewModel = viewModel()
+
+    // Initialize the manager using the current context
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val healthConnectManager = remember { HealthConnectManager(context) }
+
     NavHost(
         navController = navController,
         startDestination = Destination.ALARM.route,
@@ -41,7 +48,13 @@ fun AppNavHost(
             composable(destination.route) {
                 when (destination) {
                     Destination.ALARM -> AlarmScreen()
-                    Destination.SLEEP -> SleepScreen()
+                    Destination.SLEEP -> {
+                        // We create the ViewModel right here, scoped to this screen
+                        val sleepViewModel: SleepViewModel = viewModel(
+                            factory = SleepViewModel.Factory(healthConnectManager)
+                        )
+                        SleepScreen(viewModel = sleepViewModel)
+                    }
                     Destination.REPORT -> ReportScreen()
                     Destination.SETTINGS -> SettingsScreen()
                 }
@@ -55,6 +68,7 @@ fun AppNavHost(
                 .collectAsState()
 
             AlarmCreateScreen(
+                navController = navController,
                 onClose = { navController.popBackStack() },
                 onCreateAlarm = { entity ->
                     alarmViewModel.insert(entity)
@@ -151,8 +165,30 @@ fun AppNavHost(
                     )
                 }
             }
-            composable("alarm_repeat") {
-                RepeatScreen(onBack = { navController.popBackStack() })
+            composable(
+                route = "alarm_repeat/{currentSelection}",
+                arguments = listOf(navArgument("currentSelection") {
+                    type = NavType.StringType
+                    defaultValue = "0,0,0,0,0,0,0" // Default to all 0s
+                })
+            ) { backStackEntry ->
+                val selectionStr = backStackEntry.arguments?.getString("currentSelection") ?: ""
+
+                // Parse "1,0,1..." back to List<Int>
+                // Map safe check: must be integer, default to 0
+                val parsedList = if (selectionStr.isBlank()) {
+                    List(7) { 0 }
+                } else {
+                    selectionStr.split(",").mapNotNull { it.toIntOrNull() }
+                }
+
+                // Final safety: ensure exactly 7 items
+                val initialDays = if (parsedList.size == 7) parsedList else List(7) { 0 }
+
+                RepeatScreen(
+                    initialDays = initialDays,
+                    navController = navController
+                )
             }
         }
     }

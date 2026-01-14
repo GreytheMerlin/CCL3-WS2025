@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +42,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.snorly.core.database.entities.AlarmEntity
 import com.example.snorly.feature.alarm.components.SettingRow
 import com.example.snorly.feature.alarm.components.SnoozeSlider
@@ -50,6 +52,8 @@ import com.example.snorly.feature.alarm.components.ToggleRow
 
 @Composable
 fun AlarmCreateScreen(
+    navController: NavController,
+    alarmViewModel: com.example.snorly.feature.alarm.AlarmViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     onClose: () -> Unit = {},
     onCreateAlarm: (AlarmEntity) -> Unit = {},
     onNavigateToRingtone: () -> Unit = {},
@@ -69,8 +73,7 @@ fun AlarmCreateScreen(
     var label by remember { mutableStateOf("Alarm Name") }
     var ringtone by remember { mutableStateOf("Repeater") }
     var vibration by remember { mutableStateOf("Zig Zag") }
-    var repeat by remember { mutableStateOf("Daily") }
-
+    var repeatDays by remember { mutableStateOf(List(7) { 0 }) }
 
     var dynamicWake by remember { mutableStateOf(false) }
     var wakeUpChecker by remember { mutableStateOf(false) }
@@ -85,6 +88,18 @@ fun AlarmCreateScreen(
     val divider = Color(0xFF2A2A2A)
     val accent = Color(0xFFFFE7A3)
     val primaryBtn = Color(0xFF1677FF)
+
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    LaunchedEffect(savedStateHandle) {
+        savedStateHandle?.getLiveData<List<Int>>("selected_days_result")
+            ?.observeForever { result ->
+                if (result != null) {
+                    repeatDays = result
+                    // Clear result so it doesn't re-trigger
+                    savedStateHandle.remove<List<Int>>("selected_days_result")
+                }
+            }
+    }
 
     Scaffold(
         containerColor = bg,
@@ -125,7 +140,7 @@ fun AlarmCreateScreen(
                             time = "%02d:%02d".format(hour, minute),
                             ringtone = ringtone,
                             vibration = vibration, // or whatever your DB expects
-                            days = listOf(1,1,1,1,1,1,1), // TODO: useEAL days from repeat screen
+                            days = repeatDays,
                             challenge = selectedChallenges,
                             isActive = true,
                             snoozeMinutes = snoozeMinutes
@@ -192,8 +207,11 @@ fun AlarmCreateScreen(
             Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
                 SettingRow(
                     title = "Repeat",
-                    value = repeat,
-                    onClick = onNavigateToRepeat // Connect the click
+                    value = alarmViewModel.formatDays(repeatDays),
+                    onClick = {
+                        val arg = repeatDays.joinToString(",")
+                        navController.navigate("alarm_repeat/$arg")
+                    }
                 )
                 SettingRow(
                     title = "Ringtone",

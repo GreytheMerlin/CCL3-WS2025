@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.foundation.layout)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.common.jvm)
     implementation(libs.androidx.room.ktx)
@@ -73,6 +74,9 @@ dependencies {
 
     // Drag libery
     implementation("sh.calvin.reorderable:reorderable:3.0.0")
+
+    // Health Connect
+    implementation(libs.androidx.health.connect.client)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

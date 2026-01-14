@@ -38,9 +38,9 @@ fun RepeatOptionCard(
     onClick: () -> Unit
 ) {
     // If selected: Blue Border + Subtle Blue Background. If not: Dark Background.
-    val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
+    val borderColor = if (isSelected) MaterialTheme.colorScheme.secondary else Color.Transparent
     val backgroundColor = if (isSelected)
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+        MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)
     else
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) // Slightly lighter than pure black
 
@@ -81,7 +81,7 @@ fun RepeatOptionCard(
                     modifier = Modifier
                         .size(24.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary),
+                        .background(MaterialTheme.colorScheme.secondary),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -103,7 +103,7 @@ fun DayToggleCircle(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant
     val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
 
     Box(
