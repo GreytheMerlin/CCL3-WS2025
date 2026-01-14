@@ -85,6 +85,17 @@ fun AppNavHost(
                         val reportViewModel: ReportViewModel = viewModel(
                             factory = ReportViewModel.Factory(healthConnectManager)
                         )
+
+                        // REFRESH LOGIC (Same pattern as Sleep Screen)
+                        val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+                        val refreshState by savedStateHandle?.getStateFlow("refresh_sleep", false)!!.collectAsState()
+
+                        LaunchedEffect(refreshState) {
+                            if (refreshState) {
+                                reportViewModel.loadReportData() // Reload!
+                            }
+                        }
+
                         ReportScreen(viewModel = reportViewModel)
                     }
 
