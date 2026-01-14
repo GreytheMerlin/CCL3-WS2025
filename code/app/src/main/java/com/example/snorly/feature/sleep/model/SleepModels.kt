@@ -1,0 +1,23 @@
+package com.example.snorly.feature.sleep.model
+
+import androidx.compose.ui.graphics.Color
+
+data class DailySleepData(
+    val dayName: String, // "Mon"
+    val hours: Float     // 7.5
+)
+
+data class SleepStats(
+    val avgDuration: String,     // "7h 39m"
+    val avgQuality: String       // "80%"
+)
+
+data class SleepDayUiModel(
+    val id: String,
+    val dateLabel: String,       // "Thu, Jan 8"
+    val durationFormatted: String, // "7h 15m"
+    val qualityLabel: String,    // "85% Quality"
+    val qualityColor: Color,     // Green/Yellow color for the tag
+    val bedtime: String,         // "23:00"
+    val wakeup: String           // "06:45"
+)

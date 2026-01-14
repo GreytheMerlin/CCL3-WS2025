@@ -40,6 +40,7 @@ import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
 import androidx.graphics.shapes.star
 import androidx.graphics.shapes.toPath
+import com.example.snorly.core.ui.theme.Space
 import kotlinx.coroutines.launch
 
 @Composable
@@ -55,12 +56,12 @@ fun SnorlyMorphSwitch(
 
     // 2. Colors with "Flash" logic could go here, but let's keep it simple & classy
     val trackColor by animateColorAsState(
-        targetValue = if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+        targetValue = if (checked) Space else MaterialTheme.colorScheme.surfaceVariant,
         label = "trackColor",
         animationSpec = tween(300)
     )
     val thumbColor by animateColorAsState(
-        targetValue = if (checked) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+        targetValue = if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         label = "thumbColor"
     )
 

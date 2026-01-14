@@ -7,6 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.snorly.core.health.HealthConnectManager
+import com.example.snorly.feature.sleep.model.SleepDataProcessor
+import com.example.snorly.feature.sleep.model.SleepDayUiModel
+import com.example.snorly.feature.sleep.model.SleepStats
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -20,6 +23,12 @@ class SleepViewModel(
     // state for ui to know what to show
     var hasPermission by mutableStateOf(false)
     private set
+
+    var sleepHistory by mutableStateOf<List<SleepDayUiModel>>(emptyList())
+        private set
+
+    var sleepStats by mutableStateOf(SleepStats("Loading...", "Loading..."))
+        private set
 
 
     //  Holds the result string "7h 30m"
@@ -48,21 +57,37 @@ class SleepViewModel(
         }
     }
 
+    //Check permission immediately when VM starts
+    init {
+        checkPermissions()
+    }
+
     fun checkPermissions(){
         viewModelScope.launch {
             hasPermission = healthConnectManager.hasAllPermissions()
             if (hasPermission) {
                 loadSleepData()
+                load30DayHistory()
             } else {
                 totalSleepDuration = "No Permission"
             }
         }
     }
 
-    //Check permission immediately when VM starts
+    private fun load30DayHistory() {
+        viewModelScope.launch {
+            val now = Instant.now()
+            val thirtyDaysAgo = now.minus(30, ChronoUnit.DAYS)
 
-    init {
-        checkPermissions()
+            // 1. Fetch
+            val rawRecords = healthConnectManager.readSleepSessions(thirtyDaysAgo, now)
+
+            // 2. Process
+            sleepHistory = SleepDataProcessor.processHistory(rawRecords)
+
+            // 3. Stats
+            sleepStats = SleepDataProcessor.calculateStats(sleepHistory, rawRecords)
+        }
     }
 
     // Because our ViewModel needs an argument (Manager), we need a custom Factory.
