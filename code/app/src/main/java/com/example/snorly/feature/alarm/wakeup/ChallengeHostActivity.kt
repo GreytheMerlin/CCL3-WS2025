@@ -13,7 +13,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.platform.LocalContext
 import com.example.snorly.core.database.AppDatabase
 import com.example.snorly.feature.challenges.components.MathChallengeScreen
+import com.example.snorly.feature.challenges.components.QrChallengeScreen
 import com.example.snorly.feature.challenges.components.ShakeChallengeScreen
+import com.example.snorly.feature.challenges.components.StepChallengeScreen
 
 class ChallengeHostActivity : ComponentActivity() {
 
@@ -99,7 +101,11 @@ private fun ChallengeHostRoute(
         "SHAKE PHONE" ->
             ShakeChallengeScreen(requiredShakes = 20, onSolved = goNext)
 
-        else -> goNext() // unknown -> skip
+        "STEP COUNTER" ->
+            StepChallengeScreen(requiredSteps = 10, onSolved = goNext)
+        "QR CODE" ->
+            QrChallengeScreen (onSolved = goNext)
+        else -> goNext()
     }
 
 
