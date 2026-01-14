@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.snorly.core.health.HealthConnectManager
 import kotlinx.coroutines.launch
+import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
@@ -28,6 +29,8 @@ class AddSleepViewModel(
     var endTime by mutableStateOf(LocalTime.of(7, 0))             // Default: 7:00 AM
 
     var isLoading by mutableStateOf(false)
+    var errorMessage by mutableStateOf<String?>(null)
+
     private var originalRecord: SleepSessionRecord? = null
 
     init {
@@ -58,9 +61,50 @@ class AddSleepViewModel(
 
     fun saveSleep(onSuccess: () -> Unit) {
         viewModelScope.launch {
+
+            isLoading = true
+            errorMessage = null
+
             // Combine Date + Time back to Instant
             val startInstant = ZonedDateTime.of(startDate, startTime, ZoneId.systemDefault()).toInstant()
             val endInstant = ZonedDateTime.of(endDate, endTime, ZoneId.systemDefault()).toInstant()
+
+            // Valdiate entry
+
+            if (!endInstant.isAfter(startInstant)) {
+                errorMessage = "Wake up time must be after bedtime."
+                isLoading = false
+                return@launch
+            }
+
+            val duration = Duration.between(startInstant, endInstant)
+            if (duration.toMinutes() < 1) {
+                errorMessage = "Sleep must be at least 1 minute."
+                isLoading = false
+                return@launch
+            }
+            if (duration.toHours() > 24) {
+                errorMessage = "Sleep cannot be longer than 24 hours."
+                isLoading = false
+                return@launch
+            }
+
+            // 3. OVERLAP CHECK (Fixes "Messy Data")
+            // Query for any sleep records in this exact window
+            val existingRecords = healthConnectManager.readSleepSessions(startInstant, endInstant)
+
+            // If we are editing, we expect to find OURSELVES in the list. That's fine.
+            // But if we find *other* records, that's an overlap.
+            val hasOverlap = existingRecords.any {
+                // If in edit mode, ignore the record with our own ID
+                it.metadata.id != (originalRecord?.metadata?.id ?: "")
+            }
+
+            if (hasOverlap) {
+                errorMessage = "You already have a sleep entry during this time."
+                isLoading = false
+                return@launch
+            }
 
             if (editId != null && originalRecord != null) {
                 // EDIT MODE: Create copy of original with new times

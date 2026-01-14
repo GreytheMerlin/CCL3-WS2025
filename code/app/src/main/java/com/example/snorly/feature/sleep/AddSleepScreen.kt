@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -64,6 +65,29 @@ fun AddSleepScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
+
+                // ERROR MESSAGE CARD
+                if (viewModel.errorMessage != null) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFF5252).copy(alpha = 0.2f)),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Warning, contentDescription = null, tint = Color(0xFFFF5252))
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                viewModel.errorMessage!!,
+                                color = Color(0xFFFFCAC4), // Light red text
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                }
+
                 // START SECTION
                 Text("Bedtime", color = Color.Gray, fontSize = 14.sp)
                 TimeInputRow(
