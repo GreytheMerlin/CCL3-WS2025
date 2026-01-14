@@ -25,13 +25,16 @@ import com.example.snorly.feature.challenges.viewmodel.ChallengeViewModel
 import com.example.snorly.feature.report.ReportScreen
 import com.example.snorly.feature.report.ReportViewModel
 import com.example.snorly.feature.settings.SettingsScreen
+import com.example.snorly.feature.sleep.AddSleepScreen
+import com.example.snorly.feature.sleep.AddSleepViewModel
+import com.example.snorly.feature.sleep.SleepDetailScreen
+import com.example.snorly.feature.sleep.SleepDetailViewModel
 import com.example.snorly.feature.sleep.SleepScreen
 import com.example.snorly.feature.sleep.SleepViewModel
 
 @Composable
 fun AppNavHost(
-    navController: NavHostController,
-    modifier: Modifier = Modifier
+    navController: NavHostController, modifier: Modifier = Modifier
 
 ) {
     val alarmViewModel: com.example.snorly.feature.alarm.AlarmViewModel = viewModel()
@@ -54,8 +57,12 @@ fun AppNavHost(
                         val sleepViewModel: SleepViewModel = viewModel(
                             factory = SleepViewModel.Factory(healthConnectManager)
                         )
-                        SleepScreen(viewModel = sleepViewModel)
+                        SleepScreen(
+                            viewModel = sleepViewModel,
+                            onAddSleepClick = { navController.navigate("sleep_add") },
+                            onSleepItemClick = { sleepId -> navController.navigate("sleep_detail/$sleepId") })
                     }
+
                     Destination.REPORT -> {
                         // Reuse the SAME manager
                         val reportViewModel: ReportViewModel = viewModel(
@@ -63,6 +70,7 @@ fun AppNavHost(
                         )
                         ReportScreen(viewModel = reportViewModel)
                     }
+
                     Destination.SETTINGS -> SettingsScreen()
                 }
             }
@@ -70,9 +78,10 @@ fun AppNavHost(
         // === Alarm screens ===
         composable("alarm_create") { backStackEntry ->
 
-            val selectedChallenges by backStackEntry.savedStateHandle
-                .getStateFlow("selectedChallenges", emptyList<String>())
-                .collectAsState()
+            val selectedChallenges by backStackEntry.savedStateHandle.getStateFlow(
+                    "selectedChallenges",
+                    emptyList<String>()
+                ).collectAsState()
 
             AlarmCreateScreen(
                 navController = navController,
@@ -111,8 +120,7 @@ fun AppNavHost(
         }
         // === Challenges ===
         navigation(
-            startDestination = "challenges_main",
-            route = "challenges_graph"
+            startDestination = "challenges_main", route = "challenges_graph"
         ) {
             // A. Create the ViewModel scoped to this GRAPH, not the whole app.
             // When you exit "challenges_graph", this ViewModel is cleared.
@@ -128,11 +136,11 @@ fun AppNavHost(
                     onAddClick = { navController.navigate("challenges_add") },
                     viewModel = challengeViewModel,
                     onResult = { selectedNames ->
-                        navController.previousBackStackEntry
-                            ?.savedStateHandle
-                            ?.set("selectedChallenges", selectedNames)
-                    }
-                )
+                        navController.previousBackStackEntry?.savedStateHandle?.set(
+                                "selectedChallenges",
+                                selectedNames
+                            )
+                    })
             }
 
             composable("challenges_add") { backStackEntry ->
@@ -168,8 +176,7 @@ fun AppNavHost(
                             challengeViewModel.addChallenge(challenge)
                             // Pop back to Main Screen, removing Add and Detail from stack
                             navController.popBackStack("challenges_main", inclusive = false)
-                        }
-                    )
+                        })
                 }
             }
             composable(
@@ -193,10 +200,77 @@ fun AppNavHost(
                 val initialDays = if (parsedList.size == 7) parsedList else List(7) { 0 }
 
                 RepeatScreen(
-                    initialDays = initialDays,
-                    navController = navController
+                    initialDays = initialDays, navController = navController
                 )
             }
+        }
+
+        // === Sleep ===
+
+        composable("sleep_add") { backStackEntry ->
+            val viewModel: AddSleepViewModel = viewModel(
+                factory = AddSleepViewModel.Factory(healthConnectManager, null)
+            )
+            AddSleepScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
+                onSaveSuccess = {
+                    // Tell previous screen to refresh
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("refresh_sleep", true)
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // 2. EDIT ROUTE (With ID)
+        composable(
+            route = "sleep_edit/{sleepId}",
+            arguments = listOf(navArgument("sleepId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val sleepId = backStackEntry.arguments?.getString("sleepId")
+
+            val viewModel: AddSleepViewModel = viewModel(
+                factory = AddSleepViewModel.Factory(healthConnectManager, sleepId)
+            )
+
+            AddSleepScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
+                onSaveSuccess = {
+                    // Tell detail screen to refresh
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("refresh_sleep", true)
+
+                    // Also tell the main list (two steps back) to refresh
+                    // (Optional, depends on flow)
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = "sleep_detail/{sleepId}",
+            arguments = listOf(navArgument("sleepId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val sleepId = backStackEntry.arguments?.getString("sleepId") ?: ""
+
+            val context = androidx.compose.ui.platform.LocalContext.current
+
+            // Create the Detail ViewModel
+            val detailViewModel: SleepDetailViewModel = viewModel(
+                factory = SleepDetailViewModel.Factory(healthConnectManager, sleepId, context)
+            )
+
+            SleepDetailScreen(
+                viewModel = detailViewModel,
+                onBack = { navController.popBackStack() },
+                onEdit = { id ->
+                    // Navigate to add screen, passing ID would require Edit Mode logic
+                    navController.navigate("sleep_edit/$id")
+                })
         }
     }
 }

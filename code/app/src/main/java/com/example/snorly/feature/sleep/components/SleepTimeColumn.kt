@@ -22,8 +22,8 @@ fun SleepTimeColumn(icon: ImageVector, time: String, label: String) {
         Icon(icon, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(6.dp))
         Column {
-            Text(time, color = Color.White, fontWeight = FontWeight.Bold)
             Text(label, color = Color.Gray, fontSize = 12.sp)
+            Text(time, color = Color.White, fontWeight = FontWeight.Bold)
         }
     }
 }

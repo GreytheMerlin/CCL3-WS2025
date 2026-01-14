@@ -1,12 +1,51 @@
 package com.example.snorly.feature.sleep.model
 import androidx.compose.ui.graphics.Color
 import androidx.health.connect.client.records.SleepSessionRecord
+import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_AWAKE
+import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_AWAKE_IN_BED
+import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_DEEP
+import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_LIGHT
+import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_OUT_OF_BED
+import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_REM
+import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_SLEEPING
 import java.time.Duration
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 object SleepDataProcessor {
+
+    fun calculateQuality(minutes: Long): Pair<String, Long> {
+        return when {
+            minutes >= 450 -> "Excellent" to 0xFF4CAF50 // > 7.5 hours
+            minutes >= 360 -> "Fair" to 0xFFFFC107      // > 6.0 hours
+            else -> "Poor" to 0xFFFF5252                // < 6.0 hours
+        }
+    }
+
+    fun getStageLabel(stage: Int): String {
+        return when (stage) {
+            STAGE_TYPE_AWAKE -> "AWAKE"
+            STAGE_TYPE_SLEEPING -> "SLEEPING"
+            STAGE_TYPE_OUT_OF_BED -> "OUT_OF_BED"
+            STAGE_TYPE_AWAKE_IN_BED -> "AWAKE_IN_BED"
+            STAGE_TYPE_LIGHT -> "LIGHT"
+            STAGE_TYPE_DEEP -> "DEEP"
+            STAGE_TYPE_REM -> "REM"
+            else -> "UNKNOWN"
+        }
+    }
+
+    // 2. Map Stage -> Color (For the Detail Graph)
+    fun getStageColor(stage: Int): Color {
+        return when (stage) {
+            STAGE_TYPE_DEEP -> Color(0xFF1A237E) // Dark Blue
+            STAGE_TYPE_REM -> Color(0xFF7E57C2)  // Purple
+            STAGE_TYPE_LIGHT -> Color(0xFF42A5F5) // Light Blue
+            STAGE_TYPE_AWAKE, STAGE_TYPE_AWAKE_IN_BED -> Color(0xFFFFCA28) // Yellow
+            else -> Color.Gray
+        }
+    }
 
     fun processHistory(records: List<SleepSessionRecord>): List<SleepDayUiModel> {
         // 1. Group by Date
@@ -19,6 +58,10 @@ object SleepDataProcessor {
 
         return sortedDates.map { date ->
             val sessions = grouped[date] ?: emptyList()
+
+            val mainSessionId = sessions.maxByOrNull {
+                Duration.between(it.startTime, it.endTime).toMinutes()
+            }?.metadata?.id ?: ""
 
             // Calculate Total Minutes
             val totalMinutes = sessions.sumOf {
@@ -43,6 +86,7 @@ object SleepDataProcessor {
             }
 
             SleepDayUiModel(
+                id = mainSessionId,
                 dateLabel = date.format(dateFmt),
                 durationFormatted = formatMinutes(totalMinutes),
                 qualityLabel = "$qualityPercent% Quality",

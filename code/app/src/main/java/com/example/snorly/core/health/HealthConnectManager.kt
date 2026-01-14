@@ -8,6 +8,7 @@ import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import java.time.Instant
+import java.time.ZoneId
 
 class HealthConnectManager(private val context: Context) {
 
@@ -37,6 +38,22 @@ class HealthConnectManager(private val context: Context) {
             ?.containsAll(permissions) == true
     }
 
+    // WRITE (Add manually)
+    suspend fun writeSleepSession(start: Instant, end: Instant) {
+        val client = healthConnectClient ?: return
+
+        // Basic record without stages for manual entry
+        // (Manual entry usually doesn't have REM/Deep data unless you are a wizard)
+        val record = SleepSessionRecord(
+            startTime = start,
+            startZoneOffset = ZoneId.systemDefault().rules.getOffset(start),
+            endTime = end,
+            endZoneOffset = ZoneId.systemDefault().rules.getOffset(end)
+        )
+
+        client.insertRecords(listOf(record))
+    }
+
     //Read Sleep Data
     // "suspend" means this runs in the background (Coroutines) so the UI doesn't freeze.
     // "start" and "end" define the time window we want to look at.
@@ -62,4 +79,45 @@ class HealthConnectManager(private val context: Context) {
             emptyList()
         }
     }
+
+    // UPDATE (Edit existing)
+    suspend fun updateSleepSession(record: SleepSessionRecord) {
+        val client = healthConnectClient ?: return
+        try {
+            client.updateRecords(listOf(record))
+        } catch (e: Exception) {
+            android.util.Log.e("HealthConnect", "Failed to update: ${e.message}")
+        }
+    }
+
+    // Delte Sleep Data
+    suspend fun deleteSleepSession(uid: String) {
+        val client = healthConnectClient ?: return
+        try {
+            // We delete by the unique ID of the record
+            client.deleteRecords(
+                SleepSessionRecord::class,
+                recordIdsList = listOf(uid),
+                clientRecordIdsList = emptyList()
+            )
+        } catch (e: Exception) {
+            android.util.Log.e("HealthConnect", "Failed to delete: ${e.message}")
+        }
+    }
+    // Read Sleep Data by ID for sleep details view
+suspend fun readRecordById(uid: String): SleepSessionRecord? {
+    val client = healthConnectClient ?: return null
+
+    return try {
+        // Use the direct readRecord method for IDs
+        val response = client.readRecord(
+            recordType = SleepSessionRecord::class,
+            recordId = uid
+        )
+        response.record
+    } catch (e: Exception) {
+        Log.e("HealthConnectManager", "Error reading record by ID: ${e.message}")
+        null
+    }
+}
 }

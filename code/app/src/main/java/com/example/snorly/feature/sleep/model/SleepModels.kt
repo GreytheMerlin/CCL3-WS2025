@@ -13,6 +13,7 @@ data class SleepStats(
 )
 
 data class SleepDayUiModel(
+    val id: String,
     val dateLabel: String,       // "Thu, Jan 8"
     val durationFormatted: String, // "7h 15m"
     val qualityLabel: String,    // "85% Quality"

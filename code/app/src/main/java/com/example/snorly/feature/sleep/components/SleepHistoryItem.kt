@@ -1,5 +1,6 @@
 package com.example.snorly.feature.sleep.components
 
+import android.R.attr.onClick
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material3.Card
@@ -28,8 +30,9 @@ import androidx.compose.ui.unit.sp
 import com.example.snorly.feature.sleep.model.SleepDayUiModel
 
 @Composable
-fun SleepHistoryItem(data: SleepDayUiModel) {
+fun SleepHistoryItem(data: SleepDayUiModel, onClick: () -> Unit = {}) {
     Card(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E))
@@ -83,11 +86,11 @@ fun SleepHistoryItem(data: SleepDayUiModel) {
                 )
 
                 // Duration
-                Column(horizontalAlignment = Alignment.End) {
-                    Text("Duration", color = Color.Gray, fontSize = 12.sp)
-                    Spacer(Modifier.height(4.dp))
-                    Text(data.durationFormatted, color = Color.White, fontWeight = FontWeight.Bold)
-                }
+                SleepTimeColumn(
+                    icon = Icons.Filled.Timer,
+                    time = data.wakeup,
+                    label = "Duration"
+                )
             }
         }
     }
