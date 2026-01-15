@@ -12,11 +12,27 @@ import java.time.ZoneId
 
 class HealthConnectManager(private val context: Context) {
 
+    // SAFE AVAILABILITY CHECK
+    // This allows us to check status without crashing or initializing the heavy client
+    fun isHealthConnectAvailable(): Boolean {
+        return try {
+            // SDK_AVAILABLE is a constant int (usually 1 or 2 depending on version)
+            HealthConnectClient.getSdkStatus(context) == HealthConnectClient.SDK_AVAILABLE
+        } catch (e: Exception) {
+            // On very old devices, even the class check might fail
+            false
+        }
+    }
+
     // This is the actual entry point to the Google API.
     // We get it efficiently using getOrCreate.
     private val healthConnectClient: HealthConnectClient? by lazy {
         try {
-            HealthConnectClient.getOrCreate(context)
+            if (isHealthConnectAvailable()) {
+                HealthConnectClient.getOrCreate(context)
+            } else {
+                null
+            }
         } catch (e: Exception) {
             // Log the error but DO NOT CRASH
             Log.e("HealthConnectManager", "Health Connect not available: ${e.message}")

@@ -20,6 +20,10 @@ class SleepViewModel(
     // Expose permissions so the UI Button can use them
     val requiredPermissions = healthConnectManager.permissions
 
+    // state for ui to know if health connect is available
+    var isHealthConnectAvailable by mutableStateOf(false)
+        private set
+
     // state for ui to know what to show
     var hasPermission by mutableStateOf(false)
     private set
@@ -36,6 +40,35 @@ class SleepViewModel(
         private set
 
 
+
+
+
+    //Check permission immediately when VM starts
+    init {
+        checkPermissions()
+    }
+
+    fun checkPermissions(){
+        viewModelScope.launch {
+            isHealthConnectAvailable = healthConnectManager.isHealthConnectAvailable()
+
+            if (!isHealthConnectAvailable) {
+                // If not available, we stop here. We don't check permissions
+                // because that might crash on older phones.
+                hasPermission = false
+                totalSleepDuration = "Not Supported"
+                return@launch
+            }
+
+            hasPermission = healthConnectManager.hasAllPermissions()
+            if (hasPermission) {
+                loadSleepData()
+                load30DayHistory()
+            } else {
+                totalSleepDuration = "No Permission"
+            }
+        }
+    }
 
     private fun loadSleepData() {
         viewModelScope.launch {
@@ -54,23 +87,6 @@ class SleepViewModel(
             val hours = totalDuration / 60
             val minutes = totalDuration % 60
             totalSleepDuration = "${hours}h ${minutes}m"
-        }
-    }
-
-    //Check permission immediately when VM starts
-    init {
-        checkPermissions()
-    }
-
-    fun checkPermissions(){
-        viewModelScope.launch {
-            hasPermission = healthConnectManager.hasAllPermissions()
-            if (hasPermission) {
-                loadSleepData()
-                load30DayHistory()
-            } else {
-                totalSleepDuration = "No Permission"
-            }
         }
     }
 

@@ -3,7 +3,6 @@ package com.example.snorly.feature.sleep
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.health.connect.client.PermissionController
@@ -46,9 +47,7 @@ import com.example.snorly.feature.sleep.components.SleepTrackingCard
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SleepScreen(
-    viewModel: SleepViewModel,
-    onAddSleepClick: () -> Unit,
-    onSleepItemClick: (String) -> Unit
+    viewModel: SleepViewModel, onAddSleepClick: () -> Unit, onSleepItemClick: (String) -> Unit
     // In a real app, you wouldn't pass the manager here,
     // but we need access to the 'permissions' set for the launcher contract.
     // Ideally, expose 'permissions' via the ViewModel.
@@ -68,31 +67,31 @@ fun SleepScreen(
         topBar = {
             // 1. PLUS BUTTON IN TOP BAR
             CenterAlignedTopAppBar(
-                title = { },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                title = { }, colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color.Black
-                ),
-                actions = {
-                    IconButton(onClick = onAddSleepClick) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = "Add Sleep",
-                            tint = Color.White
-                        )
+                ), actions = {
+                    if (viewModel.hasPermission) {
+                        IconButton(onClick = onAddSleepClick) {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = "Add Sleep",
+                                tint = Color.White
+                            )
+                        }
                     }
-                }
-            )
-        },
-        containerColor = Color.Black
+                })
+        }, containerColor = Color.Black
     ) { innerPadding ->
-        if (viewModel.hasPermission) {
+        if (viewModel.isHealthConnectAvailable && viewModel.hasPermission) {
 
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black)
                     .padding(innerPadding),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 80.dp),
+                contentPadding = PaddingValues(
+                    start = 16.dp, end = 16.dp, top = 0.dp, bottom = 80.dp
+                ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // 1. Header Title
@@ -185,17 +184,46 @@ fun SleepScreen(
                 items(viewModel.sleepHistory) { day ->
                     // PASS THE CLICK DIRECTLY
                     SleepHistoryItem(
-                        data = day,
-                        onClick = {
+                        data = day, onClick = {
                             if (day.id.isNotEmpty()) {
                                 android.util.Log.d("SleepScreen", "Clicking ID: ${day.id}")
                                 onSleepItemClick(day.id)
                             } else {
                                 android.util.Log.e("SleepScreen", "Error: Sleep ID is empty")
                             }
-                        }
-                    )
+                        })
                 }
+            }
+        } else if (!viewModel.isHealthConnectAvailable) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(32.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = "Not Available",
+                    tint = Color.Gray,
+                    modifier = Modifier
+                        .height(64.dp)
+                        .width(64.dp)
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = "Feature Not Available",
+                    style = androidx.compose.material3.MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Google Health Connect is not supported on this device or operating system version.",
+                    style = androidx.compose.material3.MaterialTheme.typography.bodyLarge,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center
+                )
             }
         } else {
             // B. Permission Missing - Styled "Welcome" State
