@@ -1,4 +1,4 @@
-package com.example.snorly.feature.challenges.components
+package com.example.snorly.feature.challenges.shake
 
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -8,32 +8,28 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalContext
 import kotlin.math.sqrt
 
 @Composable
 fun ShakeChallengeScreen(
-    requiredShakes: Int,
-    onSolved: () -> Unit
+    state: ShakeChallengeUiState,
+    onGForce: (Float) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val sensorManager = remember { context.getSystemService(SensorManager::class.java) }
     val accel = remember { sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) }
-
-    // tweak difficulty
-    val shakeThresholdG = 2.2f
-    val shakeCooldownMs = 350L
-
-    var lastShakeTime by remember { mutableLongStateOf(0L) }
-    var done by remember { mutableIntStateOf(0) }
 
     DisposableEffect(Unit) {
         val listener = object : SensorEventListener {
@@ -45,15 +41,7 @@ fun ShakeChallengeScreen(
                 val gZ = event.values[2] / SensorManager.GRAVITY_EARTH
 
                 val gForce = sqrt(gX * gX + gY * gY + gZ * gZ)
-
-                if (gForce > shakeThresholdG) {
-                    val now = System.currentTimeMillis()
-                    if (now - lastShakeTime > shakeCooldownMs) {
-                        lastShakeTime = now
-                        done = (done + 1).coerceAtMost(requiredShakes)
-                        if (done >= requiredShakes) onSolved()
-                    }
-                }
+                onGForce(gForce)
             }
 
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
@@ -63,14 +51,9 @@ fun ShakeChallengeScreen(
         onDispose { sensorManager.unregisterListener(listener) }
     }
 
-    // --- UI (your existing look) ---
-    val remaining = (requiredShakes - done).coerceAtLeast(0)
+    val bg = Brush.verticalGradient(listOf(Color(0xFF0B0F1A), Color(0xFF060812)))
 
-    val bg = Brush.verticalGradient(
-        listOf(Color(0xFF0B0F1A), Color(0xFF060812))
-    )
-
-    Surface(Modifier.fillMaxSize()) {
+    Surface(modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -100,7 +83,7 @@ fun ShakeChallengeScreen(
             Spacer(Modifier.height(36.dp))
 
             Text(
-                text = remaining.toString(),
+                text = state.remaining.toString(),
                 style = MaterialTheme.typography.displayLarge,
                 color = Color.White
             )
@@ -113,9 +96,8 @@ fun ShakeChallengeScreen(
 
             Spacer(Modifier.height(26.dp))
 
-            val progress = if (requiredShakes == 0) 0f else done.toFloat() / requiredShakes.toFloat()
             LinearProgressIndicator(
-                progress = { progress.coerceIn(0f, 1f) },
+                progress = { state.progress },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(10.dp)
@@ -124,7 +106,7 @@ fun ShakeChallengeScreen(
 
             Spacer(Modifier.height(10.dp))
             Text(
-                text = "$done / $requiredShakes",
+                text = "${state.done} / ${state.requiredShakes}",
                 color = Color(0xFFB0B0B0),
                 textAlign = TextAlign.Center
             )

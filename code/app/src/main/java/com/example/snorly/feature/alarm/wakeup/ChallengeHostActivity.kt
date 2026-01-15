@@ -12,10 +12,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.platform.LocalContext
 import com.example.snorly.core.database.AppDatabase
-import com.example.snorly.feature.challenges.components.MathChallengeScreen
 import com.example.snorly.feature.challenges.components.QrChallengeScreen
 import com.example.snorly.feature.challenges.components.ShakeChallengeScreen
 import com.example.snorly.feature.challenges.components.StepChallengeScreen
+import com.example.snorly.feature.challenges.math.MathChallengeRoute
+import com.example.snorly.feature.challenges.memory.MemoryMatchRoute
+import com.example.snorly.feature.challenges.qr.QrChallengeRoute
+import com.example.snorly.feature.challenges.shake.ShakeChallengeRoute
+import com.example.snorly.feature.challenges.steps.StepChallengeRoute
 
 class ChallengeHostActivity : ComponentActivity() {
 
@@ -96,15 +100,17 @@ private fun ChallengeHostRoute(
 
     when (current) {
         "MATH PROBLEM" ->
-            MathChallengeScreen(onSolved = goNext)
+            MathChallengeRoute(onSolved = goNext)
 
         "SHAKE PHONE" ->
-            ShakeChallengeScreen(requiredShakes = 20, onSolved = goNext)
+            ShakeChallengeRoute(requiredShakes = 20, onSolved = goNext)
 
         "STEP COUNTER" ->
-            StepChallengeScreen(requiredSteps = 10, onSolved = goNext)
+            StepChallengeRoute(requiredSteps = 10, onSolved = goNext)
         "QR CODE" ->
-            QrChallengeScreen (onSolved = goNext)
+            QrChallengeRoute (onSolved = goNext)
+        "MEMORY GAME" ->
+            MemoryMatchRoute(onCompleted = goNext)
         else -> goNext()
     }
 

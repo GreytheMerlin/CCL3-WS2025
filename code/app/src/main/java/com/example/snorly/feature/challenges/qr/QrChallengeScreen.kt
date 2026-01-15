@@ -1,33 +1,29 @@
-package com.example.snorly.feature.challenges.components
+package com.example.snorly.feature.challenges.qr
 
-import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
-import android.util.Size
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.*
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.camera.core.AspectRatio
-import androidx.camera.core.resolutionselector.AspectRatioStrategy
-import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
@@ -36,31 +32,16 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 @Composable
 fun QrChallengeScreen(
-    expectedValue: String? = null,
-    onSolved: () -> Unit
+    state: QrChallengeUiState,
+    onEnableCamera: () -> Unit,
+    onTryAgainPermission: () -> Unit,
+    onQrScanned: (String) -> Unit,
+    onSimulateSuccess: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-
-    // Permission state
-    var hasPermission by remember { mutableStateOf(false) }
-    var denied by remember { mutableStateOf(false) }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        hasPermission = granted
-        denied = !granted
-    }
-
-    LaunchedEffect(Unit) {
-        // don't auto prompt if you prefer; I do a gentle auto-check
-        // (If you want manual only, remove this and rely on button.)
-    }
-
     val bg = Brush.verticalGradient(listOf(Color(0xFF0B0F1A), Color(0xFF060812)))
-    val purple = Color(0xFF8B5CF6)
 
-    Surface(Modifier.fillMaxSize()) {
+    Surface(modifier.fillMaxSize()) {
         Box(
             Modifier
                 .fillMaxSize()
@@ -69,27 +50,28 @@ fun QrChallengeScreen(
         ) {
             Column(Modifier.fillMaxSize()) {
                 Text("Scan QR Code", style = MaterialTheme.typography.titleLarge, color = Color.White)
-
                 Spacer(Modifier.height(70.dp))
 
                 when {
-                    hasPermission -> {
-                        QrScannerContent(
-                            expectedValue = expectedValue,
-                            onSolved = onSolved
-                        )
+                    state.hasPermission -> {
+                        if (state.success) {
+                            QrSuccessCard()
+                        } else {
+                            QrScannerContent(
+                                expectedValue = state.expectedValue,
+                                showWrongQr = state.showWrongQr,
+                                onQrScanned = onQrScanned,
+                                onSimulateSuccess = onSimulateSuccess
+                            )
+                        }
                     }
 
-                    denied -> {
-                        CameraDeniedCard(
-                            onTryAgain = { permissionLauncher.launch(Manifest.permission.CAMERA) }
-                        )
+                    state.denied -> {
+                        CameraDeniedCard(onTryAgain = onTryAgainPermission)
                     }
 
                     else -> {
-                        CameraRequiredCard(
-                            onEnable = { permissionLauncher.launch(Manifest.permission.CAMERA) }
-                        )
+                        CameraRequiredCard(onEnable = onEnableCamera)
                     }
                 }
             }
@@ -132,7 +114,6 @@ private fun CameraRequiredCard(onEnable: () -> Unit) {
         }
 
         Spacer(Modifier.height(16.dp))
-
         TipCard("💡 Tip: Place your QR code in your bathroom or kitchen to force yourself to get up!")
     }
 }
@@ -192,37 +173,20 @@ private fun TipCard(text: String) {
 @Composable
 private fun QrScannerContent(
     expectedValue: String?,
-    onSolved: () -> Unit
+    showWrongQr: Boolean,
+    onQrScanned: (String) -> Unit,
+    onSimulateSuccess: () -> Unit
 ) {
-    var scannedValue by remember { mutableStateOf<String?>(null) }
-    var success by remember { mutableStateOf(false) }
-
-    if (success) {
-        QrSuccessCard()
-        // call onSolved once (avoid recomposition spam)
-        LaunchedEffect(Unit) { onSolved() }
-        return
-    }
-
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        QrScannerPreview(
-            onQrScanned = { value ->
-                scannedValue = value
-                if (expectedValue == null || value == expectedValue) {
-                    success = true
-                }
-            }
-        )
+        QrScannerPreview(onQrScanned = onQrScanned)
 
         Spacer(Modifier.height(14.dp))
-
         TipCard("🔳 Point your camera at the QR code to dismiss the alarm")
 
-        // If you want a dev/test button like your mock:
         Spacer(Modifier.height(14.dp))
         val purple = Color(0xFF8B5CF6)
         Button(
-            onClick = { success = true },
+            onClick = onSimulateSuccess,
             modifier = Modifier.fillMaxWidth().height(48.dp),
             colors = ButtonDefaults.buttonColors(containerColor = purple),
             shape = RoundedCornerShape(14.dp)
@@ -230,12 +194,9 @@ private fun QrScannerContent(
             Text("Simulate Successful Scan")
         }
 
-        if (expectedValue != null && scannedValue != null && scannedValue != expectedValue) {
+        if (expectedValue != null && showWrongQr) {
             Spacer(Modifier.height(8.dp))
-            Text(
-                "Wrong QR code. Try again.",
-                color = MaterialTheme.colorScheme.error
-            )
+            Text("Wrong QR code. Try again.", color = MaterialTheme.colorScheme.error)
         }
     }
 }
@@ -270,10 +231,8 @@ private fun QrScannerPreview(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // prevent duplicate scans
     val isProcessing = remember { AtomicBoolean(false) }
 
-    // ML Kit scanner
     val scanner = remember {
         val options = BarcodeScannerOptions.Builder()
             .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
@@ -282,15 +241,13 @@ private fun QrScannerPreview(
     }
 
     val previewView = remember {
-        PreviewView(context).apply {
-            scaleType = PreviewView.ScaleType.FILL_CENTER
-        }
+        PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER }
     }
 
     DisposableEffect(Unit) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-
         val executor = ContextCompat.getMainExecutor(context)
+
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
 
@@ -314,14 +271,12 @@ private fun QrScannerPreview(
 
             analysis.setAnalyzer(executor) { imageProxy ->
                 if (isProcessing.get()) {
-                    imageProxy.close()
-                    return@setAnalyzer
+                    imageProxy.close(); return@setAnalyzer
                 }
 
                 val mediaImage = imageProxy.image
                 if (mediaImage == null) {
-                    imageProxy.close()
-                    return@setAnalyzer
+                    imageProxy.close(); return@setAnalyzer
                 }
 
                 isProcessing.set(true)
@@ -329,11 +284,8 @@ private fun QrScannerPreview(
 
                 scanner.process(image)
                     .addOnSuccessListener { barcodes ->
-                        val first = barcodes.firstOrNull()
-                        val value = first?.rawValue
-                        if (!value.isNullOrBlank()) {
-                            onQrScanned(value)
-                        }
+                        val value = barcodes.firstOrNull()?.rawValue
+                        if (!value.isNullOrBlank()) onQrScanned(value)
                     }
                     .addOnCompleteListener {
                         isProcessing.set(false)
@@ -341,22 +293,17 @@ private fun QrScannerPreview(
                     }
             }
 
-            val select = CameraSelector.DEFAULT_BACK_CAMERA
             cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(lifecycleOwner, select, preview, analysis)
+            cameraProvider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis)
         }, executor)
 
         onDispose {
-            // CameraProvider unbind happens automatically with lifecycle owner,
-            // but safe cleanup isn't harmful:
             try {
-                val provider = ProcessCameraProvider.getInstance(context).get()
-                provider.unbindAll()
+                ProcessCameraProvider.getInstance(context).get().unbindAll()
             } catch (_: Exception) {}
         }
     }
 
-    // UI frame overlay (matches your mock vibe)
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -365,12 +312,8 @@ private fun QrScannerPreview(
             .background(Color(0x22000000)),
         contentAlignment = Alignment.Center
     ) {
-        AndroidView(
-            factory = { previewView },
-            modifier = Modifier.fillMaxSize()
-        )
+        AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
 
-        // simple frame overlay
         Box(
             modifier = Modifier
                 .fillMaxWidth()
