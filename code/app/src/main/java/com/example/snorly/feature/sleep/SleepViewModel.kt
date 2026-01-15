@@ -6,112 +6,152 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.snorly.core.data.SleepRepository
 import com.example.snorly.core.health.HealthConnectManager
-import com.example.snorly.feature.sleep.model.SleepDataProcessor
 import com.example.snorly.feature.sleep.model.SleepDayUiModel
 import com.example.snorly.feature.sleep.model.SleepStats
+import com.example.snorly.feature.sleep.util.SleepScoreUtils
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.time.Duration
 import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 class SleepViewModel(
+    private val repository: SleepRepository,
     private val healthConnectManager: HealthConnectManager
-): ViewModel() {
-    // Expose permissions so the UI Button can use them
+) : ViewModel() {
+
     val requiredPermissions = healthConnectManager.permissions
 
-    // state for ui to know if health connect is available
+    // UI States
     var isHealthConnectAvailable by mutableStateOf(false)
         private set
 
-    // state for ui to know what to show
     var hasPermission by mutableStateOf(false)
-    private set
+        private set
+
+    var isSyncing by mutableStateOf(false)
+        private set
 
     var sleepHistory by mutableStateOf<List<SleepDayUiModel>>(emptyList())
         private set
 
-    var sleepStats by mutableStateOf(SleepStats("Loading...", "Loading..."))
+    var latestSleepDuration by mutableStateOf("--")
+        private set
+    var latestSleepScore by mutableStateOf("--")
         private set
 
-
-    //  Holds the result string "7h 30m"
-    var totalSleepDuration by mutableStateOf("Loading...")
-        private set
-
-
-
-
-
-    //Check permission immediately when VM starts
     init {
-        checkPermissions()
+        // 1. OBSERVE DATABASE (Single Source of Truth)
+        // This runs automatically whenever the DB changes (e.g., after a Sync or Manual Add)
+        repository.allSleepSessions.onEach { sessions ->
+
+            val timeFormatter = DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())
+            val dateFormatter = DateTimeFormatter.ofPattern("EEE, MMM d").withZone(ZoneId.systemDefault())
+
+            // Map Database Entities to UI Models
+            sleepHistory = sessions.map { entity ->
+                // Determine a friendly label for the source
+                val score = entity.sleepScore ?: 0
+                val qualityLabel = if (score > 0) "$score Sleep Score" else "No Data"
+                val qualityColor = SleepScoreUtils.getScoreColor(score)
+
+                SleepDayUiModel(
+                    id = entity.id.toString(),
+                    dateLabel = dateFormatter.format(entity.startTime),
+                    bedtime = timeFormatter.format(entity.startTime),
+                    wakeup = timeFormatter.format(entity.endTime),
+                    durationFormatted = formatDuration(entity.startTime, entity.endTime),
+
+                    // NEW: Real Quality Logic
+                    qualityLabel = qualityLabel,
+                    qualityColor = qualityColor
+                )
+            }
+
+            // HEADER LOGIC: Show Latest Night Stats (Not Average)
+            val latest = sessions.firstOrNull()
+            if (latest != null) {
+                latestSleepDuration = formatDuration(latest.startTime, latest.endTime)
+                latestSleepScore = (latest.sleepScore ?: "--").toString()
+            } else {
+                latestSleepDuration = "--"
+                latestSleepScore = "--"
+            }
+
+        }.launchIn(viewModelScope)
+
+        // 2. Check Permissions & Trigger Sync
+        checkPermissionsAndSync()
     }
 
-    fun checkPermissions(){
+    fun checkPermissionsAndSync() {
         viewModelScope.launch {
+            // Check Availability
             isHealthConnectAvailable = healthConnectManager.isHealthConnectAvailable()
 
             if (!isHealthConnectAvailable) {
-                // If not available, we stop here. We don't check permissions
-                // because that might crash on older phones.
                 hasPermission = false
-                totalSleepDuration = "Not Supported"
                 return@launch
             }
 
+            // Check Permissions
             hasPermission = healthConnectManager.hasAllPermissions()
+
+            // IF GRANTED -> SYNC!
             if (hasPermission) {
-                loadSleepData()
-                load30DayHistory()
+                syncSleepData()
             } else {
-                totalSleepDuration = "No Permission"
             }
         }
     }
 
-    private fun loadSleepData() {
+
+    // --- THE SYNC TRIGGER ---
+    fun syncSleepData() {
         viewModelScope.launch {
-            val now = Instant.now()
-            val yesterday = now.minus(24, ChronoUnit.HOURS)
+            if (isSyncing) return@launch
+            isSyncing = true
 
-            // get list form manager
-            val sessions = healthConnectManager.readSleepSessions(start = yesterday, end = now)
+            try {
+                // 1. Define Range: Last 30 Days
+                val now = Instant.now()
+                val start = now.minus(30, ChronoUnit.DAYS)
 
-            // sum up  duration of all sessions
-            val totalDuration = sessions.sumOf { record ->
-                java.time.Duration.between(record.startTime, record.endTime).toMinutes()
+                // 2. Fetch raw data from Google Health Connect
+                val externalRecords = healthConnectManager.readSleepSessions(start, now)
+
+                // 3. Push to Repository to run "Smart Merge" logic
+                if (externalRecords.isNotEmpty()) {
+                    repository.syncWithHealthConnect(externalRecords)
+                }
+
+            } catch (e: Exception) {
+                android.util.Log.e("SleepViewModel", "Sync failed: ${e.message}")
+            } finally {
+                isSyncing = false
             }
-
-            // Convert minutes to "8h 30m"
-            val hours = totalDuration / 60
-            val minutes = totalDuration % 60
-            totalSleepDuration = "${hours}h ${minutes}m"
         }
     }
 
-    private fun load30DayHistory() {
-        viewModelScope.launch {
-            val now = Instant.now()
-            val thirtyDaysAgo = now.minus(30, ChronoUnit.DAYS)
-
-            // 1. Fetch
-            val rawRecords = healthConnectManager.readSleepSessions(thirtyDaysAgo, now)
-
-            // 2. Process
-            sleepHistory = SleepDataProcessor.processHistory(rawRecords)
-
-            // 3. Stats
-            sleepStats = SleepDataProcessor.calculateStats(sleepHistory, rawRecords)
-        }
+    private fun formatDuration(start: Instant, end: Instant): String {
+        val duration = Duration.between(start, end)
+        val hours = duration.toHours()
+        val minutes = duration.toMinutes() % 60
+        return "${hours}h ${minutes}m"
     }
 
-    // Because our ViewModel needs an argument (Manager), we need a custom Factory.
-    // This is "boilerplate" you will see often in Android without Hilt.
-    class Factory(private val manager: HealthConnectManager) : ViewModelProvider.Factory {
+    class Factory(
+        private val repository: SleepRepository,
+        private val manager: HealthConnectManager
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return SleepViewModel(manager) as T
+            return SleepViewModel(repository, manager) as T
         }
     }
 }

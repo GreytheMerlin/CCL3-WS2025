@@ -60,7 +60,7 @@ fun SleepScreen(
     ) { grantedPermissions ->
         // This block runs when the user closes the system dialog.
         // We tell the ViewModel to check again.
-        viewModel.checkPermissions()
+        viewModel.checkPermissionsAndSync ()
     }
 
     Scaffold(
@@ -138,11 +138,20 @@ fun SleepScreen(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text("Duration", color = Color.Gray, fontSize = 12.sp)
                                     Text(
-                                        todaysSleep.durationFormatted,
+                                        viewModel.latestSleepDuration,
                                         color = Color.White,
                                         fontSize = 32.sp,
                                         fontWeight = FontWeight.Bold
                                     )
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Text("Sleep Score", color = Color.Gray, fontSize = 12.sp)
+                                        Text(
+                                            viewModel.latestSleepScore, // Use new VM property
+                                            color = if(viewModel.latestSleepScore != "--") Color(0xFF4CAF50) else Color.Gray,
+                                            fontSize = 32.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
                                     Spacer(Modifier.height(8.dp))
                                     Row {
                                         Badge(todaysSleep.qualityLabel, todaysSleep.qualityColor)

@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,29 +30,31 @@ import java.time.format.DateTimeFormatter
 fun SleepDetailScreen(
     viewModel: SleepDetailViewModel,
     onBack: () -> Unit,
-    onEdit: (String) -> Unit, // Pass ID to edit screen
+    onEdit: (String) -> Unit,
     onDeleteSuccess: () -> Unit
 ) {
     val record = viewModel.sleepRecord
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    // Colors
     val bg = Color.Black
     val cardColor = Color(0xFF1C1C1E)
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {"asdf" }, // Clean look
+                title = { },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                 },
                 actions = {
-                    // ONLY SHOW IF EDITABLE (Owned by Snorly)
+                    // Only allow edits if Snorly owns the data
                     if (viewModel.isEditable) {
-                        IconButton(onClick = { if (record != null) onEdit(record.metadata.id) }) {
+                        IconButton(onClick = {
+                            // FIXED: Use local 'id' converted to String, not 'metadata.id'
+                            if (record != null) onEdit(record.id.toString())
+                        }) {
                             Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.White)
                         }
                         IconButton(onClick = { showDeleteDialog = true }) {
@@ -93,17 +96,44 @@ fun SleepDetailScreen(
                         )
                         Spacer(Modifier.height(16.dp))
 
-                        // Quality Badge
-                        Surface(
-                            color = Color(0xFF2C2C2E),
-                            shape = RoundedCornerShape(100),
-                        ) {
-                            Text(
-                                text = "Quality: ${viewModel.sleepQuality}",
-                                color = Color.White,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                fontWeight = FontWeight.Medium
-                            )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            // Quality Badge
+                            Surface(
+                                color = Color(0xFF2C2C2E),
+                                shape = RoundedCornerShape(100),
+                            ) {
+                                Text(
+                                    text = "Quality: ${viewModel.sleepQuality}",
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 12.sp
+                                )
+                            }
+
+                            Spacer(Modifier.width(8.dp))
+
+                            // NEW: Source App Badge
+                            Surface(
+                                color = if (viewModel.isEditable) Color(0xFF0F3D64) else Color(0xFF3E2723), // Blue for Snorly, Brown/Red for others
+                                shape = RoundedCornerShape(100),
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    if (!viewModel.isEditable) {
+                                        Icon(Icons.Default.Info, contentDescription = null, tint = Color(0xFFFFAB91), modifier = Modifier.size(12.dp))
+                                        Spacer(Modifier.width(4.dp))
+                                    }
+                                    Text(
+                                        text = "Source: ${viewModel.sourceAppName}",
+                                        color = if (viewModel.isEditable) Color(0xFF90CAF9) else Color(0xFFFFAB91),
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -132,67 +162,34 @@ fun SleepDetailScreen(
                     }
                 }
 
-                // 3. Detailed Stages (Smart Section)
-                if (record.stages.isNotEmpty()) {
+                // 3. Info Text if not editable
+                if (!viewModel.isEditable) {
                     item {
-                        Text("Sleep Stages", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    }
-
-                    // Sort stages by time to show chronological order
-                    items(record.stages.sortedBy { it.startTime }) { stage ->
-                        val duration = Duration.between(stage.startTime, stage.endTime).toMinutes()
-                        val stageName = SleepDataProcessor.getStageLabel(stage.stage)
-                        val stageColor = SleepDataProcessor.getStageColor(stage.stage)
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF2C2C2E)),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            // Color Dot
-                            Box(
-                                modifier = Modifier
-                                    .size(10.dp)
-                                    .clip(CircleShape)
-                                    .background(stageColor)
-                            )
-                            Spacer(Modifier.width(16.dp))
-
-                            // Stage Name
-                            Text(stageName, color = Color.White, modifier = Modifier.weight(1f))
-
-                            // Duration
-                            Text("${duration}m", color = Color.Gray)
-                        }
-                    }
-                } else {
-                    // Fallback for Manual Entries
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color(0xFF2C2C2E), RoundedCornerShape(16.dp))
-                                .padding(20.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                "No detailed stages available for this session.",
-                                color = Color.Gray,
-                                fontSize = 14.sp
-                            )
+                            Row(modifier = Modifier.padding(16.dp)) {
+                                Icon(Icons.Default.Info, contentDescription = null, tint = Color.Gray)
+                                Spacer(Modifier.width(12.dp))
+                                Text(
+                                    "This sleep session was recorded by ${viewModel.sourceAppName}. Please use that app to edit details.",
+                                    color = Color.Gray,
+                                    fontSize = 13.sp
+                                )
+                            }
                         }
                     }
                 }
             }
         }
 
-        // Delete Dialog
         if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
                 title = { Text("Delete Sleep?") },
-                text = { Text("This will permanently remove this sleep record from Health Connect.") },
+                text = { Text("This will remove the record from Snorly and Health Connect.") },
                 confirmButton = {
                     TextButton(
                         onClick = {
