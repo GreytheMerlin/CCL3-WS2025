@@ -114,6 +114,50 @@ object SleepDataProcessor {
         )
     }
 
+
+    // stats for report screen
+    fun calculateWeeklyStats(records: List<SleepSessionRecord>): WeeklyStats {
+        if (records.isEmpty()) return WeeklyStats("-", 0, "-", "-")
+
+        // 1. Avg Duration
+        val totalMinutes = records.sumOf { Duration.between(it.startTime, it.endTime).toMinutes() }
+        val avgMinutes = totalMinutes / records.size
+
+        // 2. Avg Score
+        val avgScore = ((avgMinutes / 480.0) * 100).toInt().coerceIn(0, 100)
+
+        // 3. Avg Bedtime/Wakeup (Using seconds of day)
+        // Note: For bedtime, we treat 11PM as 23, 1AM as 25 (next day) to average correctly
+        val bedtimes = records.map {
+            val zdt = it.startTime.atZone(ZoneId.systemDefault())
+            var minuteOfDay = zdt.hour * 60 + zdt.minute
+            if (zdt.hour < 12) minuteOfDay += 24 * 60 // Shift AM hours to next day for averaging
+            minuteOfDay
+        }
+        val avgBedtimeMin = bedtimes.average().toInt() % (24 * 60)
+
+        val wakeups = records.map {
+            val zdt = it.endTime.atZone(ZoneId.systemDefault())
+            zdt.hour * 60 + zdt.minute
+        }
+        val avgWakeupMin = wakeups.average().toInt()
+
+        return WeeklyStats(
+            avgDurationStr = formatMinutes(avgMinutes),
+            avgScore = avgScore,
+            avgBedtime = formatTimeFromMinutes(avgBedtimeMin),
+            avgWakeup = formatTimeFromMinutes(avgWakeupMin)
+        )
+    }
+
+    // Minutes Into to String
+    private fun formatTimeFromMinutes(totalMinutes: Int): String {
+        val h = (totalMinutes / 60) % 24
+        val m = totalMinutes % 60
+        return String.format(Locale.getDefault(), "%02d:%02d", h, m)
+    }
+
+    // Minutes Long to String
     private fun formatMinutes(minutes: Long): String {
         val h = minutes / 60
         val m = minutes % 60

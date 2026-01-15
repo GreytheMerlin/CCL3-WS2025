@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
+import com.example.snorly.core.database.AppDatabase
 import com.example.snorly.core.health.HealthConnectManager
 import com.example.snorly.feature.alarm.AlarmCreateScreen
 import com.example.snorly.feature.alarm.wakeup.AlarmScreen
@@ -26,7 +27,10 @@ import com.example.snorly.feature.challenges.screens.DismissChallengesScreen
 import com.example.snorly.feature.challenges.viewmodel.ChallengeViewModel
 import com.example.snorly.feature.report.ReportScreen
 import com.example.snorly.feature.report.ReportViewModel
+import com.example.snorly.feature.settings.ProfileScreen
+import com.example.snorly.feature.settings.ProfileViewModel
 import com.example.snorly.feature.settings.SettingsScreen
+import com.example.snorly.feature.settings.SettingsViewModel
 import com.example.snorly.feature.sleep.AddSleepScreen
 import com.example.snorly.feature.sleep.AddSleepViewModel
 import com.example.snorly.feature.sleep.SleepDetailScreen
@@ -86,10 +90,32 @@ fun AppNavHost(
                         val reportViewModel: ReportViewModel = viewModel(
                             factory = ReportViewModel.Factory(healthConnectManager)
                         )
+
+                        // REFRESH LOGIC (Same pattern as Sleep Screen)
+                        val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+                        val refreshState by savedStateHandle?.getStateFlow("refresh_sleep", false)!!.collectAsState()
+
+                        LaunchedEffect(refreshState) {
+                            if (refreshState) {
+                                reportViewModel.loadReportData() // Reload!
+                            }
+                        }
+
                         ReportScreen(viewModel = reportViewModel)
                     }
 
-                    Destination.SETTINGS -> SettingsScreen()
+                    Destination.SETTINGS -> {
+                        val db = AppDatabase.getDatabase(context)
+                        val settingsViewModel: SettingsViewModel = viewModel(
+                            factory = SettingsViewModel.Factory(db.UserProfileDao())
+                        )
+                        SettingsScreen(
+                            viewModel = settingsViewModel,
+                            onNavigateToProfile = {
+                                navController.navigate("settings_profile")
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -296,6 +322,17 @@ fun AppNavHost(
 
                     navController.popBackStack()
                 }
+            )
+        }
+
+        composable("settings_profile") {
+            val db = AppDatabase.getDatabase(androidx.compose.ui.platform.LocalContext.current)
+            val viewModel: ProfileViewModel = viewModel(
+                factory = ProfileViewModel.Factory(db.UserProfileDao())
+            )
+            ProfileScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
             )
         }
     }

@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.room.ktx)
     implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.compose.ui.text)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.common.jvm)
     implementation(libs.androidx.room.ktx)
