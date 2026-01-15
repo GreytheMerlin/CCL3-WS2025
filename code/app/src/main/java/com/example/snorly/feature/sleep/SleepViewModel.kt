@@ -66,8 +66,6 @@ class SleepViewModel(
                     bedtime = timeFormatter.format(entity.startTime),
                     wakeup = timeFormatter.format(entity.endTime),
                     durationFormatted = formatDuration(entity.startTime, entity.endTime),
-
-                    // NEW: Real Quality Logic
                     qualityLabel = qualityLabel,
                     qualityColor = qualityColor
                 )

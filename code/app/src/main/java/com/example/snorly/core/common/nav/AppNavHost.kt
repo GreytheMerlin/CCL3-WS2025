@@ -34,10 +34,10 @@ import com.example.snorly.feature.sleep.AddSleepScreen
 import com.example.snorly.feature.sleep.AddSleepViewModel
 import com.example.snorly.feature.sleep.SleepDetailScreen
 import com.example.snorly.feature.sleep.SleepDetailViewModel
-import com.example.snorly.feature.sleep.SleepScreen
 import com.example.snorly.feature.sleep.SleepViewModel
 import com.example.snorly.core.data.SleepRepository
 import com.example.snorly.feature.alarm.AlarmViewModel
+import com.example.snorly.feature.sleep.SleepScreen
 
 @Composable
 fun AppNavHost(

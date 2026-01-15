@@ -1,6 +1,7 @@
 package com.example.snorly.feature.sleep
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -20,15 +21,19 @@ class AddSleepViewModel(
     private val editId: Long?
 ) : ViewModel() {
 
+    // Time States
     var startDate by mutableStateOf(LocalDate.now().minusDays(1))
     var startTime by mutableStateOf(LocalTime.of(23, 0))
     var endDate by mutableStateOf(LocalDate.now())
     var endTime by mutableStateOf(LocalTime.of(7, 0))
 
+    // New Fields
+    var rating by mutableIntStateOf(0) // 0 means unrated
+    var notes by mutableStateOf("")
+
     var isLoading by mutableStateOf(false)
     var errorMessage by mutableStateOf<String?>(null)
 
-    // We store the full entity if we are in Edit Mode
     private var existingEntity: SleepSessionEntity? = null
 
     init {
@@ -51,6 +56,10 @@ class AddSleepViewModel(
                 startTime = startZone.toLocalTime()
                 endDate = endZone.toLocalDate()
                 endTime = endZone.toLocalTime()
+
+                // Load optional fields
+                rating = session.rating ?: 0
+                notes = session.notes ?: ""
             }
             isLoading = false
         }
@@ -78,17 +87,18 @@ class AddSleepViewModel(
             }
 
             // --- Construct Entity ---
-            // If editing, preserve ID and HealthConnectID. If new, ID is 0 (auto-gen).
             val entityToSave = existingEntity?.copy(
                 startTime = startInstant,
-                endTime = endInstant
-                // ratings/notes would go here
+                endTime = endInstant,
+                rating = if (rating > 0) rating else null,
+                notes = if (notes.isNotBlank()) notes else null
             ) ?: SleepSessionEntity(
                 startTime = startInstant,
-                endTime = endInstant
+                endTime = endInstant,
+                rating = if (rating > 0) rating else null,
+                notes = if (notes.isNotBlank()) notes else null
             )
 
-            // --- Save via Repository ---
             repository.saveSleepSession(
                 entity = entityToSave,
                 isEdit = existingEntity != null
