@@ -73,39 +73,50 @@ class AddSleepViewModel(
             val startInstant = ZonedDateTime.of(startDate, startTime, ZoneId.systemDefault()).toInstant()
             val endInstant = ZonedDateTime.of(endDate, endTime, ZoneId.systemDefault()).toInstant()
 
-            // --- Validation ---
+            // 1. Logic Validation
             if (!endInstant.isAfter(startInstant)) {
                 errorMessage = "Wake up time must be after bedtime."
                 isLoading = false
                 return@launch
             }
-            val duration = Duration.between(startInstant, endInstant)
-            if (duration.toMinutes() < 1) {
+            if (Duration.between(startInstant, endInstant).toMinutes() < 1) {
                 errorMessage = "Sleep must be at least 1 minute."
                 isLoading = false
                 return@launch
             }
 
-            // --- Construct Entity ---
+            // 2. Prepare Entity
             val entityToSave = existingEntity?.copy(
                 startTime = startInstant,
                 endTime = endInstant,
                 rating = if (rating > 0) rating else null,
-                notes = if (notes.isNotBlank()) notes else null
+                notes = if (notes.isNotBlank()) notes else null,
+                sourcePackage = "com.example.snorly" // Mark as OURS
             ) ?: SleepSessionEntity(
                 startTime = startInstant,
                 endTime = endInstant,
                 rating = if (rating > 0) rating else null,
-                notes = if (notes.isNotBlank()) notes else null
+                notes = if (notes.isNotBlank()) notes else null,
+                sourcePackage = "com.example.snorly" // Mark as OURS
             )
 
-            repository.saveSleepSession(
+            // 3. Save with Result Check
+            val result = repository.saveSleepSession(
                 entity = entityToSave,
                 isEdit = existingEntity != null
             )
 
-            isLoading = false
-            onSuccess()
+            result.fold(
+                onSuccess = {
+                    isLoading = false
+                    onSuccess()
+                },
+                onFailure = { exception ->
+                    isLoading = false
+                    // Show the specific overlap message from Repository
+                    errorMessage = exception.message ?: "Failed to save sleep."
+                }
+            )
         }
     }
 

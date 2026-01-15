@@ -1,16 +1,17 @@
 package com.example.snorly.feature.sleep
 
+import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.snorly.feature.sleep.model.SleepDataProcessor
 import java.time.Duration
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -113,7 +113,7 @@ fun SleepDetailScreen(
 
                             Spacer(Modifier.width(8.dp))
 
-                            // NEW: Source App Badge
+                            // Source App Badge
                             Surface(
                                 color = if (viewModel.isEditable) Color(0xFF0F3D64) else Color(0xFF3E2723), // Blue for Snorly, Brown/Red for others
                                 shape = RoundedCornerShape(100),
@@ -182,6 +182,82 @@ fun SleepDetailScreen(
                         }
                     }
                 }
+
+                item {
+                    Text("Sleep Stages", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(12.dp))
+
+                    if (viewModel.sleepStages.isNotEmpty()) {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = cardColor),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Column(Modifier.padding(16.dp)) {
+                                val totalDurationMin = Duration.between(record.startTime, record.endTime).toMinutes()
+
+                                // Group stages by type
+                                val stagesByType = viewModel.sleepStages.groupBy { it.stage }
+
+                                StageRow("Deep", stagesByType[SleepSessionRecord.STAGE_TYPE_DEEP], totalDurationMin, Color(0xFF3F51B5))
+                                Spacer(Modifier.height(12.dp))
+                                StageRow("Light", stagesByType[SleepSessionRecord.STAGE_TYPE_LIGHT], totalDurationMin, Color(0xFF03A9F4))
+                                Spacer(Modifier.height(12.dp))
+                                StageRow("REM", stagesByType[SleepSessionRecord.STAGE_TYPE_REM], totalDurationMin, Color(0xFF9C27B0))
+                                Spacer(Modifier.height(12.dp))
+                                StageRow("Awake", stagesByType[SleepSessionRecord.STAGE_TYPE_AWAKE], totalDurationMin, Color(0xFFFF9800))
+                            }
+                        }
+                    } else {
+                        // Empty State for stages
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = cardColor),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Info, contentDescription = null, tint = Color.Gray)
+                                Spacer(Modifier.width(12.dp))
+                                Text("No detailed stages available.", color = Color.Gray, fontSize = 14.sp)
+                            }
+                        }
+                    }
+                }
+
+                // disaply star rating
+                if (record.rating != null && record.rating > 0) {
+                    item {
+                        Text("Rating", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.height(8.dp))
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(cardColor, RoundedCornerShape(16.dp))
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            repeat(5) { index ->
+                                val starIndex = index + 1
+                                val isFilled = starIndex <= record.rating
+                                Icon(
+                                    imageVector = if (isFilled) Icons.Filled.Star else Icons.Outlined.Star,
+                                    contentDescription = null,
+                                    tint = if (isFilled) Color(0xFFFFC107) else Color.Gray,
+                                    modifier = Modifier.size(32.dp).padding(horizontal = 4.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // 4. Notes (If any)
+                if (!record.notes.isNullOrBlank()) {
+                    item {
+                        Text("Notes", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.height(8.dp))
+                        Text(record.notes, color = Color.Gray, fontSize = 16.sp)
+                    }
+                }
             }
         }
 
@@ -205,6 +281,48 @@ fun SleepDetailScreen(
                         Text("Cancel")
                     }
                 }
+            )
+        }
+    }
+}
+
+@Composable
+fun StageRow(
+    label: String,
+    stages: List<SleepSessionRecord.Stage>?,
+    totalMin: Long,
+    color: Color
+) {
+    val durationMin = stages?.sumOf { Duration.between(it.startTime, it.endTime).toMinutes() } ?: 0
+    val percentage = if (totalMin > 0) durationMin.toFloat() / totalMin else 0f
+
+    val hours = durationMin / 60
+    val mins = durationMin % 60
+    val timeStr = if (hours > 0) "${hours}h ${mins}m" else "${mins}m"
+
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(label, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text(timeStr, color = Color.Gray, fontSize = 14.sp)
+        }
+        Spacer(Modifier.height(6.dp))
+        // Progress Bar
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(3.dp))
+                .background(Color(0xFF2C2C2E)) // Track color
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(percentage) // Fill based on percentage
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(color)
             )
         }
     }

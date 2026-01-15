@@ -12,6 +12,10 @@ interface UserProfileDao {
     @Query("SELECT * FROM user_profile WHERE id = 0")
     fun getUserProfile(): Flow<UserProfileEntity?>
 
+    // ADD THIS: One-shot fetch for Reports/Logic
+    @Query("SELECT * FROM user_profile WHERE id = 0")
+    suspend fun getUserProfileSnapshot(): UserProfileEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdate(profile: UserProfileEntity)
 }

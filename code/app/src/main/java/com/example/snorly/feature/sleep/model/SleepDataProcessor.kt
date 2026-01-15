@@ -143,7 +143,7 @@ object SleepDataProcessor {
         val avgWakeupMin = wakeups.average().toInt()
 
         return WeeklyStats(
-            avgDurationStr = formatMinutes(avgMinutes),
+            avgDuration = formatMinutes(avgMinutes),
             avgScore = avgScore,
             avgBedtime = formatTimeFromMinutes(avgBedtimeMin),
             avgWakeup = formatTimeFromMinutes(avgWakeupMin)

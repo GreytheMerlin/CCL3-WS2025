@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -28,6 +29,9 @@ class SleepDetailViewModel(
     var sleepRecord by mutableStateOf<SleepSessionEntity?>(null)
         private set
 
+    var sleepStages by mutableStateOf<List<SleepSessionRecord.Stage>>(emptyList())
+        private set
+
     // State: Formatted strings for the UI
     var formattedDate by mutableStateOf("")
     var formattedDuration by mutableStateOf("")
@@ -46,12 +50,13 @@ class SleepDetailViewModel(
     private fun loadRecord() {
         viewModelScope.launch {
             isLoading = true
-            // Fetch from Local DB
+
+            // 1. Fetch Local Summary
             val entity = repository.getSessionById(sleepId)
             sleepRecord = entity
 
             if (entity != null) {
-                // Format Basic Info
+                // Formatting
                 val dateFmt = DateTimeFormatter.ofPattern("EEEE, MMMM d")
                 formattedDate = entity.startTime.atZone(ZoneId.systemDefault()).format(dateFmt)
 
@@ -62,29 +67,34 @@ class SleepDetailViewModel(
                 formattedDuration = "${h}h ${m}m"
                 sleepQuality = SleepDataProcessor.calculateQuality(totalMin).first
 
-                // 2. DETERMINE SOURCE
-                // If it has a Health Connect ID, we try to find out who created it.
+                // 2. FETCH DETAILED STAGES (If linked to Health Connect)
                 if (entity.healthConnectId != null && healthConnectManager.isHealthConnectAvailable()) {
                     val hcRecord = healthConnectManager.readRecordById(entity.healthConnectId)
+
                     if (hcRecord != null) {
+                        // CAPTURE STAGES
+                        sleepStages = hcRecord.stages
+
+                        // Determine Source App
                         val packageName = hcRecord.metadata.dataOrigin.packageName
-                        // If the package is NOT us, it's imported
                         if (packageName != context.packageName) {
-                            sourceAppName = getAppNameFromPackage(packageName)
-                            isEditable = false // Prevent editing external data
+                            sourceAppName = getAppNameFromPackage(context, packageName)
+                            isEditable = false
                         } else {
                             sourceAppName = "Snorly"
                             isEditable = true
                         }
                     } else {
-                        // HC ID exists but we couldn't find it (maybe deleted remotely?)
-                        sourceAppName = "Imported"
+                        // HC ID exists but record missing (deleted remotely?)
+                        sourceAppName = "Imported (Missing)"
                         isEditable = false
+                        sleepStages = emptyList()
                     }
                 } else {
                     // Local only
                     sourceAppName = "Snorly"
                     isEditable = true
+                    sleepStages = emptyList()
                 }
             }
             isLoading = false
@@ -120,5 +130,19 @@ class SleepDetailViewModel(
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return SleepDetailViewModel(repository, manager, id, context) as T
         }
+    }
+}
+
+fun getAppNameFromPackage(
+    context: Context,
+    packageName: String
+): String {
+    return try {
+        val pm = context.packageManager
+        val appInfo = pm.getApplicationInfo(packageName, 0)
+        pm.getApplicationLabel(appInfo).toString()
+    } catch (e: PackageManager.NameNotFoundException) {
+        // Fallback if the app is no longer installed
+        packageName
     }
 }

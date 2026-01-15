@@ -5,11 +5,14 @@ import com.example.snorly.core.database.dao.SleepSessionDao
 import com.example.snorly.core.database.entities.SleepSessionEntity
 import com.example.snorly.core.health.HealthConnectManager
 import androidx.health.connect.client.records.SleepSessionRecord
+import com.example.snorly.feature.sleep.util.SleepScoreUtils
 import com.example.snorly.feature.sleep.util.SleepScoreUtils.calculateScore
 import kotlinx.coroutines.flow.Flow
 import java.time.Duration
+import java.time.Instant
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 class SleepRepository(
     private val dao: SleepSessionDao,
@@ -20,7 +23,29 @@ class SleepRepository(
 
     suspend fun getSessionById(id: Long) = dao.getSleepSessionById(id)
 
-    suspend fun saveSleepSession(entity: SleepSessionEntity, isEdit: Boolean) {
+    // Returns Result.success() or Result.failure("Error message")
+    suspend fun saveSleepSession(entity: SleepSessionEntity, isEdit: Boolean): Result<Unit> {
+
+        // A. THE GATEKEEPER CHECK
+        // If editing, we pass the entity.id. If new, entity.id is 0 (or we pass -1L to be safe).
+        val checkId = if (isEdit) entity.id else -1L
+
+        val conflict = dao.findOverlap(
+            start = entity.startTime,
+            end = entity.endTime,
+            excludeId = checkId
+        )
+
+        if (conflict != null) {
+            // Calculate readable time for the error message
+            val formatter = DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())
+            val timeStr = "${formatter.format(conflict.startTime)} - ${formatter.format(conflict.endTime)}"
+            val source = if(conflict.sourcePackage == "com.example.snorly") "Manual entry" else "Imported data"
+
+            return Result.failure(Exception("Overlaps with $source ($timeStr)"))
+        }
+
+        // B. SAVE (Safe to proceed)
         val localId = if (isEdit) {
             dao.updateSleepSession(entity)
             entity.id
@@ -28,6 +53,7 @@ class SleepRepository(
             dao.insertSleepSession(entity)
         }
 
+        // C. SYNC UP (Best Effort)
         if (healthConnectManager.isHealthConnectAvailable() && healthConnectManager.hasAllPermissions()) {
             try {
                 if (isEdit && entity.healthConnectId != null) {
@@ -43,6 +69,8 @@ class SleepRepository(
                 Log.e("SleepRepo", "Sync Up Failed: ${e.message}")
             }
         }
+
+        return Result.success(Unit)
     }
 
     // --- THE SMART SYNC LOGIC ---
@@ -63,7 +91,8 @@ class SleepRepository(
                 val updated = existingLinked.copy(
                     startTime = record.startTime,
                     endTime = record.endTime,
-                    hasStages = hasStages
+                    hasStages = hasStages,
+                    sleepScore = calculateScore(record)
                 )
                 if (updated != existingLinked) dao.updateSleepSession(updated)
             } else {
@@ -76,40 +105,72 @@ class SleepRepository(
                 } else {
                     // CONFLICT DETECTED!
                     // We check if the new record is "better" than what we currently have.
-
-                    var shouldReplace = true
+                    var mergeTarget: SleepSessionEntity? = null
+                    var shouldImport = true
 
                     for (conflict in overlaps) {
                         // Rule A: Never overwrite Snorly Manual Entries (User knows best)
                         if (conflict.sourcePackage == "com.example.snorly" || conflict.sourcePackage == null) {
-                            shouldReplace = false
-                            break
+                            // IMPROVED LOGIC:
+                            // If Manual has NO stages, and Import HAS stages -> Merge/Upgrade!
+                            if (!conflict.hasStages && hasStages) {
+                                mergeTarget = conflict
+                                shouldImport = true
+                                break // Found our target, stop looking
+                            } else {
+                                // Manual entry is already good enough, or Import is basic too.
+                                // Keep Manual (User knows best).
+                                shouldImport = false
+                                break
+                            }
                         }
 
                         // Rule B: Prefer Detailed Stages over Simple Duration
                         if (conflict.hasStages && !hasStages) {
                             // Existing has stages, new one doesn't. Keep existing.
-                            shouldReplace = false
+                            shouldImport = false
                             break
                         }
 
                         // Rule C: If both have (or don't have) stages, prefer the LONGER one
                         // (Assuming longer = more complete tracking)
-                        val existingDuration = Duration.between(conflict.startTime, conflict.endTime).toMinutes()
+                        val existingDuration =
+                            Duration.between(conflict.startTime, conflict.endTime).toMinutes()
                         if (hasStages == conflict.hasStages && existingDuration >= duration) {
-                            shouldReplace = false
+                            shouldImport = false
                             break
                         }
                     }
 
-                    if (shouldReplace) {
-                        // The new record is better!
-                        // Delete the inferior conflicting records and insert the new one.
-                        overlaps.forEach { dao.deleteSleepSession(it) }
-                        insertNewImport(record)
-                        Log.d("SleepRepo", "Replaced inferior sleep record with ${packageName}")
+                    if (shouldImport) {
+                        if (mergeTarget != null) {
+                            // --- MERGE STRATEGY ---
+                            // We upgrade the existing manual entry with the new data.
+                            // This PRESERVES the 'id', 'rating', and 'notes'.
+                            val merged = mergeTarget.copy(
+                                startTime = record.startTime,
+                                endTime = record.endTime,
+                                timeZoneOffset = record.startZoneOffset?.totalSeconds,
+                                healthConnectId = hcId,
+                                sourcePackage = packageName,
+                                hasStages = hasStages,
+                                sleepScore = calculateScore(record)
+                            )
+                            dao.updateSleepSession(merged)
+
+                            // Delete any OTHER conflicts (e.g. if we overlapped with 2 different old records)
+                            overlaps.filter { it.id != mergeTarget.id }.forEach { dao.deleteSleepSession(it) }
+
+                            Log.d("SleepRepo", "Merged manual entry with $packageName")
+                        } else {
+                            // --- REPLACE STRATEGY ---
+                            // Delete inferior conflicts, Insert new
+                            overlaps.forEach { dao.deleteSleepSession(it) }
+                            insertNewImport(record)
+                            Log.d("SleepRepo", "Replaced inferior records with $packageName")
+                        }
                     } else {
-                        Log.d("SleepRepo", "Ignored inferior import from ${packageName}")
+                        Log.d("SleepRepo", "Ignored inferior import from $packageName")
                     }
                 }
             }
@@ -132,6 +193,10 @@ class SleepRepository(
             notes = null
         )
         dao.insertSleepSession(newEntity)
+    }
+
+    suspend fun getSessionsBetween(start: Instant, end: Instant): List<SleepSessionEntity> {
+        return dao.getSessionsOverlapping(start, end)
     }
 
     suspend fun deleteSession(entity: SleepSessionEntity) {

@@ -8,6 +8,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.WbSunny
@@ -22,14 +24,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Locale
 
 @Composable
 fun ReportScreen(viewModel: ReportViewModel) {
     val data = viewModel.weeklyGraphData
     val stats = viewModel.stats
+    val comparison = viewModel.comparisonData
+    val consistency = viewModel.consistencyScore
+
     val scrollState = rememberScrollState()
 
-    // Background Color
     val bg = Color.Black
     val cardBg = Color(0xFF1C1C1E)
 
@@ -38,67 +43,51 @@ fun ReportScreen(viewModel: ReportViewModel) {
             .fillMaxSize()
             .background(bg)
             .padding(16.dp)
-            .verticalScroll(scrollState) // Allow scrolling for small screens
+            .verticalScroll(scrollState)
     ) {
         // 1. Header
         Text(
-            "Weekly Report",
+            "Sleep Report",
             color = Color.White,
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
-        Text("Last 7 Days", color = Color.Gray, modifier = Modifier.padding(bottom = 24.dp))
+        Text("Insights & Trends", color = Color.Gray, modifier = Modifier.padding(bottom = 24.dp))
 
-        // 2. Sleep Score Card (Big Header)
+        // 2. Sleep Score Card (Existing)
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = cardBg)
         ) {
             Row(
-                modifier = Modifier
-                    .padding(24.dp)
-                    .fillMaxWidth(),
+                modifier = Modifier.padding(24.dp).fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text("Sleep Score", color = Color.Gray, fontSize = 14.sp)
+                    Text("Avg Sleep Score", color = Color.Gray, fontSize = 14.sp)
                     Text(
                         text = "${stats.avgScore}",
                         color = getScoreColor(stats.avgScore),
                         fontSize = 48.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Text(
-                        text = getScoreLabel(stats.avgScore),
-                        color = Color.White,
-                        fontWeight = FontWeight.Medium
-                    )
+                    Text(getScoreLabel(stats.avgScore), color = Color.White, fontWeight = FontWeight.Medium)
                 }
-
-                // Visual Circle (Placeholder for a Ring Chart)
                 Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
-                        .background(getScoreColor(stats.avgScore).copy(alpha = 0.2f)),
+                    modifier = Modifier.size(80.dp).clip(CircleShape).background(getScoreColor(stats.avgScore).copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.WbSunny,
-                        contentDescription = null,
-                        tint = getScoreColor(stats.avgScore),
-                        modifier = Modifier.size(40.dp)
-                    )
+                    Icon(Icons.Default.WbSunny, null, tint = getScoreColor(stats.avgScore), modifier = Modifier.size(40.dp))
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 3. The Graph
-        Text("Trends", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        // 3. The Graph (Existing)
+        Text("Weekly Trends", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
 
         Card(
@@ -109,21 +98,14 @@ fun ReportScreen(viewModel: ReportViewModel) {
             Column(modifier = Modifier.padding(24.dp)) {
                 if (data.isNotEmpty()) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp),
+                        modifier = Modifier.fillMaxWidth().height(180.dp),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.Bottom
                     ) {
                         val maxHours = data.maxOfOrNull { it.hours } ?: 8f
                         val safeMax = if (maxHours == 0f) 8f else maxHours
-
                         data.forEach { day ->
-                            BarItem(
-                                dayName = day.dayName,
-                                value = day.hours,
-                                max = safeMax
-                            )
+                            BarItem(dayName = day.dayName, value = day.hours, max = safeMax)
                         }
                     }
                 } else {
@@ -136,51 +118,133 @@ fun ReportScreen(viewModel: ReportViewModel) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 4. Averages Grid
-        Text("Averages", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        // 4. NEW: 30-Day Comparison
+        if (comparison != null) {
+            Text("Monthly Comparison", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = cardBg)
+            ) {
+                Row(
+                    modifier = Modifier.padding(24.dp).fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Vs. Previous 15 Days", color = Color.Gray, fontSize = 12.sp)
+                        Spacer(Modifier.height(4.dp))
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = if (comparison.percentChange >= 0) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                                contentDescription = null,
+                                tint = if (comparison.percentChange >= 0) Color(0xFF4CAF50) else Color(0xFFFF5252),
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = "${abs(comparison.percentChange)}%",
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                        Text(
+                            text = if (comparison.percentChange >= 0) "More sleep on average" else "Less sleep on average",
+                            color = Color.Gray,
+                            fontSize = 12.sp
+                        )
+                    }
+
+                    // Small Divider
+                    Box(Modifier.width(1.dp).height(40.dp).background(Color.Gray.copy(alpha=0.3f)))
+                    Spacer(Modifier.width(16.dp))
+
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text("Recent Avg", color = Color.Gray, fontSize = 12.sp)
+                        Text(String.format(Locale.US, "%.1fh", comparison.recentAvgHours), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(8.dp))
+                        Text("Older Avg", color = Color.Gray, fontSize = 12.sp)
+                        Text(String.format(Locale.US, "%.1fh", comparison.olderAvgHours), color = Color.Gray, fontSize = 16.sp)
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        // 5. NEW: Consistency Score
+        if (consistency != null) {
+            Text("Sleep Consistency", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = cardBg)
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Schedule Adherence", color = Color.Gray, fontSize = 14.sp)
+                        Text(consistency.label, color = consistency.color, fontWeight = FontWeight.Bold)
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    // Custom Progress Bar
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(12.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(Color(0xFF2C2C2E))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(consistency.score / 100f)
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(consistency.color)
+                        )
+                    }
+
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = "Measures how close you are to your 23:00 / 07:00 target times.",
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        // 6. Averages Grid (Existing)
+        Text("Weekly Averages", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            // Avg Duration
-            StatCard(
-                title = "Sleep",
-                value = stats.avgDurationStr,
-                icon = Icons.Default.Timer,
-                color = Color(0xFF42A5F5), // Blue
-                modifier = Modifier.weight(1f)
-            )
-            // Avg Bedtime
-            StatCard(
-                title = "Bedtime",
-                value = stats.avgBedtime,
-                icon = Icons.Default.Bedtime,
-                color = Color(0xFF7E57C2), // Purple
-                modifier = Modifier.weight(1f)
-            )
+            StatCard("Sleep", stats.avgDuration, Icons.Default.Timer, Color(0xFF42A5F5), Modifier.weight(1f))
+            StatCard("Bedtime", stats.avgBedtime, Icons.Default.Bedtime, Color(0xFF7E57C2), Modifier.weight(1f))
         }
-
         Spacer(modifier = Modifier.height(12.dp))
-
         Row(modifier = Modifier.fillMaxWidth()) {
-            // Avg Wakeup (Full Width or half)
-            StatCard(
-                title = "Wake Up",
-                value = stats.avgWakeup,
-                icon = Icons.Default.AccessTime,
-                color = Color(0xFFFFA726), // Orange
-                modifier = Modifier.weight(1f)
-            )
-            // Empty spacer for grid alignment or add another stat here later
+            StatCard("Wake Up", stats.avgWakeup, Icons.Default.AccessTime, Color(0xFFFFA726), Modifier.weight(1f))
             Spacer(modifier = Modifier.width(12.dp))
-            Box(Modifier.weight(1f))
+            Box(Modifier.weight(1f)) // Placeholder
         }
 
-        Spacer(modifier = Modifier.height(80.dp)) // Bottom padding
+        Spacer(modifier = Modifier.height(80.dp))
     }
 }
 
-// --- COMPONENTS ---
-
+// --- KEEPING YOUR EXISTING COMPONENTS ---
 @Composable
 fun StatCard(
     title: String,
@@ -214,22 +278,12 @@ fun BarItem(dayName: String, value: Float, max: Float) {
         verticalArrangement = Arrangement.Bottom,
         modifier = Modifier.fillMaxHeight()
     ) {
-        // Calculate height fraction
         val barHeightWeight = (value / max).coerceIn(0f, 1f)
-
-        // Value Label (Optional: only show if relevant)
-        // if (value > 0) Text(String.format("%.0f", value), fontSize = 10.sp, color = Color.Gray)
-
         Spacer(modifier = Modifier.height(8.dp))
-
-        // Bar Container
         Box(
-            modifier = Modifier
-                .width(12.dp) // Thinner bars look more modern
-                .weight(1f), // Take available height
+            modifier = Modifier.width(12.dp).weight(1f),
             contentAlignment = Alignment.BottomCenter
         ) {
-            // The Actual Colored Bar
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -237,29 +291,22 @@ fun BarItem(dayName: String, value: Float, max: Float) {
                     .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
                     .background(
                         Brush.verticalGradient(
-                            colors = if (value >= 7)
-                                listOf(Color(0xFF66BB6A), Color(0xFF43A047)) // Green Gradient
-                            else
-                                listOf(Color(0xFFFFA726), Color(0xFFFB8C00)) // Orange Gradient
+                            colors = if (value >= 7) listOf(Color(0xFF66BB6A), Color(0xFF43A047))
+                            else listOf(Color(0xFFFFA726), Color(0xFFFB8C00))
                         )
                     )
             )
         }
-
         Spacer(modifier = Modifier.height(8.dp))
-
-        // Axis Label
         Text(text = dayName.take(1), color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
     }
 }
 
-// --- HELPERS ---
-
 fun getScoreColor(score: Int): Color {
     return when {
-        score >= 80 -> Color(0xFF4CAF50) // Green
-        score >= 60 -> Color(0xFFFFC107) // Yellow
-        else -> Color(0xFFFF5252)        // Red
+        score >= 80 -> Color(0xFF4CAF50)
+        score >= 60 -> Color(0xFFFFC107)
+        else -> Color(0xFFFF5252)
     }
 }
 
@@ -270,3 +317,5 @@ fun getScoreLabel(score: Int): String {
         else -> "Needs Work"
     }
 }
+// Helper for Absolute value used in Screen Logic (moved logic to ViewModel but just in case)
+private fun abs(n: Int) = if (n < 0) -n else n

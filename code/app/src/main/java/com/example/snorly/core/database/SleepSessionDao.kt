@@ -34,12 +34,28 @@ interface SleepSessionDao {
 
     // --- Sync & Deduping Queries ---
 
-    // Find by Health Connect ID (Fast due to Index)
     @Query("SELECT * FROM sleep_sessions WHERE healthConnectId = :hcId LIMIT 1")
     suspend fun getByHealthConnectId(hcId: String): SleepSessionEntity?
 
-    // Find overlaps
-    // Finds any session that overlaps with the given time range
-    @Query("SELECT * FROM sleep_sessions WHERE startTime < :end AND endTime > :start")
+    // --- OVERLAP CHECKS ---
+
+    // 1. FOR MANUAL ENTRY:
+    // Finds if any session overlaps the requested time.
+    // "id != :excludeId" is critical: allows us to edit a session without it blocking itself.
+    // Logic: (StartA < EndB) AND (EndA > StartB)
+    @Query("""
+        SELECT * FROM sleep_sessions 
+        WHERE id != :excludeId 
+        AND startTime < :end AND endTime > :start
+        LIMIT 1
+    """)
+    suspend fun findOverlap(start: Instant, end: Instant, excludeId: Long): SleepSessionEntity?
+
+    // 2. FOR SYNC:
+    // Finds ALL overlapping sessions to resolve conflicts
+    @Query("""
+        SELECT * FROM sleep_sessions 
+        WHERE startTime < :end AND endTime > :start
+    """)
     suspend fun getSessionsOverlapping(start: Instant, end: Instant): List<SleepSessionEntity>
 }
