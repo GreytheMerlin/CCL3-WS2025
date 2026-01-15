@@ -15,12 +15,13 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.example.snorly.core.database.AppDatabase
 import com.example.snorly.core.health.HealthConnectManager
-import com.example.snorly.feature.alarm.AlarmCreateScreen
-import com.example.snorly.feature.alarm.wakeup.AlarmScreen
+import com.example.snorly.feature.alarm.create.AlarmCreateScreen
+import com.example.snorly.feature.alarm.create.AlarmCreateViewModel
+import com.example.snorly.feature.alarm.overview.AlarmScreen
 import com.example.snorly.feature.alarm.screens.RepeatScreen
 import com.example.snorly.feature.alarm.screens.RingtoneScreen
 import com.example.snorly.feature.alarm.screens.VibrationScreen
-import com.example.snorly.feature.alarm.wakeup.AlarmViewModel
+
 import com.example.snorly.feature.challenges.screens.AddChallengeScreen
 import com.example.snorly.feature.challenges.screens.ChallengeDetailScreen
 import com.example.snorly.feature.challenges.screens.DismissChallengesScreen
@@ -43,7 +44,7 @@ fun AppNavHost(
     navController: NavHostController, modifier: Modifier = Modifier
 
 ) {
-    val alarmViewModel: AlarmViewModel = viewModel()
+    val alarmCreateViewModel: AlarmCreateViewModel = viewModel()
 
     // Initialize the manager using the current context
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -57,7 +58,9 @@ fun AppNavHost(
         Destination.entries.forEach { destination ->
             composable(destination.route) {
                 when (destination) {
-                    Destination.ALARM -> AlarmScreen()
+                    Destination.ALARM -> AlarmScreen( onEditAlarm = { alarmId ->
+                        navController.navigate("alarm_create?alarmId=$alarmId")
+                    })
                     Destination.SLEEP -> {
                         // We create the ViewModel right here, scoped to this screen
                         val sleepViewModel: SleepViewModel = viewModel(
@@ -120,25 +123,34 @@ fun AppNavHost(
             }
         }
         // === Alarm screens ===
-        composable("alarm_create") { backStackEntry ->
+        composable(
+            route = "alarm_create?alarmId={alarmId}",
+            arguments = listOf(
+                navArgument("alarmId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                }
+            )
+        ) { backStackEntry ->
 
             val selectedChallenges by backStackEntry.savedStateHandle.getStateFlow(
                 "selectedChallenges", emptyList<String>()
             ).collectAsState()
 
+            val alarmIdArg = backStackEntry.arguments?.getLong("alarmId") ?: -1L
+            val alarmId = if (alarmIdArg == -1L) null else alarmIdArg
+
             AlarmCreateScreen(
                 navController = navController,
+                alarmId = alarmId, // ✅ this is the important part
                 onClose = { navController.popBackStack() },
-                onCreateAlarm = { entity ->
-                    alarmViewModel.insert(entity)
-                    navController.popBackStack()
-                },// Pass navigation lambdas to the screen
                 onNavigateToRingtone = { navController.navigate("alarm_ringtone") },
                 onNavigateToVibration = { navController.navigate("alarm_vibration") },
                 onNavigateToChallenge = { navController.navigate("challenges_graph") },
                 selectedChallenges = selectedChallenges
             )
         }
+
         composable("alarm_ringtone") {
             RingtoneScreen(
                 onBack = { navController.popBackStack() },

@@ -52,7 +52,7 @@ fun TimePickerWheel(
                 width = 70.dp,
                 itemHeight = 42.dp,
                 items = (0..23).toList(),
-                initialValue = hour,
+                initialValue = hour -2,
                 onItemSelected = onHourChange
             )
 
@@ -70,7 +70,7 @@ fun TimePickerWheel(
                 width = 70.dp,
                 itemHeight = 42.dp,
                 items = (0..59).toList(),
-                initialValue = minute,
+                initialValue = minute -2 ,
                 onItemSelected = onMinuteChange
             )
         }

@@ -1,7 +1,8 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.example.snorly.feature.alarm
+package com.example.snorly.feature.alarm.create
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +32,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,32 +44,33 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.snorly.core.database.entities.AlarmEntity
 import com.example.snorly.feature.alarm.components.SettingRow
 import com.example.snorly.feature.alarm.components.SnoozeSlider
 import com.example.snorly.feature.alarm.components.TimePickerWheel
 import com.example.snorly.feature.alarm.components.ToggleRow
-import com.example.snorly.feature.alarm.wakeup.AlarmViewModel
 
 
 @Composable
 fun AlarmCreateScreen(
     navController: NavController,
-    alarmViewModel: AlarmViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    alarmViewModel: AlarmCreateViewModel = viewModel(),
+    alarmId: Long? = null,
     onClose: () -> Unit = {},
-    onCreateAlarm: (AlarmEntity) -> Unit = {},
     onNavigateToRingtone: () -> Unit = {},
     onNavigateToVibration: () -> Unit = {},
-    onNavigateToRepeat: () -> Unit = {},
     onNavigateToChallenge: () -> Unit = {},
     selectedChallenges: List<String> = emptyList()
 ) {
+    // ViewModel state (needed for saved + edit prefill sync)
+    val uiState by alarmViewModel.uiState.collectAsState()
 
     val dismissChallengeText =
         if (selectedChallenges.isEmpty()) "Off"
         else selectedChallenges.joinToString(", ")
 
+    // Local UI state (you currently use remember-vars; we keep that style)
     var hour by remember { mutableIntStateOf(7) }
     var minute by remember { mutableIntStateOf(30) }
 
@@ -84,29 +87,70 @@ fun AlarmCreateScreen(
 
     val bg = Color(0xFF000000)
     val card = Color(0xFF1B1B1B)
-//    val card2 = Color(0xFF222222)
     val muted = Color(0xFFB3B3B3)
     val divider = Color(0xFF2A2A2A)
     val accent = Color(0xFFFFE7A3)
     val primaryBtn = Color(0xFF1677FF)
 
-    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
-    LaunchedEffect(savedStateHandle) {
-        savedStateHandle?.getLiveData<List<Int>>("selected_days_result")
-            ?.observeForever { result ->
+    // Receive selected days result (no observeForever leak)
+    val handle = navController.currentBackStackEntry?.savedStateHandle
+    LaunchedEffect(handle) {
+        if (handle == null) return@LaunchedEffect
+
+        handle.getStateFlow<List<Int>?>("selected_days_result", null)
+            .collect { result ->
                 if (result != null) {
                     repeatDays = result
-                    // Clear result so it doesn't re-trigger
-                    savedStateHandle.remove<List<Int>>("selected_days_result")
+                    handle["selected_days_result"] = null
                 }
             }
+    }
+
+
+    // If editing, load the alarm into the VM once
+    LaunchedEffect(alarmId) {
+        if (alarmId != null) {
+            alarmViewModel.loadForEdit(alarmId)
+        }
+    }
+
+
+    LaunchedEffect(uiState.id) {
+        if (uiState.id != null) {
+            hour = uiState.hour
+            minute = uiState.minute
+
+            label = uiState.label
+            ringtone = uiState.ringtone
+            vibration = uiState.vibration
+            repeatDays = uiState.repeatDays
+
+            dynamicWake = uiState.dynamicWake
+            wakeUpChecker = uiState.wakeUpChecker
+
+            enableSnooze = uiState.enableSnooze
+            snoozeMinutes = uiState.snoozeMinutes
+            // selectedChallenges comes from navigation args in your current setup
+            Log.d("states", "label=$label, hour=$hour, minute=$minute, repeat=$repeatDays, vibrate=$vibration")
+
+        }
+    }
+
+    // Close when saved
+    LaunchedEffect(uiState.saved) {
+        if (uiState.saved) onClose()
     }
 
     Scaffold(
         containerColor = bg,
         topBar = {
             TopAppBar(
-                title = { Text("New Alarm", fontWeight = FontWeight.Medium) },
+                title = {
+                    Text(
+                        if (alarmId == null) "New Alarm" else "Edit Alarm",
+                        fontWeight = FontWeight.Medium
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onClose) {
                         Box(
@@ -136,19 +180,22 @@ fun AlarmCreateScreen(
             ) {
                 Button(
                     onClick = {
-                        val entity = AlarmEntity(
-                            // id usually 0 so Room auto-generates (depends on your entity)
-                            time = "%02d:%02d".format(hour, minute),
-                            ringtone = ringtone,
-                            vibration = vibration, // or whatever your DB expects
-                            days = repeatDays,
-                            challenge = selectedChallenges,
-                            isActive = true,
-                            snoozeMinutes = snoozeMinutes
-                        )
-                        onCreateAlarm(entity)
-                    },
+                        // Push local values into VM then save().
+                        // VM decides create vs update based on uiState.id (set by loadForEdit()).
+                        alarmViewModel.setHour(hour)
+                        alarmViewModel.setMinute(minute)
+                        alarmViewModel.setLabel(label)
+                        alarmViewModel.setRingtone(ringtone)
+                        alarmViewModel.setVibration(vibration)
+                        alarmViewModel.setRepeatDays(repeatDays)
+                        alarmViewModel.setDynamicWake(dynamicWake)
+                        alarmViewModel.setWakeUpChecker(wakeUpChecker)
+                        alarmViewModel.setEnableSnooze(enableSnooze)
+                        alarmViewModel.setSnoozeMinutes(snoozeMinutes)
+                        alarmViewModel.setSelectedChallenges(selectedChallenges)
 
+                        alarmViewModel.save()
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -158,7 +205,10 @@ fun AlarmCreateScreen(
                         contentColor = Color.White
                     )
                 ) {
-                    Text("Create Alarm", fontWeight = FontWeight.SemiBold)
+                    Text(
+                        if (alarmId == null) "Create Alarm" else "Save Changes",
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
         }
@@ -172,7 +222,6 @@ fun AlarmCreateScreen(
         ) {
             Spacer(Modifier.height(10.dp))
 
-            // Time picker-ish (two number columns with a capsule highlight)
             TimePickerWheel(
                 hour = hour,
                 minute = minute,
@@ -182,7 +231,6 @@ fun AlarmCreateScreen(
 
             Spacer(Modifier.height(22.dp))
 
-            // Alarm label
             Text("Alarm label", color = muted)
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
@@ -204,7 +252,6 @@ fun AlarmCreateScreen(
 
             Spacer(Modifier.height(18.dp))
 
-            // Rows
             Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
                 SettingRow(
                     title = "Repeat",
@@ -217,19 +264,20 @@ fun AlarmCreateScreen(
                 SettingRow(
                     title = "Ringtone",
                     value = ringtone,
-                    onClick = onNavigateToRingtone // Connect the click
+                    onClick = onNavigateToRingtone
                 )
                 SettingRow(
                     title = "Vibration",
                     value = vibration,
-                    onClick = onNavigateToVibration // Connect the click
+                    onClick = onNavigateToVibration
                 )
                 SettingRow(
                     title = "Dismiss Challenge",
                     subtitle = "Complete a task to turn off alarm",
                     value = dismissChallengeText,
-                    onClick = onNavigateToChallenge // Connect the click
-                )}
+                    onClick = onNavigateToChallenge
+                )
+            }
 
             Spacer(Modifier.height(10.dp))
 
@@ -256,14 +304,13 @@ fun AlarmCreateScreen(
                 showDivider = false
             )
 
-            // Animated Slider
             SnoozeSlider(
                 visible = enableSnooze,
                 value = snoozeMinutes,
                 onValueChange = { snoozeMinutes = it }
             )
 
-            Spacer(Modifier.height(90.dp)) // room for bottom button
+            Spacer(Modifier.height(90.dp))
         }
     }
 }
