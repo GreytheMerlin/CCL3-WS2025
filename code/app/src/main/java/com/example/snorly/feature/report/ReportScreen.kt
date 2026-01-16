@@ -7,10 +7,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Rule
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Bedtime
+import androidx.compose.material.icons.filled.Rule
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
@@ -119,6 +121,7 @@ fun ReportScreen(viewModel: ReportViewModel) {
         Spacer(modifier = Modifier.height(24.dp))
 
         // 30-Day Comparison
+        // 4. Monthly Comparison
         if (comparison != null) {
             Text("Monthly Comparison", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(16.dp))
@@ -158,8 +161,6 @@ fun ReportScreen(viewModel: ReportViewModel) {
                             fontSize = 12.sp
                         )
                     }
-
-                    // Small Divider
                     Box(Modifier.width(1.dp).height(40.dp).background(Color.Gray.copy(alpha=0.3f)))
                     Spacer(Modifier.width(16.dp))
 
@@ -175,7 +176,7 @@ fun ReportScreen(viewModel: ReportViewModel) {
             Spacer(modifier = Modifier.height(24.dp))
         }
 
-        // 5. NEW: Consistency Score
+        // 5. Consistency Score
         if (consistency != null) {
             Text("Sleep Consistency", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(16.dp))
@@ -195,28 +196,57 @@ fun ReportScreen(viewModel: ReportViewModel) {
                         Text(consistency.label, color = consistency.color, fontWeight = FontWeight.Bold)
                     }
 
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(16.dp))
 
-                    // Custom Progress Bar
+                    // Bedtime Consistency
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Bedtime", color = Color.White, fontSize = 12.sp)
+                        Text("${consistency.bedtimeScore}%", color = Color.Gray, fontSize = 12.sp)
+                    }
+                    Spacer(Modifier.height(4.dp))
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(12.dp)
-                            .clip(RoundedCornerShape(6.dp))
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
                             .background(Color(0xFF2C2C2E))
                     ) {
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth(consistency.score / 100f)
+                                .fillMaxWidth(consistency.bedtimeScore / 100f)
                                 .fillMaxHeight()
-                                .clip(RoundedCornerShape(6.dp))
+                                .clip(RoundedCornerShape(4.dp))
                                 .background(consistency.color)
                         )
                     }
 
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(12.dp))
+
+                    // Wake Up Consistency
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Wake Up", color = Color.White, fontSize = 12.sp)
+                        Text("${consistency.wakeupScore}%", color = Color.Gray, fontSize = 12.sp)
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(Color(0xFF2C2C2E))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(consistency.wakeupScore / 100f)
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(consistency.color)
+                        )
+                    }
+
+                    Spacer(Modifier.height(16.dp))
                     Text(
-                        text = "Measures how close you are to your 23:00 / 07:00 target times.",
+                        text = "Based on your targets: ${consistency.targetBedFormatted} Bedtime / ${consistency.targetWakeFormatted} Wake up",
                         color = Color.Gray,
                         fontSize = 12.sp
                     )
@@ -237,7 +267,13 @@ fun ReportScreen(viewModel: ReportViewModel) {
         Row(modifier = Modifier.fillMaxWidth()) {
             StatCard("Wake Up", stats.avgWakeup, Icons.Default.AccessTime, Color(0xFFFFA726), Modifier.weight(1f))
             Spacer(modifier = Modifier.width(12.dp))
-            Box(Modifier.weight(1f)) // Placeholder
+            StatCard(
+                title = "Consistency",
+                value = if (consistency != null) "${consistency.overallScore}/100" else "-",
+                icon = Icons.AutoMirrored.Filled.Rule,
+                color = if (consistency != null) consistency.color else Color.Gray,
+                modifier = Modifier.weight(1f)
+            )
         }
 
         Spacer(modifier = Modifier.height(80.dp))

@@ -94,9 +94,13 @@ fun AppNavHost(
                     }
 
                     Destination.REPORT -> {
+                        val userProfileDao = database.UserProfileDao()
                         // Reuse the SAME manager
                         val reportViewModel: ReportViewModel = viewModel(
-                            factory = ReportViewModel.Factory(healthConnectManager)
+                            factory = ReportViewModel.Factory(
+                                manager = healthConnectManager,
+                                userProfileDao = userProfileDao
+                            )
                         )
 
                         // REFRESH LOGIC (Same pattern as Sleep Screen)

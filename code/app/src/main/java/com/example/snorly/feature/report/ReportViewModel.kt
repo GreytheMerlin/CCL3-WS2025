@@ -7,7 +7,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.snorly.core.database.UserProfileDao
 import com.example.snorly.core.health.HealthConnectManager
+import com.example.snorly.feature.sleep.model.ComparisonResult
+import com.example.snorly.feature.sleep.model.ConsistencyResult
 import com.example.snorly.feature.sleep.model.DailySleepData
 import com.example.snorly.feature.sleep.model.SleepDataProcessor
 import com.example.snorly.feature.sleep.model.WeeklyStats
@@ -16,13 +19,15 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalTime
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 import kotlin.math.abs
 
 class ReportViewModel(
-    private val healthConnectManager: HealthConnectManager
+    private val healthConnectManager: HealthConnectManager,
+    private val userProfileDao: UserProfileDao
 ) : ViewModel() {
 
     // Existing State
@@ -31,7 +36,7 @@ class ReportViewModel(
     var stats by mutableStateOf(WeeklyStats("-", 0, "-", "-"))
         private set
 
-    // NEW STATE: Comparison & Consistency
+    // Comparison & Consistency
     var comparisonData by mutableStateOf<ComparisonResult?>(null)
         private set
     var consistencyScore by mutableStateOf<ConsistencyResult?>(null)
@@ -62,20 +67,30 @@ class ReportViewModel(
                 )
             }
 
-            // 2. NEW LOGIC: Last 30 Days for Comparison & Consistency
+            // Last 30 Days for Comparison & Consistency
             val thirtyDaysAgo = now.minus(30, ChronoUnit.DAYS)
             val monthlyRecords = healthConnectManager.readSleepSessions(thirtyDaysAgo, now)
 
             if (monthlyRecords.isNotEmpty()) {
                 calculateComparison(monthlyRecords, now)
 
+                // Fetch User Targets from Database
+                val profile = userProfileDao.getUserProfileSnapshot()
+                val targetBed = parseTime(profile?.targetBedTime, LocalTime.of(23, 0))
+                val targetWake = parseTime(profile?.targetWakeTime, LocalTime.of(7, 0))
+
                 // For consistency, we need target times.
                 // Since userProfileDao isn't injected here yet, we'll assume defaults or
                 // calculate based on their average if you prefer dynamic targets.
                 // Using defaults 23:00 / 07:00 for robust "ideal" comparison.
-                calculateConsistency(monthlyRecords, LocalTime.of(23, 0), LocalTime.of(7, 0))
+                calculateConsistency(monthlyRecords, targetBed, targetWake)
             }
         }
+    }
+
+    private fun parseTime(timeStr: String?, default: LocalTime): LocalTime {
+        if (timeStr.isNullOrBlank()) return default
+        return try { LocalTime.parse(timeStr) } catch (e: Exception) { default }
     }
 
     private fun calculateComparison(records: List<androidx.health.connect.client.records.SleepSessionRecord>, now: Instant) {
@@ -110,66 +125,78 @@ class ReportViewModel(
         targetBed: LocalTime,
         targetWake: LocalTime
     ) {
-        var totalDeviation = 0L
+        var totalBedDeviation = 0L
+        var totalWakeDeviation = 0L
         var count = 0
 
         records.forEach { record ->
             val startLocal = record.startTime.atZone(ZoneId.systemDefault()).toLocalTime()
             val endLocal = record.endTime.atZone(ZoneId.systemDefault()).toLocalTime()
 
-            // Calc deviation from target in minutes
+            // Bedtime Deviation (handle midnight wrap)
             val bedDiff = abs(Duration.between(targetBed, startLocal).toMinutes())
-            // Fix 24h wrap (e.g. target 23:00 vs 01:00 is 120min, not 1320min)
             val realBedDiff = if (bedDiff > 720) 1440 - bedDiff else bedDiff
 
+            // Wakeup Deviation
             val wakeDiff = abs(Duration.between(targetWake, endLocal).toMinutes())
             val realWakeDiff = if (wakeDiff > 720) 1440 - wakeDiff else wakeDiff
 
-            totalDeviation += (realBedDiff + realWakeDiff)
+            totalBedDeviation += realBedDiff
+            totalWakeDeviation += realWakeDiff
             count++
         }
 
         if (count == 0) return
 
-        val avgDeviation = totalDeviation / count // Average minutes off-target per night
+        val avgBedDev = totalBedDeviation / count
+        val avgWakeDev = totalWakeDeviation / count
+        val overallAvgDev = (avgBedDev + avgWakeDev) / 2
 
-        // Scoring: 0-30m off is Perfect(100). >3h off is Bad(0).
-        val score = when {
-            avgDeviation <= 30 -> 100
-            avgDeviation >= 180 -> 0
-            else -> (100 - ((avgDeviation - 30) / 1.5)).toInt()
+        // Helper to calculate score (0-100) based on minutes deviation
+        fun calcScore(devMinutes: Long): Int {
+            return when {
+                devMinutes <= 15 -> 100 // Strict: 15 mins window is perfect
+                devMinutes >= 120 -> 0  // 2 hours off is bad
+                else -> (100 - ((devMinutes - 15) * 0.95)).toInt().coerceIn(0, 100)
+            }
         }
 
+        val bedScore = calcScore(avgBedDev)
+        val wakeScore = calcScore(avgWakeDev)
+        val overallScore = calcScore(overallAvgDev)
+
         val (label, color) = when {
-            score >= 80 -> "Excellent" to Color(0xFF4CAF50)
-            score >= 60 -> "Fair" to Color(0xFFFFC107)
+            overallScore >= 80 -> "Excellent" to Color(0xFF4CAF50)
+            overallScore >= 60 -> "Fair" to Color(0xFFFFC107)
             else -> "Inconsistent" to Color(0xFFFF5252)
         }
 
-        consistencyScore = ConsistencyResult(score, label, color)
+        // Format Targets for UI
+        val fmt = DateTimeFormatter.ofPattern("HH:mm")
+
+        consistencyScore = ConsistencyResult(
+            overallScore = overallScore,
+            bedtimeScore = bedScore,
+            wakeupScore = wakeScore,
+            targetBedFormatted = targetBed.format(fmt),
+            targetWakeFormatted = targetWake.format(fmt),
+            label = label,
+            color = color
+        )
     }
 
     init {
         loadReportData()
     }
 
-    class Factory(private val manager: HealthConnectManager) : ViewModelProvider.Factory {
+    class Factory(
+        private val manager: HealthConnectManager,
+        private val userProfileDao: UserProfileDao
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return ReportViewModel(manager) as T
+            return ReportViewModel(manager, userProfileDao) as T
         }
     }
 }
 
-// Data Classes for new logic
-data class ComparisonResult(
-    val recentAvgHours: Double,
-    val olderAvgHours: Double,
-    val percentChange: Int
-)
-
-data class ConsistencyResult(
-    val score: Int,
-    val label: String,
-    val color: Color
-)
