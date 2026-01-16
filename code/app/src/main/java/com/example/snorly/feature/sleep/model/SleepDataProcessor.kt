@@ -8,6 +8,7 @@ import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE
 import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_OUT_OF_BED
 import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_REM
 import androidx.health.connect.client.records.SleepSessionRecord.Companion.STAGE_TYPE_SLEEPING
+import com.example.snorly.feature.report.WeeklyStats
 import java.time.Duration
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter

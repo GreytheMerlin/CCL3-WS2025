@@ -9,11 +9,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.snorly.core.database.UserProfileDao
 import com.example.snorly.core.health.HealthConnectManager
-import com.example.snorly.feature.sleep.model.ComparisonResult
-import com.example.snorly.feature.sleep.model.ConsistencyResult
 import com.example.snorly.feature.sleep.model.DailySleepData
 import com.example.snorly.feature.sleep.model.SleepDataProcessor
-import com.example.snorly.feature.sleep.model.WeeklyStats
 import com.example.snorly.feature.sleep.util.SleepScoreUtils
 import kotlinx.coroutines.launch
 import java.time.Duration

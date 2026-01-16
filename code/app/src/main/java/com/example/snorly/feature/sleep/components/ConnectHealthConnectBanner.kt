@@ -34,7 +34,7 @@ fun ConnectHealthConnectBanner(onConnectClick: () -> Unit) {
 
             // 1. LARGER CHARACTER IMAGE
             Image(
-                painter = painterResource(id = R.drawable.snorly_healthconnect),
+                painter = painterResource( R.drawable.snorly_healthconnect),
                 contentDescription = "Snorly Sync",
                 modifier = Modifier
                     .size(72.dp) // Much larger (was 40dp)
