@@ -1,7 +1,18 @@
 package com.example.snorly.feature.report
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,10 +23,13 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Bedtime
-import androidx.compose.material.icons.filled.Rule
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -198,10 +212,11 @@ fun ReportScreen(viewModel: ReportViewModel) {
 
                     Spacer(Modifier.height(16.dp))
 
-                    // Bedtime Consistency
+                    // --- BEDTIME ---
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Bedtime", color = Color.White, fontSize = 12.sp)
-                        Text("${consistency.bedtimeScore}%", color = Color.Gray, fontSize = 12.sp)
+                        // Show Offset Minutes
+                        Text("${consistency.avgBedtimeOffsetMin}m avg offset", color = Color.Gray, fontSize = 12.sp)
                     }
                     Spacer(Modifier.height(4.dp))
                     Box(
@@ -211,21 +226,25 @@ fun ReportScreen(viewModel: ReportViewModel) {
                             .clip(RoundedCornerShape(4.dp))
                             .background(Color(0xFF2C2C2E))
                     ) {
+                        // Max bad deviation is 180min. Closer to 0 deviation = Fuller Bar.
+                        val bedProgress = (1f - (consistency.avgBedtimeOffsetMin / 180f)).coerceIn(0.05f, 1f)
+
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth(consistency.bedtimeScore / 100f)
+                                .fillMaxWidth(bedProgress)
                                 .fillMaxHeight()
                                 .clip(RoundedCornerShape(4.dp))
-                                .background(consistency.color)
+                                .background(consistency.bedtimeColor) // Individual Color
                         )
                     }
 
                     Spacer(Modifier.height(12.dp))
 
-                    // Wake Up Consistency
+                    // --- WAKE UP ---
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Wake Up", color = Color.White, fontSize = 12.sp)
-                        Text("${consistency.wakeupScore}%", color = Color.Gray, fontSize = 12.sp)
+                        // Show Offset Minutes
+                        Text("${consistency.avgWakeupOffsetMin}m avg offset", color = Color.Gray, fontSize = 12.sp)
                     }
                     Spacer(Modifier.height(4.dp))
                     Box(
@@ -235,18 +254,21 @@ fun ReportScreen(viewModel: ReportViewModel) {
                             .clip(RoundedCornerShape(4.dp))
                             .background(Color(0xFF2C2C2E))
                     ) {
+                        // Max bad deviation is 180min. Closer to 0 deviation = Fuller Bar.
+                        val wakeProgress = (1f - (consistency.avgWakeupOffsetMin / 180f)).coerceIn(0.05f, 1f)
+
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth(consistency.wakeupScore / 100f)
+                                .fillMaxWidth(wakeProgress)
                                 .fillMaxHeight()
                                 .clip(RoundedCornerShape(4.dp))
-                                .background(consistency.color)
+                                .background(consistency.wakeupColor) // Individual Color
                         )
                     }
 
                     Spacer(Modifier.height(16.dp))
                     Text(
-                        text = "Based on your targets: ${consistency.targetBedFormatted} Bedtime / ${consistency.targetWakeFormatted} Wake up",
+                        text = "Target: ${consistency.targetBedFormatted} Bed / ${consistency.targetWakeFormatted} Wake",
                         color = Color.Gray,
                         fontSize = 12.sp
                     )

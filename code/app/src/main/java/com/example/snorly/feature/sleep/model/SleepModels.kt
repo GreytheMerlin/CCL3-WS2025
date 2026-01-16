@@ -38,8 +38,10 @@ data class ComparisonResult(
 
 data class ConsistencyResult(
     val overallScore: Int,
-    val bedtimeScore: Int,
-    val wakeupScore: Int,
+    val avgBedtimeOffsetMin: Long,
+    val avgWakeupOffsetMin: Long,
+    val bedtimeColor: Color,
+    val wakeupColor: Color,
     val targetBedFormatted: String,
     val targetWakeFormatted: String,
     val label: String,

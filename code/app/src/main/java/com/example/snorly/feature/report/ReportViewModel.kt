@@ -152,23 +152,40 @@ class ReportViewModel(
         val avgWakeDev = totalWakeDeviation / count
         val overallAvgDev = (avgBedDev + avgWakeDev) / 2
 
-        // Helper to calculate score (0-100) based on minutes deviation
+        // Helper: Calculate Score (0-100) for the overall badge
         fun calcScore(devMinutes: Long): Int {
             return when {
-                devMinutes <= 15 -> 100 // Strict: 15 mins window is perfect
-                devMinutes >= 120 -> 0  // 2 hours off is bad
+                devMinutes <= 15 -> 100
+                devMinutes >= 180 -> 0
                 else -> (100 - ((devMinutes - 15) * 0.95)).toInt().coerceIn(0, 100)
             }
         }
 
-        val bedScore = calcScore(avgBedDev)
-        val wakeScore = calcScore(avgWakeDev)
-        val overallScore = calcScore(overallAvgDev)
+        // Helper: Determine Color based on deviation
+        fun getColorForOffset(minutes: Long): Color {
+            return when {
+                minutes <= 30 -> Color(0xFF4CAF50) // Green
+                minutes <= 90 -> Color(0xFFFFC107) // Orange
+                else -> Color(0xFFFF5252)          // Red
+            }
+        }
 
-        val (label, color) = when {
-            overallScore >= 80 -> "Excellent" to Color(0xFF4CAF50)
-            overallScore >= 60 -> "Fair" to Color(0xFFFFC107)
-            else -> "Inconsistent" to Color(0xFFFF5252)
+
+        val overallScore = calcScore(overallAvgDev)
+        val bedColor = getColorForOffset(avgBedDev)
+        val wakeColor = getColorForOffset(avgWakeDev)
+
+        val label = when {
+            overallScore >= 80 -> "Excellent"
+            overallScore >= 50 -> "Fair"
+            else -> "Inconsistent"
+        }
+
+        // Overall Color based on overallScore
+        val overallColor = when {
+            overallScore >= 80 -> Color(0xFF4CAF50)
+            overallScore >= 50 -> Color(0xFFFFC107)
+            else -> Color(0xFFFF5252)
         }
 
         // Format Targets for UI
@@ -176,12 +193,14 @@ class ReportViewModel(
 
         consistencyScore = ConsistencyResult(
             overallScore = overallScore,
-            bedtimeScore = bedScore,
-            wakeupScore = wakeScore,
+            avgBedtimeOffsetMin = avgBedDev,
+            avgWakeupOffsetMin = avgWakeDev,
+            bedtimeColor = bedColor,
+            wakeupColor = wakeColor,
             targetBedFormatted = targetBed.format(fmt),
             targetWakeFormatted = targetWake.format(fmt),
             label = label,
-            color = color
+            color = overallColor
         )
     }
 
