@@ -1,5 +1,6 @@
 package com.example.snorly.feature.settings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -10,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.snorly.feature.settings.components.SettingsSectionCard
 import com.example.snorly.feature.settings.components.SettingsSwitchTile
 import com.example.snorly.feature.settings.components.SettingsTile
@@ -18,45 +20,51 @@ import com.example.snorly.feature.settings.components.SettingsTile
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
-    onNavigateToProfile: () -> Unit // <--- Added Navigation Callback
+    onNavigateToProfile: () -> Unit
 ) {
     // Collect Real Data
     val userProfile by viewModel.userProfile.collectAsState()
-
     val bg = Color.Black
 
     Scaffold(
+        containerColor = bg,
         topBar = {
-            TopAppBar(
-                title = { Text("Settings", color = Color.White, fontWeight = FontWeight.SemiBold) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = bg),
-                windowInsets = WindowInsets(0.dp)
+            Text(
+                text = "Settings",
+                color = Color.White,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold
             )
-        },
-        containerColor = bg
+        }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // 1. OPTIMIZATION PROFILE
+
+            // 2. SLEEP GOALS (Renamed from Optimization)
             item {
-                SettingsSectionCard(title = "SLEEP OPTIMIZATION") {
-                    // Check if profile is set (e.g. check if age is not null)
-                    val statusText = if (userProfile.age != null) "Active" else "Setup"
+                SettingsSectionCard(title = "SLEEP GOALS") {
+                    // Check if targets are set
+                    val statusText = if (!userProfile.targetBedTime.isNullOrBlank() && !userProfile.targetWakeTime.isNullOrBlank()) {
+                        "${userProfile.targetBedTime} - ${userProfile.targetWakeTime}"
+                    } else {
+                        "Setup"
+                    }
 
                     SettingsTile(
-                        icon = Icons.Outlined.Person,
-                        title = "Optimization Profile",
+                        icon = Icons.Outlined.Bedtime, // Changed Icon
+                        title = "Bedtime Schedule",    // Changed Text
                         value = statusText,
-                        onClick = onNavigateToProfile // <--- Use the callback
+                        onClick = onNavigateToProfile
                     )
                 }
             }
 
-            // 2. ALARM SETTINGS
+            // 3. ALARM SETTINGS
             item {
                 SettingsSectionCard(title = "ALARM SETTINGS") {
                     SettingsTile(
@@ -71,22 +79,10 @@ fun SettingsScreen(
                         onCheckedChange = { }
                     )
                     SettingsSwitchTile(
-                        icon = Icons.Outlined.Bedtime,
-                        title = "Bedtime Reminder",
+                        icon = Icons.Outlined.Snooze, // Changed Icon
+                        title = "Smart Snooze",       // Changed Text
                         checked = false,
                         onCheckedChange = { }
-                    )
-                }
-            }
-
-            // 3. APPEARANCE
-            item {
-                SettingsSectionCard(title = "APPEARANCE") {
-                    SettingsTile(
-                        icon = Icons.Outlined.Palette,
-                        title = "Theme",
-                        value = "Dark",
-                        onClick = { }
                     )
                 }
             }
@@ -109,7 +105,7 @@ fun SettingsScreen(
             }
 
             // Bottom Padding
-            item { Spacer(modifier = Modifier.height(40.dp)) }
+            item { Spacer(modifier = Modifier.height(80.dp)) }
         }
     }
 }

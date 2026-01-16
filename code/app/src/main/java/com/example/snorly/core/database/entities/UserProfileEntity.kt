@@ -6,10 +6,10 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "user_profile")
 data class UserProfileEntity(
     @PrimaryKey val id: Int = 0,
-    val age: Int? = null,          // Nullable, defaults to null (empty)
-    val sex: String? = null,
-    val chronotype: String? = null,
-    val sleepNeedCategory: String? = null,
+//    val age: Int? = null,
+//    val sex: String? = null,
+//    val chronotype: String? = null,
+//    val sleepNeedCategory: String? = null,
     val targetBedTime: String? = null,
     val targetWakeTime: String? = null
 )
