@@ -38,6 +38,8 @@ import androidx.health.connect.client.PermissionController
 import com.example.snorly.feature.sleep.components.ConnectHealthConnectBanner
 import com.example.snorly.feature.sleep.components.SleepHistoryItem
 import com.example.snorly.feature.sleep.components.SleepTrackingCard
+import com.example.snorly.feature.sleep.components.UltimateSleepCard
+import com.example.snorly.feature.sleep.components.UpgradedSleepCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,6 +117,18 @@ fun SleepScreen(
                 // Main Action Card (Blue)
                 item {
                     SleepTrackingCard(
+                        isTracking = viewModel.isTracking,
+                        onToggleTracking = { viewModel.toggleTracking() }
+                    )
+                }
+                item {
+                    UpgradedSleepCard(
+                        isTracking = viewModel.isTracking,
+                        onToggleTracking = { viewModel.toggleTracking() }
+                    )
+                }
+                item {
+                    UltimateSleepCard(
                         isTracking = viewModel.isTracking,
                         onToggleTracking = { viewModel.toggleTracking() }
                     )
