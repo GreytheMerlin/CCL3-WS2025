@@ -147,7 +147,7 @@ fun AppNavHost(
                 onNavigateToRingtone = { navController.navigate("alarm_ringtone") },
                 onNavigateToVibration = { navController.navigate("alarm_vibration") },
                 onNavigateToChallenge = { navController.navigate("challenges_graph") },
-                selectedChallenges = selectedChallenges
+
             )
         }
 
@@ -192,7 +192,7 @@ fun AppNavHost(
                     viewModel = challengeViewModel,
                     onResult = { selectedNames ->
                         navController.previousBackStackEntry?.savedStateHandle?.set(
-                            "selectedChallenges", selectedNames
+                            "selected_challenges_result", selectedNames
                         )
                     })
             }

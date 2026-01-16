@@ -20,6 +20,20 @@ class AlarmCreateViewModel(application: Application) : AndroidViewModel(applicat
     private val _uiState = MutableStateFlow(AlarmCreateUiState())
     val uiState = _uiState.asStateFlow()
 
+    // Prevent re-loading same alarm repeatedly
+    private var loadedForAlarmId: Long? = null
+
+    fun init(alarmId: Long?) {
+        if (loadedForAlarmId == alarmId) return
+        loadedForAlarmId = alarmId
+
+        if (alarmId == null) {
+            _uiState.value = AlarmCreateUiState()
+        } else {
+            loadForEdit(alarmId)
+        }
+    }
+
     // ---- setters ----
     fun setHour(v: Int) = _uiState.update { it.copy(hour = v, saved = false) }
     fun setMinute(v: Int) = _uiState.update { it.copy(minute = v, saved = false) }
@@ -33,15 +47,6 @@ class AlarmCreateViewModel(application: Application) : AndroidViewModel(applicat
     fun setSnoozeMinutes(v: Int) = _uiState.update { it.copy(snoozeMinutes = v, saved = false) }
     fun setSelectedChallenges(v: List<String>) = _uiState.update { it.copy(selectedChallenges = v, saved = false) }
 
-    /**
-     * MVVM create:
-     * - build AlarmEntity from uiState
-     * - insert in DB
-     * - schedule alarm
-     * - set saved=true so UI can navigate back
-     */
-    suspend fun getAlarmById(id: Long): AlarmEntity = alarmDao.getById(id)
-
     fun save() = viewModelScope.launch {
         val state = _uiState.value
         _uiState.update { it.copy(isSaving = true, error = null, saved = false) }
@@ -50,13 +55,14 @@ class AlarmCreateViewModel(application: Application) : AndroidViewModel(applicat
             val time = "%02d:%02d".format(state.hour, state.minute)
 
             val entity = AlarmEntity(
-                id = state.id ?: 0L,              // ✅ if null -> create, else update
+                id = state.id ?: 0L,
+                label = state.label,
                 time = time,
                 ringtone = state.ringtone,
                 vibration = state.vibration,
                 days = state.repeatDays,
                 challenge = state.selectedChallenges,
-                isActive = true,                  // or keep existing if you store it in uiState
+                isActive = true,
                 snoozeMinutes = state.snoozeMinutes
             )
 
@@ -70,7 +76,6 @@ class AlarmCreateViewModel(application: Application) : AndroidViewModel(applicat
                     state.id
                 }!!
 
-            // reschedule: cancel old then schedule new
             scheduler.cancel(alarmId)
 
             val triggerAt = nextTriggerMillis(
@@ -86,79 +91,53 @@ class AlarmCreateViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
+    private fun loadForEdit(alarmId: Long) = viewModelScope.launch {
+        _uiState.update { it.copy(isSaving = true, error = null, saved = false) }
 
-    /**
-     * Optional helper: allows your UI to pass an AlarmEntity directly
-     * (useful if you still want onCreateAlarm(entity) style).
-     */
-    fun insert(alarm: AlarmEntity) = viewModelScope.launch {
-        runCatching {
-            val alarmId = alarmDao.addAlarm(alarm)
-            val (hour, minute) = alarm.time.split(":").map { it.toInt() }
+        runCatching { alarmDao.getById(alarmId) }
+            .onSuccess { alarm ->
+                val (h, m) = alarm.time.split(":").map { it.toInt() }
 
-            val triggerAt = nextTriggerMillis(
-                hour = hour,
-                minute = minute,
-                days = alarm.days
-            )
+                _uiState.update {
+                    it.copy(
+                        id = alarm.id,
+                        hour = h,
+                        minute = m,
+                        label = alarm.label,
+                        ringtone = alarm.ringtone,
+                        vibration = alarm.vibration,
+                        repeatDays = alarm.days,
+                        selectedChallenges = alarm.challenge,
+                        snoozeMinutes = alarm.snoozeMinutes,
+                        // dynamicWake / wakeUpChecker are not in DB currently -> keep defaults
+                        // enableSnooze is in UI state, but not in entity -> keep defaults
 
-            scheduler.schedule(alarmId, triggerAt)
-        }.onFailure { ex ->
-            _uiState.update { it.copy(error = ex.message) }
-        }
+                        isSaving = false,
+                        saved = false,
+                        error = null
+                    )
+                }
+            }
+            .onFailure { ex ->
+                _uiState.update { it.copy(isSaving = false, error = ex.message) }
+            }
     }
+
     fun formatDays(days: List<Int>): String {
-        // Safety check: if list is missing or wrong size, treat as "Once"
         if (days.size != 7) return "Once"
-
-        // 1. Check for "Once" (All zeros)
         if (days.all { it == 0 }) return "Once"
-
-        // 2. Check for "Daily" (All ones)
         if (days.all { it == 1 }) return "Daily"
 
-        // 3. Check for "Weekdays" (Mon(0)-Fri(4) are 1, Sat(5)-Sun(6) are 0)
-        // We slice the list to check specific ranges
         val isWeekdays = days.subList(0, 5).all { it == 1 } && days.subList(5, 7).all { it == 0 }
         if (isWeekdays) return "Weekdays"
 
-        // 4. Check for "Weekend" (Mon(0)-Fri(4) are 0, Sat(5)-Sun(6) are 1)
         val isWeekend = days.subList(0, 5).all { it == 0 } && days.subList(5, 7).all { it == 1 }
         if (isWeekend) return "Weekend"
 
-        // 5. Custom Formatting (e.g., "Mon, Wed")
         val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
         val activeLabels = days.mapIndexedNotNull { index, value ->
             if (value == 1) dayLabels[index] else null
         }
         return activeLabels.joinToString(", ")
-    }
-    fun loadForEdit(alarmId: Long) = viewModelScope.launch {
-        _uiState.update { it.copy(error = null, saved = false) }
-
-        runCatching {
-            alarmDao.getById(alarmId)
-        }.onSuccess { alarm ->
-            val (h, m) = alarm.time.split(":").map { it.toInt() }
-
-            _uiState.update {
-                it.copy(
-                    id = alarm.id,
-                    hour = h,
-                    minute = m,
-                    ringtone = alarm.ringtone,
-                    vibration = alarm.vibration,
-                    repeatDays = alarm.days,
-                    selectedChallenges = alarm.challenge,
-                    snoozeMinutes = alarm.snoozeMinutes,
-                    // keep isSaving/saved/error clean
-                    isSaving = false,
-                    saved = false,
-                    error = null
-                )
-            }
-        }.onFailure { ex ->
-            _uiState.update { it.copy(error = ex.message) }
-        }
     }
 }

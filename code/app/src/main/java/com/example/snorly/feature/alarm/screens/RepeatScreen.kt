@@ -1,5 +1,6 @@
 package com.example.snorly.feature.alarm.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -37,7 +38,16 @@ fun RepeatScreen(
     var selectedDays by remember {
         mutableStateOf(if (initialDays.size == 7) initialDays else List(7) { 0 })
     }
+    fun returnResult() {
+        navController.previousBackStackEntry
+            ?.savedStateHandle
+            ?.set("selected_days_result", selectedDays)
+        navController.popBackStack()
+    }
 
+    BackHandler(enabled = true) {
+        returnResult()
+    }
     // Binary Templates for comparison
     val dailyTemplate = List(7) { 1 }           // [1, 1, 1, 1, 1, 1, 1]
     val weekdaysTemplate = List(7) { i -> if (i < 5) 1 else 0 } // [1, 1, 1, 1, 1, 0, 0]
