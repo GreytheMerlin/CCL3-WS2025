@@ -88,7 +88,7 @@ fun SleepHistoryItem(data: SleepDayUiModel, onClick: () -> Unit = {}) {
                 // Duration
                 SleepTimeColumn(
                     icon = Icons.Filled.Timer,
-                    time = data.wakeup,
+                    time = data.durationFormatted,
                     label = "Duration"
                 )
             }

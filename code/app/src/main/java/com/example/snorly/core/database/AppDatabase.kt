@@ -5,11 +5,13 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.example.snorly.core.database.dao.SleepSessionDao
 import com.example.snorly.core.database.entities.AlarmEntity
+import com.example.snorly.core.database.entities.SleepSessionEntity
 import com.example.snorly.core.database.entities.UserProfileEntity
 
 @Database(
-    entities = [AlarmEntity::class, UserProfileEntity::class],
+    entities = [AlarmEntity::class, UserProfileEntity::class, SleepSessionEntity::class],
     version = 1,
     exportSchema = false
 )
@@ -17,6 +19,7 @@ import com.example.snorly.core.database.entities.UserProfileEntity
 abstract class AppDatabase : RoomDatabase() {
     abstract fun alarmDao(): AlarmDao
     abstract fun UserProfileDao(): UserProfileDao
+    abstract fun sleepSessionDao(): SleepSessionDao
 
     companion object{
 

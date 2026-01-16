@@ -1,15 +1,17 @@
 package com.example.snorly.feature.sleep
 
+import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.snorly.feature.sleep.model.SleepDataProcessor
 import java.time.Duration
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -29,29 +30,31 @@ import java.time.format.DateTimeFormatter
 fun SleepDetailScreen(
     viewModel: SleepDetailViewModel,
     onBack: () -> Unit,
-    onEdit: (String) -> Unit, // Pass ID to edit screen
+    onEdit: (String) -> Unit,
     onDeleteSuccess: () -> Unit
 ) {
     val record = viewModel.sleepRecord
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    // Colors
     val bg = Color.Black
     val cardColor = Color(0xFF1C1C1E)
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {"asdf" }, // Clean look
+                title = { },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                 },
                 actions = {
-                    // ONLY SHOW IF EDITABLE (Owned by Snorly)
+                    // Only allow edits if Snorly owns the data
                     if (viewModel.isEditable) {
-                        IconButton(onClick = { if (record != null) onEdit(record.metadata.id) }) {
+                        IconButton(onClick = {
+                            // FIXED: Use local 'id' converted to String, not 'metadata.id'
+                            if (record != null) onEdit(record.id.toString())
+                        }) {
                             Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.White)
                         }
                         IconButton(onClick = { showDeleteDialog = true }) {
@@ -93,17 +96,44 @@ fun SleepDetailScreen(
                         )
                         Spacer(Modifier.height(16.dp))
 
-                        // Quality Badge
-                        Surface(
-                            color = Color(0xFF2C2C2E),
-                            shape = RoundedCornerShape(100),
-                        ) {
-                            Text(
-                                text = "Quality: ${viewModel.sleepQuality}",
-                                color = Color.White,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                fontWeight = FontWeight.Medium
-                            )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            // Quality Badge
+                            Surface(
+                                color = Color(0xFF2C2C2E),
+                                shape = RoundedCornerShape(100),
+                            ) {
+                                Text(
+                                    text = "Quality: ${viewModel.sleepQuality}",
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 12.sp
+                                )
+                            }
+
+                            Spacer(Modifier.width(8.dp))
+
+                            // Source App Badge
+                            Surface(
+                                color = if (viewModel.isEditable) Color(0xFF0F3D64) else Color(0xFF3E2723), // Blue for Snorly, Brown/Red for others
+                                shape = RoundedCornerShape(100),
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    if (!viewModel.isEditable) {
+                                        Icon(Icons.Default.Info, contentDescription = null, tint = Color(0xFFFFAB91), modifier = Modifier.size(12.dp))
+                                        Spacer(Modifier.width(4.dp))
+                                    }
+                                    Text(
+                                        text = "Source: ${viewModel.sourceAppName}",
+                                        color = if (viewModel.isEditable) Color(0xFF90CAF9) else Color(0xFFFFAB91),
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -132,67 +162,110 @@ fun SleepDetailScreen(
                     }
                 }
 
-                // 3. Detailed Stages (Smart Section)
-                if (record.stages.isNotEmpty()) {
+                // 3. Info Text if not editable
+                if (!viewModel.isEditable) {
                     item {
-                        Text("Sleep Stages", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF2C2C2E)),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(modifier = Modifier.padding(16.dp)) {
+                                Icon(Icons.Default.Info, contentDescription = null, tint = Color.Gray)
+                                Spacer(Modifier.width(12.dp))
+                                Text(
+                                    "This sleep session was recorded by ${viewModel.sourceAppName}. Please use that app to edit details.",
+                                    color = Color.Gray,
+                                    fontSize = 13.sp
+                                )
+                            }
+                        }
                     }
+                }
 
-                    // Sort stages by time to show chronological order
-                    items(record.stages.sortedBy { it.startTime }) { stage ->
-                        val duration = Duration.between(stage.startTime, stage.endTime).toMinutes()
-                        val stageName = SleepDataProcessor.getStageLabel(stage.stage)
-                        val stageColor = SleepDataProcessor.getStageColor(stage.stage)
+                item {
+                    Text("Sleep Stages", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(12.dp))
+
+                    if (viewModel.sleepStages.isNotEmpty()) {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = cardColor),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Column(Modifier.padding(16.dp)) {
+                                val totalDurationMin = Duration.between(record.startTime, record.endTime).toMinutes()
+
+                                // Group stages by type
+                                val stagesByType = viewModel.sleepStages.groupBy { it.stage }
+
+                                StageRow("Deep", stagesByType[SleepSessionRecord.STAGE_TYPE_DEEP], totalDurationMin, Color(0xFF3F51B5))
+                                Spacer(Modifier.height(12.dp))
+                                StageRow("Light", stagesByType[SleepSessionRecord.STAGE_TYPE_LIGHT], totalDurationMin, Color(0xFF03A9F4))
+                                Spacer(Modifier.height(12.dp))
+                                StageRow("REM", stagesByType[SleepSessionRecord.STAGE_TYPE_REM], totalDurationMin, Color(0xFF9C27B0))
+                                Spacer(Modifier.height(12.dp))
+                                StageRow("Awake", stagesByType[SleepSessionRecord.STAGE_TYPE_AWAKE], totalDurationMin, Color(0xFFFF9800))
+                            }
+                        }
+                    } else {
+                        // Empty State for stages
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = cardColor),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Info, contentDescription = null, tint = Color.Gray)
+                                Spacer(Modifier.width(12.dp))
+                                Text("No detailed stages available.", color = Color.Gray, fontSize = 14.sp)
+                            }
+                        }
+                    }
+                }
+
+                // disaply star rating
+                if (record.rating != null && record.rating > 0) {
+                    item {
+                        Text("Rating", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.height(8.dp))
 
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                                .background(cardColor, RoundedCornerShape(16.dp))
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.Center
                         ) {
-                            // Color Dot
-                            Box(
-                                modifier = Modifier
-                                    .size(10.dp)
-                                    .clip(CircleShape)
-                                    .background(stageColor)
-                            )
-                            Spacer(Modifier.width(16.dp))
-
-                            // Stage Name
-                            Text(stageName, color = Color.White, modifier = Modifier.weight(1f))
-
-                            // Duration
-                            Text("${duration}m", color = Color.Gray)
+                            repeat(5) { index ->
+                                val starIndex = index + 1
+                                val isFilled = starIndex <= record.rating
+                                Icon(
+                                    imageVector = if (isFilled) Icons.Filled.Star else Icons.Outlined.Star,
+                                    contentDescription = null,
+                                    tint = if (isFilled) Color(0xFFFFC107) else Color.Gray,
+                                    modifier = Modifier.size(32.dp).padding(horizontal = 4.dp)
+                                )
+                            }
                         }
                     }
-                } else {
-                    // Fallback for Manual Entries
+                }
+
+                // 4. Notes (If any)
+                if (!record.notes.isNullOrBlank()) {
                     item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color(0xFF2C2C2E), RoundedCornerShape(16.dp))
-                                .padding(20.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                "No detailed stages available for this session.",
-                                color = Color.Gray,
-                                fontSize = 14.sp
-                            )
-                        }
+                        Text("Notes", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.height(8.dp))
+                        Text(record.notes, color = Color.Gray, fontSize = 16.sp)
                     }
                 }
             }
         }
 
-        // Delete Dialog
         if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
                 title = { Text("Delete Sleep?") },
-                text = { Text("This will permanently remove this sleep record from Health Connect.") },
+                text = { Text("This will remove the record from Snorly and Health Connect.") },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -208,6 +281,48 @@ fun SleepDetailScreen(
                         Text("Cancel")
                     }
                 }
+            )
+        }
+    }
+}
+
+@Composable
+fun StageRow(
+    label: String,
+    stages: List<SleepSessionRecord.Stage>?,
+    totalMin: Long,
+    color: Color
+) {
+    val durationMin = stages?.sumOf { Duration.between(it.startTime, it.endTime).toMinutes() } ?: 0
+    val percentage = if (totalMin > 0) durationMin.toFloat() / totalMin else 0f
+
+    val hours = durationMin / 60
+    val mins = durationMin % 60
+    val timeStr = if (hours > 0) "${hours}h ${mins}m" else "${mins}m"
+
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(label, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text(timeStr, color = Color.Gray, fontSize = 14.sp)
+        }
+        Spacer(Modifier.height(6.dp))
+        // Progress Bar
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(3.dp))
+                .background(Color(0xFF2C2C2E)) // Track color
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(percentage) // Fill based on percentage
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(color)
             )
         }
     }

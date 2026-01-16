@@ -1,17 +1,36 @@
 package com.example.snorly.feature.report
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Rule
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,14 +41,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Locale
 
 @Composable
 fun ReportScreen(viewModel: ReportViewModel) {
     val data = viewModel.weeklyGraphData
     val stats = viewModel.stats
+    val comparison = viewModel.comparisonData
+    val consistency = viewModel.consistencyScore
+
     val scrollState = rememberScrollState()
 
-    // Background Color
     val bg = Color.Black
     val cardBg = Color(0xFF1C1C1E)
 
@@ -38,18 +60,18 @@ fun ReportScreen(viewModel: ReportViewModel) {
             .fillMaxSize()
             .background(bg)
             .padding(16.dp)
-            .verticalScroll(scrollState) // Allow scrolling for small screens
+            .verticalScroll(scrollState)
     ) {
         // 1. Header
         Text(
-            "Weekly Report",
+            "Sleep Report",
             color = Color.White,
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
-        Text("Last 7 Days", color = Color.Gray, modifier = Modifier.padding(bottom = 24.dp))
+        Text("Insights & Trends", color = Color.Gray, modifier = Modifier.padding(bottom = 24.dp))
 
-        // 2. Sleep Score Card (Big Header)
+        // 2. Sleep Score Card (Existing)
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
@@ -63,7 +85,7 @@ fun ReportScreen(viewModel: ReportViewModel) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text("Sleep Score", color = Color.Gray, fontSize = 14.sp)
+                    Text("Avg Sleep Score", color = Color.Gray, fontSize = 14.sp)
                     Text(
                         text = "${stats.avgScore}",
                         color = getScoreColor(stats.avgScore),
@@ -71,13 +93,11 @@ fun ReportScreen(viewModel: ReportViewModel) {
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = getScoreLabel(stats.avgScore),
+                        getScoreLabel(stats.avgScore),
                         color = Color.White,
                         fontWeight = FontWeight.Medium
                     )
                 }
-
-                // Visual Circle (Placeholder for a Ring Chart)
                 Box(
                     modifier = Modifier
                         .size(80.dp)
@@ -86,8 +106,8 @@ fun ReportScreen(viewModel: ReportViewModel) {
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.WbSunny,
-                        contentDescription = null,
+                        Icons.Default.WbSunny,
+                        null,
                         tint = getScoreColor(stats.avgScore),
                         modifier = Modifier.size(40.dp)
                     )
@@ -97,8 +117,8 @@ fun ReportScreen(viewModel: ReportViewModel) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 3. The Graph
-        Text("Trends", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        // 3. The Graph (Existing)
+        Text("Weekly Trends", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
 
         Card(
@@ -117,17 +137,17 @@ fun ReportScreen(viewModel: ReportViewModel) {
                     ) {
                         val maxHours = data.maxOfOrNull { it.hours } ?: 8f
                         val safeMax = if (maxHours == 0f) 8f else maxHours
-
                         data.forEach { day ->
-                            BarItem(
-                                dayName = day.dayName,
-                                value = day.hours,
-                                max = safeMax
-                            )
+                            BarItem(dayName = day.dayName, value = day.hours, max = safeMax)
                         }
                     }
                 } else {
-                    Box(modifier = Modifier.height(150.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier
+                            .height(150.dp)
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text("No data for graph", color = Color.Gray)
                     }
                 }
@@ -136,51 +156,274 @@ fun ReportScreen(viewModel: ReportViewModel) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 4. Averages Grid
-        Text("Averages", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        // 4. Comparison (UPDATED: 7 vs 7 Days, Quality + Duration)
+        if (comparison != null) {
+            Text(
+                "Weekly Comparison",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = cardBg)
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+
+                    // --- DURATION COMPARISON ROW ---
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Left: Trend Icon
+                        val isMoreTime = comparison.diffMinutes >= 0
+                        Icon(
+                            imageVector = if (isMoreTime) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                            contentDescription = null,
+                            tint = if (isMoreTime) Color(0xFF4CAF50) else Color(0xFFFF5252),
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+
+                        // Center: Description
+                        Column(Modifier.weight(1f)) {
+                            Text("Sleep Duration", color = Color.Gray, fontSize = 12.sp)
+                            Text(
+                                text = "${abs(comparison.diffMinutes)}m ${if (isMoreTime) "more" else "less"}",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+
+                        // Right: Values
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                "This Week: ${
+                                    String.format(
+                                        Locale.US,
+                                        "%.1fh",
+                                        comparison.recentAvgHours
+                                    )
+                                }", color = Color.White, fontSize = 12.sp
+                            )
+                            Text(
+                                "Last Week: ${
+                                    String.format(
+                                        Locale.US,
+                                        "%.1fh",
+                                        comparison.olderAvgHours
+                                    )
+                                }", color = Color.Gray, fontSize = 12.sp
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+                    Divider(color = Color.White.copy(alpha = 0.1f))
+                    Spacer(Modifier.height(16.dp))
+
+                    // --- QUALITY COMPARISON ROW ---
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Left: Trend Icon
+                        val isBetterScore = comparison.diffScore >= 0
+                        Icon(
+                            imageVector = if (isBetterScore) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                            contentDescription = null,
+                            tint = if (isBetterScore) Color(0xFF4CAF50) else Color(0xFFFF5252),
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+
+                        // Center: Description
+                        Column(Modifier.weight(1f)) {
+                            Text("Sleep Quality", color = Color.Gray, fontSize = 12.sp)
+                            Text(
+                                text = "${abs(comparison.diffScore)} pts ${if (isBetterScore) "better" else "worse"}",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+
+                        // Right: Values
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                "This Week: ${comparison.recentAvgScore}",
+                                color = Color.White,
+                                fontSize = 12.sp
+                            )
+                            Text(
+                                "Last Week: ${comparison.olderAvgScore}",
+                                color = Color.Gray,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        // 5. Consistency Score
+        if (consistency != null) {
+            Text(
+                "Sleep Consistency",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = cardBg)
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Schedule Adherence", color = Color.Gray, fontSize = 14.sp)
+                        Text(
+                            consistency.label,
+                            color = consistency.color,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+
+                    // --- BEDTIME ---
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Bedtime", color = Color.White, fontSize = 12.sp)
+                        // Show Offset Minutes
+                        Text(
+                            "${consistency.avgBedtimeOffsetMin}m avg offset",
+                            color = Color.Gray,
+                            fontSize = 12.sp
+                        )
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(Color(0xFF2C2C2E))
+                    ) {
+                        // Max bad deviation is 180min. Closer to 0 deviation = Fuller Bar.
+                        val bedProgress =
+                            (1f - (consistency.avgBedtimeOffsetMin / 180f)).coerceIn(0.05f, 1f)
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(bedProgress)
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(consistency.bedtimeColor) // Individual Color
+                        )
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    // --- WAKE UP ---
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Wake Up", color = Color.White, fontSize = 12.sp)
+                        // Show Offset Minutes
+                        Text(
+                            "${consistency.avgWakeupOffsetMin}m avg offset",
+                            color = Color.Gray,
+                            fontSize = 12.sp
+                        )
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(Color(0xFF2C2C2E))
+                    ) {
+                        // Max bad deviation is 180min. Closer to 0 deviation = Fuller Bar.
+                        val wakeProgress =
+                            (1f - (consistency.avgWakeupOffsetMin / 180f)).coerceIn(0.05f, 1f)
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(wakeProgress)
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(consistency.wakeupColor) // Individual Color
+                        )
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        text = "Target: ${consistency.targetBedFormatted} Bed / ${consistency.targetWakeFormatted} Wake",
+                        color = Color.Gray,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        // 6. Averages Grid (Existing)
+        Text("Weekly Averages", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            // Avg Duration
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             StatCard(
-                title = "Sleep",
-                value = stats.avgDurationStr,
-                icon = Icons.Default.Timer,
-                color = Color(0xFF42A5F5), // Blue
-                modifier = Modifier.weight(1f)
+                "Sleep",
+                stats.avgDuration,
+                Icons.Default.Timer,
+                Color(0xFF42A5F5),
+                Modifier.weight(1f)
             )
-            // Avg Bedtime
             StatCard(
-                title = "Bedtime",
-                value = stats.avgBedtime,
-                icon = Icons.Default.Bedtime,
-                color = Color(0xFF7E57C2), // Purple
-                modifier = Modifier.weight(1f)
+                "Bedtime",
+                stats.avgBedtime,
+                Icons.Default.Bedtime,
+                Color(0xFF7E57C2),
+                Modifier.weight(1f)
             )
         }
-
         Spacer(modifier = Modifier.height(12.dp))
-
         Row(modifier = Modifier.fillMaxWidth()) {
-            // Avg Wakeup (Full Width or half)
             StatCard(
-                title = "Wake Up",
-                value = stats.avgWakeup,
-                icon = Icons.Default.AccessTime,
-                color = Color(0xFFFFA726), // Orange
+                "Wake Up",
+                stats.avgWakeup,
+                Icons.Default.AccessTime,
+                Color(0xFFFFA726),
+                Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            StatCard(
+                title = "Consistency",
+                value = if (consistency != null) "${consistency.overallScore}/100" else "-",
+                icon = Icons.AutoMirrored.Filled.Rule,
+                color = if (consistency != null) consistency.color else Color.Gray,
                 modifier = Modifier.weight(1f)
             )
-            // Empty spacer for grid alignment or add another stat here later
-            Spacer(modifier = Modifier.width(12.dp))
-            Box(Modifier.weight(1f))
         }
 
-        Spacer(modifier = Modifier.height(80.dp)) // Bottom padding
+        Spacer(modifier = Modifier.height(80.dp))
     }
 }
 
-// --- COMPONENTS ---
-
+// --- KEEPING YOUR EXISTING COMPONENTS ---
 @Composable
 fun StatCard(
     title: String,
@@ -195,7 +438,9 @@ fun StatCard(
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E))
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Icon(icon, contentDescription = null, tint = color)
@@ -214,52 +459,42 @@ fun BarItem(dayName: String, value: Float, max: Float) {
         verticalArrangement = Arrangement.Bottom,
         modifier = Modifier.fillMaxHeight()
     ) {
-        // Calculate height fraction
         val barHeightWeight = (value / max).coerceIn(0f, 1f)
-
-        // Value Label (Optional: only show if relevant)
-        // if (value > 0) Text(String.format("%.0f", value), fontSize = 10.sp, color = Color.Gray)
-
         Spacer(modifier = Modifier.height(8.dp))
-
-        // Bar Container
         Box(
             modifier = Modifier
-                .width(12.dp) // Thinner bars look more modern
-                .weight(1f), // Take available height
+                .width(12.dp)
+                .weight(1f),
             contentAlignment = Alignment.BottomCenter
         ) {
-            // The Actual Colored Bar
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(fraction = if(barHeightWeight == 0f) 0.02f else barHeightWeight)
+                    .fillMaxHeight(fraction = if (barHeightWeight == 0f) 0.02f else barHeightWeight)
                     .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
                     .background(
                         Brush.verticalGradient(
-                            colors = if (value >= 7)
-                                listOf(Color(0xFF66BB6A), Color(0xFF43A047)) // Green Gradient
-                            else
-                                listOf(Color(0xFFFFA726), Color(0xFFFB8C00)) // Orange Gradient
+                            colors = if (value >= 7) listOf(Color(0xFF66BB6A), Color(0xFF43A047))
+                            else listOf(Color(0xFFFFA726), Color(0xFFFB8C00))
                         )
                     )
             )
         }
-
         Spacer(modifier = Modifier.height(8.dp))
-
-        // Axis Label
-        Text(text = dayName.take(1), color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text(
+            text = dayName.take(1),
+            color = Color.Gray,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
-// --- HELPERS ---
-
 fun getScoreColor(score: Int): Color {
     return when {
-        score >= 80 -> Color(0xFF4CAF50) // Green
-        score >= 60 -> Color(0xFFFFC107) // Yellow
-        else -> Color(0xFFFF5252)        // Red
+        score >= 80 -> Color(0xFF4CAF50)
+        score >= 60 -> Color(0xFFFFC107)
+        else -> Color(0xFFFF5252)
     }
 }
 
@@ -270,3 +505,6 @@ fun getScoreLabel(score: Int): String {
         else -> "Needs Work"
     }
 }
+
+// Helper for Absolute value used in Screen Logic (moved logic to ViewModel but just in case)
+private fun abs(n: Int) = if (n < 0) -n else n

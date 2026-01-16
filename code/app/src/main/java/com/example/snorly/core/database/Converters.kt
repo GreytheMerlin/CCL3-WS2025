@@ -1,6 +1,7 @@
 package com.example.snorly.core.database
 
 import androidx.room.TypeConverter
+import java.time.Instant
 
 class Converters {
     @TypeConverter
@@ -18,4 +19,14 @@ class Converters {
     fun toStringList(value: String): List<String> =
         if (value.isBlank()) emptyList()
         else value.split("||")
+
+    @TypeConverter
+    fun fromTimestamp(value: Long?): Instant? {
+        return value?.let { Instant.ofEpochMilli(it) }
+    }
+
+    @TypeConverter
+    fun dateToTimestamp(date: Instant?): Long? {
+        return date?.toEpochMilli()
+    }
 }

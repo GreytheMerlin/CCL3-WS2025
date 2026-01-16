@@ -36,8 +36,10 @@ import com.example.snorly.feature.sleep.AddSleepScreen
 import com.example.snorly.feature.sleep.AddSleepViewModel
 import com.example.snorly.feature.sleep.SleepDetailScreen
 import com.example.snorly.feature.sleep.SleepDetailViewModel
-import com.example.snorly.feature.sleep.SleepScreen
 import com.example.snorly.feature.sleep.SleepViewModel
+import com.example.snorly.core.data.SleepRepository
+import com.example.snorly.feature.alarm.AlarmViewModel
+import com.example.snorly.feature.sleep.SleepScreen
 
 @Composable
 fun AppNavHost(
@@ -45,10 +47,18 @@ fun AppNavHost(
 
 ) {
     val alarmCreateViewModel: AlarmCreateViewModel = viewModel()
+    val alarmViewModel: AlarmViewModel = viewModel()
 
     // Initialize the manager using the current context
     val context = androidx.compose.ui.platform.LocalContext.current
+
+    val database = remember { AppDatabase.getDatabase(context) }
+
     val healthConnectManager = remember { HealthConnectManager(context) }
+
+    val sleepRepository = remember {
+        SleepRepository(database.sleepSessionDao(), healthConnectManager)
+    }
 
     NavHost(
         navController = navController,
@@ -64,7 +74,7 @@ fun AppNavHost(
                     Destination.SLEEP -> {
                         // We create the ViewModel right here, scoped to this screen
                         val sleepViewModel: SleepViewModel = viewModel(
-                            factory = SleepViewModel.Factory(healthConnectManager)
+                            factory = SleepViewModel.Factory(sleepRepository, healthConnectManager, context)
                         )
 
                         // REFRESH LOGIC
@@ -75,8 +85,8 @@ fun AppNavHost(
 
                         LaunchedEffect(refreshState) {
                             if (refreshState) {
-                                android.util.Log.d("NAV", "Refreshing Sleep List...")
-                                sleepViewModel.checkPermissions() // Force Reload
+                                // CALL THE SYNC FUNCTION
+                                sleepViewModel.syncSleepData()
                                 // Reset the flag so we don't reload loop
                                 savedStateHandle["refresh_sleep"] = false
                             }
@@ -89,9 +99,13 @@ fun AppNavHost(
                     }
 
                     Destination.REPORT -> {
+                        val userProfileDao = database.UserProfileDao()
                         // Reuse the SAME manager
                         val reportViewModel: ReportViewModel = viewModel(
-                            factory = ReportViewModel.Factory(healthConnectManager)
+                            factory = ReportViewModel.Factory(
+                                manager = healthConnectManager,
+                                userProfileDao = userProfileDao
+                            )
                         )
 
                         // REFRESH LOGIC (Same pattern as Sleep Screen)
@@ -261,21 +275,18 @@ fun AppNavHost(
 
         // === Sleep ===
 
-        composable("sleep_add") { backStackEntry ->
+        composable("sleep_add") {
             val viewModel: AddSleepViewModel = viewModel(
-                factory = AddSleepViewModel.Factory(healthConnectManager, null)
+                factory = AddSleepViewModel.Factory(sleepRepository, null)
             )
             AddSleepScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
                 onSaveSuccess = {
-                    // Tell previous screen to refresh
-                    navController.previousBackStackEntry?.savedStateHandle?.set(
-                        "refresh_sleep",
-                        true
-                    )
+                    navController.previousBackStackEntry?.savedStateHandle?.set("refresh_sleep", true)
                     navController.popBackStack()
-                })
+                }
+            )
         }
 
         // 2. EDIT ROUTE (With ID)
@@ -283,10 +294,12 @@ fun AppNavHost(
             route = "sleep_edit/{sleepId}",
             arguments = listOf(navArgument("sleepId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val sleepId = backStackEntry.arguments?.getString("sleepId")
+            val sleepIdString = backStackEntry.arguments?.getString("sleepId")
+            // CRITICAL FIX: Convert String ID back to Long for the Database
+            val sleepId = sleepIdString?.toLongOrNull()
 
             val viewModel: AddSleepViewModel = viewModel(
-                factory = AddSleepViewModel.Factory(healthConnectManager, sleepId)
+                factory = AddSleepViewModel.Factory(sleepRepository, sleepId)
             )
 
             AddSleepScreen(
@@ -294,10 +307,9 @@ fun AppNavHost(
                 onBack = { navController.popBackStack() },
                 onSaveSuccess = {
                     // Tell detail screen to refresh
-                    navController.previousBackStackEntry?.savedStateHandle?.set(
-                        "refresh_sleep",
-                        true
-                    )
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("refresh_detail", true)
 
                     // Also tell the main list (two steps back) to refresh
                     // (Optional, depends on flow)
@@ -309,14 +321,34 @@ fun AppNavHost(
             route = "sleep_detail/{sleepId}",
             arguments = listOf(navArgument("sleepId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val sleepId = backStackEntry.arguments?.getString("sleepId") ?: ""
 
-            val context = androidx.compose.ui.platform.LocalContext.current
+            val sleepIdString = backStackEntry.arguments?.getString("sleepId")
+            // CRITICAL FIX: Convert String ID back to Long for the Database
+            val sleepId = sleepIdString?.toLongOrNull() ?: -1L
 
-            // Create the Detail ViewModel
+            // Updated to use SleepDetailViewModel.Factory(repository, id)
             val detailViewModel: SleepDetailViewModel = viewModel(
-                factory = SleepDetailViewModel.Factory(healthConnectManager, sleepId, context)
+                factory = SleepDetailViewModel.Factory(sleepRepository, healthConnectManager, sleepId, context)
             )
+
+            val refreshDetail by backStackEntry.savedStateHandle
+                .getStateFlow("refresh_detail", false)
+                .collectAsState()
+
+            LaunchedEffect(refreshDetail) {
+                if (refreshDetail) {
+                    // FIX: Call the method on the INSTANCE, not the class
+                    detailViewModel.loadRecord()
+
+                    // Update Previous Screen
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("refresh_sleep", true)
+
+                    // Reset Flag
+                    backStackEntry.savedStateHandle["refresh_detail"] = false
+                }
+            }
 
             SleepDetailScreen(
                 viewModel = detailViewModel,

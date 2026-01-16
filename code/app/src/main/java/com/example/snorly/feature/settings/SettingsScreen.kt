@@ -29,7 +29,8 @@ fun SettingsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Settings", color = Color.White, fontWeight = FontWeight.SemiBold) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = bg)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = bg),
+                windowInsets = WindowInsets(0.dp)
             )
         },
         containerColor = bg

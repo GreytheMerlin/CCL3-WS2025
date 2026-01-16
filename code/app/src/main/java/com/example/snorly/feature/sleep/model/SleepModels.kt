@@ -22,9 +22,3 @@ data class SleepDayUiModel(
     val wakeup: String           // "06:45"
 )
 
-data class WeeklyStats(
-    val avgDurationStr: String, // "7h 30m"
-    val avgScore: Int,          // 85
-    val avgBedtime: String,     // "23:15"
-    val avgWakeup: String       // "07:10"
-)
