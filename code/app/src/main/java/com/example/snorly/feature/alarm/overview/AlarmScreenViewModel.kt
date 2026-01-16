@@ -30,7 +30,7 @@ class AlarmScreenViewModel(application: Application) : AndroidViewModel(applicat
         if (days.take(5).all { it == 0 } && days.drop(5).all { it == 1 }) return "Weekend"
 
         val selected = days.mapIndexedNotNull { index, value -> if (value == 1) index else null }
-        if (selected.isEmpty()) return "No days"
+        if (selected.isEmpty()) return "Once"
 
         val ranges = mutableListOf<Pair<Int, Int>>()
         var start = selected.first()
@@ -121,6 +121,7 @@ class AlarmScreenViewModel(application: Application) : AndroidViewModel(applicat
 private fun AlarmEntity.toAlarm(): Alarm =
     Alarm(
         id = id,
+        label = label,
         time = time,
         ringtone = ringtone,
         vibration = vibration,

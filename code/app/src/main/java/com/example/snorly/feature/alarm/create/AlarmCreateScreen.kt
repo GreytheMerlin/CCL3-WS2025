@@ -106,8 +106,12 @@ fun AlarmCreateScreen(
     }
 
     val dismissChallengeText =
-        if (state.selectedChallenges.isEmpty()) "Off"
-        else state.selectedChallenges.joinToString(", ")
+        when (state.selectedChallenges.size) {
+            0 -> "Off"
+            1 -> state.selectedChallenges.first()
+            else -> "${state.selectedChallenges.first()} +${state.selectedChallenges.size - 1}"
+        }
+
 
     Scaffold(
         containerColor = bg,
@@ -229,27 +233,14 @@ fun AlarmCreateScreen(
 
                 SettingRow(
                     title = "Dismiss Challenge",
-                    subtitle = "Complete a task to turn off alarm",
+                    subtitle = "Complete a task to turn off",
                     value = dismissChallengeText,
                     onClick = onNavigateToChallenge
                 )
             }
 
-            Spacer(Modifier.height(10.dp))
 
-            ToggleRow(
-                title = "Dynamic Wake",
-                subtitle = "Wake you at optimal time based on\nsleep cycles. Set latest wake time.",
-                checked = state.dynamicWake,
-                onCheckedChange = alarmViewModel::setDynamicWake,
-            )
 
-            ToggleRow(
-                title = "Wake Up Checker",
-                subtitle = "You will receive a notification. If you do not accept this,\nthe alarm will be triggered.",
-                checked = state.wakeUpChecker,
-                onCheckedChange = alarmViewModel::setWakeUpChecker,
-            )
 
             Spacer(Modifier.height(10.dp))
 

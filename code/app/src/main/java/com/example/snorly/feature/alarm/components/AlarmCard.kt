@@ -113,22 +113,25 @@ fun AlarmCard(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = alarm.time,
-                    lineHeight = 32.sp,
-                    style = MaterialTheme.typography.displayMedium.copy(
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 32.sp,
-                        letterSpacing = (-1).sp
-                    ),
-                    color = timeColor
-                )
+
+                    Text(
+                        text = alarm.time,
+                        lineHeight = 32.sp,
+                        style = MaterialTheme.typography.displayMedium.copy(
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 32.sp,
+                            letterSpacing = (-1).sp
+                        ),
+                        color = timeColor
+                    )
+
+
 
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "${dayText.ifBlank { "No days" }} • ${alarm.ringtone} • ${alarm.vibration}",
+                        text = "${dayText.ifBlank { "Once" }} • ${alarm.label}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -137,6 +140,7 @@ fun AlarmCard(
                 Spacer(modifier = Modifier.height(2.dp))
 
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+
                     CascadingIcon(Icons.Outlined.DateRange, alarm.isActive, 0)
                     CascadingIcon(Icons.Outlined.Info, alarm.isActive, 1)
                     CascadingIcon(Icons.Filled.Notifications, alarm.isActive, 2)
