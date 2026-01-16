@@ -80,8 +80,8 @@ fun AppNavHost(
 
                         LaunchedEffect(refreshState) {
                             if (refreshState) {
-                                android.util.Log.d("NAV", "Refreshing Sleep List...")
-//                                sleepViewModel.checkPermissions() // Force Reload
+                                // CALL THE SYNC FUNCTION
+                                sleepViewModel.syncSleepData()
                                 // Reset the flag so we don't reload loop
                                 savedStateHandle["refresh_sleep"] = false
                             }
@@ -289,10 +289,9 @@ fun AppNavHost(
                 onBack = { navController.popBackStack() },
                 onSaveSuccess = {
                     // Tell detail screen to refresh
-                    navController.previousBackStackEntry?.savedStateHandle?.set(
-                        "refresh_sleep",
-                        true
-                    )
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("refresh_detail", true)
 
                     // Also tell the main list (two steps back) to refresh
                     // (Optional, depends on flow)
@@ -304,6 +303,7 @@ fun AppNavHost(
             route = "sleep_detail/{sleepId}",
             arguments = listOf(navArgument("sleepId") { type = NavType.StringType })
         ) { backStackEntry ->
+
             val sleepIdString = backStackEntry.arguments?.getString("sleepId")
             // CRITICAL FIX: Convert String ID back to Long for the Database
             val sleepId = sleepIdString?.toLongOrNull() ?: -1L
@@ -312,6 +312,25 @@ fun AppNavHost(
             val detailViewModel: SleepDetailViewModel = viewModel(
                 factory = SleepDetailViewModel.Factory(sleepRepository, healthConnectManager, sleepId, context)
             )
+
+            val refreshDetail by backStackEntry.savedStateHandle
+                .getStateFlow("refresh_detail", false)
+                .collectAsState()
+
+            LaunchedEffect(refreshDetail) {
+                if (refreshDetail) {
+                    // FIX: Call the method on the INSTANCE, not the class
+                    detailViewModel.loadRecord()
+
+                    // Update Previous Screen
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("refresh_sleep", true)
+
+                    // Reset Flag
+                    backStackEntry.savedStateHandle["refresh_detail"] = false
+                }
+            }
 
             SleepDetailScreen(
                 viewModel = detailViewModel,

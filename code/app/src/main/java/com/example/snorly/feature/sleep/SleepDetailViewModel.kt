@@ -47,7 +47,7 @@ class SleepDetailViewModel(
         loadRecord()
     }
 
-    private fun loadRecord() {
+    fun loadRecord() {
         viewModelScope.launch {
             isLoading = true
 

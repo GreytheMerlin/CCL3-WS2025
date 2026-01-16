@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,6 +25,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,9 +51,21 @@ fun SleepScreen(
         // We tell the ViewModel to check again.
         viewModel.checkPermissionsAndSync()
     }
+
+    // Pull Down to Refresh State
+    val pullRefreshState = rememberPullToRefreshState()
+
     Scaffold(
         containerColor = Color.Black
     ) { innerPadding ->
+        PullToRefreshBox(
+            isRefreshing = viewModel.isSyncing,
+            onRefresh = { viewModel.syncSleepData() },
+            state = pullRefreshState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding) // Apply Scaffold padding to the box
+        ){
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -189,7 +204,7 @@ fun SleepScreen(
                         )
                     }
                 }
-            }
+            }}
     }
 }
 
