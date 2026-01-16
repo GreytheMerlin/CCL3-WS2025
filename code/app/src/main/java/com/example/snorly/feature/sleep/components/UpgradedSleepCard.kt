@@ -2,26 +2,53 @@ package com.example.snorly.feature.sleep.components
 
 import android.graphics.RuntimeShader
 import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.compose.animation.core.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ShaderBrush
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 
 // -----------------------------------------------------------------------------
 // 1. THE SCI-FI SHADER (AGSL)
@@ -111,7 +138,10 @@ fun UpgradedSleepCard(
     // Animation Bridge: Smoothly interpolate the "Tracking" state (0f -> 1f)
     val activeState by animateFloatAsState(
         targetValue = if (isTracking) 1f else 0f,
-        animationSpec = tween(durationMillis = 2000, easing = LinearOutSlowInEasing), // Slow, heavy transition
+        animationSpec = tween(
+            durationMillis = 2000,
+            easing = LinearOutSlowInEasing
+        ), // Slow, heavy transition
         label = "shaderState"
     )
 
@@ -124,10 +154,29 @@ fun UpgradedSleepCard(
         label = "time"
     )
 
+    var secondsElapsed by remember { mutableLongStateOf(0L) }
+    LaunchedEffect(isTracking) {
+        if (isTracking) {
+            val startTime = System.currentTimeMillis()
+            while (true) {
+                secondsElapsed = (System.currentTimeMillis() - startTime) / 1000
+                delay(500) // Update faster than 1s for smoother feel, calculation handles it
+            }
+        } else {
+            secondsElapsed = 0L
+        }
+    }
+
+    val timerText = remember(secondsElapsed) {
+        val h = secondsElapsed / 3600
+        val m = (secondsElapsed % 3600) / 60
+        val s = secondsElapsed % 60
+        String.format("%02d:%02d:%02d", h, m, s)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(260.dp) // Taller for more immersive visual area
             .clip(RoundedCornerShape(32.dp))
             .scifiBackground(activeState, time) // <--- APPLY SHADER HERE
             .padding(24.dp)
@@ -137,61 +186,80 @@ fun UpgradedSleepCard(
             modifier = Modifier.align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Icon Container (Glassy Look)
-            Box(
-                modifier = Modifier
-                    .size(64.dp)
-                    .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(20.dp))
-                    .padding(12.dp),
-                contentAlignment = Alignment.Center
-            ) {
+
                 Icon(
                     imageVector = if (isTracking) Icons.Outlined.Timer else Icons.Outlined.Bedtime,
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier.size(32.dp)
                 )
-            }
 
             Spacer(Modifier.height(20.dp))
 
-            // Text with specific typography
-            Text(
-                text = if (isTracking) "Tracking Sleep" else "Ready to Sleep?",
-                color = Color.White,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = 0.5.sp
-            )
-
-            Text(
-                text = if (isTracking) "Wake me up when I'm refreshed." else "Initialize sleep tracking sequence.",
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 14.sp,
-                modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
-            )
-
+            AnimatedContent(
+                targetState = isTracking,
+                transitionSpec = {
+                    if (targetState) {
+                        (slideInVertically { height -> height } + fadeIn()).togetherWith(
+                            slideOutVertically { height -> -height } + fadeOut())
+                    } else {
+                        (slideInVertically { height -> -height } + fadeIn()).togetherWith(
+                            slideOutVertically { height -> height } + fadeOut())
+                    }.using(SizeTransform(clip = false))
+                },
+                label = "textMorph"
+            ) { tracking ->
+                if (tracking) {
+                    Text(
+                        text = timerText,
+                        color = Color.White,
+                        fontSize = 32.sp,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Medium,
+                        letterSpacing = (-2).sp
+                    )
+                } else {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            "Ready for Sleep?",
+                            color = Color.White,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "Initialize sleep tracking.",
+                            color = Color.White.copy(0.7f),
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(12.dp))
             // High Contrast Button
             Button(
                 onClick = onToggleTracking,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = if (isTracking) Color(0xFFB71C1C) else Color(0xFF311B92)
+                    containerColor = if (isTracking) Color(0xFFFF1744).copy(alpha = 0.8f) else Color.White.copy(
+                        alpha = 0.2f
+                    ),
+                    contentColor = Color.White
                 ),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(44.dp)
             ) {
                 Text(
-                    text = if (isTracking) "TERMINATE" else "INITIATE",
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
+                    text = if (isTracking) "WAKE UP" else "Start Tracking",
+                    fontSize = 16.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp
                 )
             }
         }
+
     }
 }
+
 
 // -----------------------------------------------------------------------------
 // 3. THE MODIFIER (AGSL ENGINE)
