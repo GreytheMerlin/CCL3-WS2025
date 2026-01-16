@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -65,19 +64,19 @@ fun SleepScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding) // Apply Scaffold padding to the box
-        ){
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black), // Set back to Black
-            contentPadding = PaddingValues(
-                top = 16.dp,
-                bottom = innerPadding.calculateBottomPadding() + 80.dp,
-                start = 16.dp,
-                end = 16.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black), // Set back to Black
+                contentPadding = PaddingValues(
+                    top = 16.dp,
+                    bottom = innerPadding.calculateBottomPadding() + 80.dp,
+                    start = 16.dp,
+                    end = 16.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 // Header Title
                 item {
                     Row(
@@ -115,7 +114,10 @@ fun SleepScreen(
                 }
                 // Main Action Card (Blue)
                 item {
-                    SleepTrackingCard()
+                    SleepTrackingCard(
+                        isTracking = viewModel.isTracking,
+                        onToggleTracking = { viewModel.toggleTracking() }
+                    )
                 }
 
                 // TODAY'S STATS (Replaces old Averages)
@@ -124,7 +126,12 @@ fun SleepScreen(
                     val todaysSleep = viewModel.sleepHistory.firstOrNull()
                     if (todaysSleep != null) {
                         item {
-                            Text("Last Night", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                            Text(
+                                "Last Night",
+                                color = Color.White,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 18.sp
+                            )
                         }
                         item {
                             //stats Card Logic
@@ -148,10 +155,16 @@ fun SleepScreen(
                                             )
                                         }
                                         Column(horizontalAlignment = Alignment.End) {
-                                            Text("Sleep Score", color = Color.Gray, fontSize = 12.sp)
+                                            Text(
+                                                "Sleep Score",
+                                                color = Color.Gray,
+                                                fontSize = 12.sp
+                                            )
                                             Text(
                                                 viewModel.latestSleepScore,
-                                                color = if(viewModel.latestSleepScore != "--") Color(0xFF4CAF50) else Color.Gray,
+                                                color = if (viewModel.latestSleepScore != "--") Color(
+                                                    0xFF4CAF50
+                                                ) else Color.Gray,
                                                 fontSize = 32.sp,
                                                 fontWeight = FontWeight.Bold
                                             )
@@ -170,11 +183,18 @@ fun SleepScreen(
                 // 4. List Header
                 item {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Recent Sleep", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            "Recent Sleep",
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                 }
 
@@ -204,7 +224,8 @@ fun SleepScreen(
                         )
                     }
                 }
-            }}
+            }
+        }
     }
 }
 

@@ -69,7 +69,7 @@ fun AppNavHost(
                     Destination.SLEEP -> {
                         // We create the ViewModel right here, scoped to this screen
                         val sleepViewModel: SleepViewModel = viewModel(
-                            factory = SleepViewModel.Factory(sleepRepository, healthConnectManager)
+                            factory = SleepViewModel.Factory(sleepRepository, healthConnectManager, context)
                         )
 
                         // REFRESH LOGIC

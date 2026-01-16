@@ -118,7 +118,7 @@ fun ReportScreen(viewModel: ReportViewModel) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 4. NEW: 30-Day Comparison
+        // 30-Day Comparison
         if (comparison != null) {
             Text("Monthly Comparison", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(16.dp))

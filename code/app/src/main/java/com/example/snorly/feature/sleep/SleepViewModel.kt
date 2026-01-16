@@ -1,5 +1,7 @@
 package com.example.snorly.feature.sleep
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -7,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.snorly.core.data.SleepRepository
+import com.example.snorly.core.database.entities.SleepSessionEntity
 import com.example.snorly.core.health.HealthConnectManager
 import com.example.snorly.feature.sleep.model.SleepDayUiModel
 import com.example.snorly.feature.sleep.model.SleepStats
@@ -22,8 +25,15 @@ import java.time.temporal.ChronoUnit
 
 class SleepViewModel(
     private val repository: SleepRepository,
-    private val healthConnectManager: HealthConnectManager
+    private val healthConnectManager: HealthConnectManager,
+    private val context: Context
 ) : ViewModel() {
+
+    var isTracking by mutableStateOf(false)
+        private set
+
+    // Use SharedPreferences to persist state "overnight"
+    private val prefs: SharedPreferences = context.getSharedPreferences("sleep_tracker_prefs", Context.MODE_PRIVATE)
 
     val requiredPermissions = healthConnectManager.permissions
 
@@ -83,7 +93,10 @@ class SleepViewModel(
 
         }.launchIn(viewModelScope)
 
-        // 2. Check Permissions & Trigger Sync
+        // CHECK IF WE ARE ALREADY TRACKING (Restore state after app kill)
+        restoreTrackingState()
+
+        // Check Permissions & Trigger Sync
         checkPermissionsAndSync()
     }
 
@@ -143,13 +156,63 @@ class SleepViewModel(
         return "${hours}h ${minutes}m"
     }
 
+    private fun restoreTrackingState() {
+        val startTime = prefs.getLong("tracking_start_time", -1L)
+        isTracking = (startTime != -1L)
+    }
+
+    fun toggleTracking() {
+        if (isTracking) {
+            stopTracking()
+        } else {
+            startTracking()
+        }
+    }
+
+    private fun startTracking() {
+        val now = Instant.now().toEpochMilli()
+        // Save to disk immediately
+        prefs.edit().putLong("tracking_start_time", now).apply()
+        isTracking = true
+    }
+
+    fun stopTracking() {
+        viewModelScope.launch {
+            val startMillis = prefs.getLong("tracking_start_time", -1L)
+
+            if (startMillis != -1L) {
+                val startInstant = Instant.ofEpochMilli(startMillis)
+                val endInstant = Instant.now()
+
+                // Create the entity
+                val newSession = SleepSessionEntity(
+                    startTime = startInstant,
+                    endTime = endInstant,
+                    sourcePackage = context.packageName, // Mark as Manual/App
+                    notes = "Tracked Session"
+                )
+
+                // Save via Repository (Gatekeeper will handle validation)
+                repository.saveSleepSession(newSession, isEdit = false)
+            }
+
+            // Clear the preference
+            prefs.edit().remove("tracking_start_time").apply()
+            isTracking = false
+
+            // Trigger a sync/refresh to show the new item
+            syncSleepData()
+        }
+    }
+
     class Factory(
         private val repository: SleepRepository,
-        private val manager: HealthConnectManager
+        private val manager: HealthConnectManager,
+        private val context: Context
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return SleepViewModel(repository, manager) as T
+            return SleepViewModel(repository, manager, context) as T
         }
     }
 }
