@@ -29,11 +29,14 @@ data class WeeklyStats(
     val avgWakeup: String,       // "07:10"
 )
 
-// Data Classes for new logic
+// Updated Data Class
 data class ComparisonResult(
     val recentAvgHours: Double,
     val olderAvgHours: Double,
-    val percentChange: Int
+    val diffMinutes: Int, // e.g. +30 or -15
+    val diffScore: Int = 0, // Placeholder for quality score diff
+    val recentAvgScore: Int,
+    val olderAvgScore: Int
 )
 
 data class ConsistencyResult(

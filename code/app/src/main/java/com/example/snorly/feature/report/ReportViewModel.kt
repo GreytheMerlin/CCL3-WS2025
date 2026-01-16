@@ -14,6 +14,7 @@ import com.example.snorly.feature.sleep.model.ConsistencyResult
 import com.example.snorly.feature.sleep.model.DailySleepData
 import com.example.snorly.feature.sleep.model.SleepDataProcessor
 import com.example.snorly.feature.sleep.model.WeeklyStats
+import com.example.snorly.feature.sleep.util.SleepScoreUtils
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.Instant
@@ -67,22 +68,22 @@ class ReportViewModel(
                 )
             }
 
-            // Last 30 Days for Comparison & Consistency
-            val thirtyDaysAgo = now.minus(30, ChronoUnit.DAYS)
-            val monthlyRecords = healthConnectManager.readSleepSessions(thirtyDaysAgo, now)
+            // COMPARISON LOGIC: THIS WEEK (0-7) vs LAST WEEK (8-14)
+            // We need 14 days of data total
+            val fourteenDaysAgo = now.minus(14, ChronoUnit.DAYS)
+            val allRecords = healthConnectManager.readSleepSessions(fourteenDaysAgo, now)
 
-            if (monthlyRecords.isNotEmpty()) {
-                calculateComparison(monthlyRecords, now)
+            if (allRecords.isNotEmpty()) {
+                calculateComparison(allRecords, now)
 
-                // Fetch User Targets from Database
+                // 3. CONSISTENCY LOGIC: LAST 30 DAYS (For better statistical relevance)
+                val thirtyDaysAgo = now.minus(30, ChronoUnit.DAYS)
+                val monthlyRecords = healthConnectManager.readSleepSessions(thirtyDaysAgo, now)
+
                 val profile = userProfileDao.getUserProfileSnapshot()
                 val targetBed = parseTime(profile?.targetBedTime, LocalTime.of(23, 0))
                 val targetWake = parseTime(profile?.targetWakeTime, LocalTime.of(7, 0))
 
-                // For consistency, we need target times.
-                // Since userProfileDao isn't injected here yet, we'll assume defaults or
-                // calculate based on their average if you prefer dynamic targets.
-                // Using defaults 23:00 / 07:00 for robust "ideal" comparison.
                 calculateConsistency(monthlyRecords, targetBed, targetWake)
             }
         }
@@ -94,29 +95,40 @@ class ReportViewModel(
     }
 
     private fun calculateComparison(records: List<androidx.health.connect.client.records.SleepSessionRecord>, now: Instant) {
-        val splitPoint = now.minus(15, ChronoUnit.DAYS)
+        val splitPoint = now.minus(7, ChronoUnit.DAYS)
 
-        // Split records into "Recent Half" (Last 15 days) and "Older Half" (Days 16-30)
+        // Split: "Recent" = Last 7 days. "Older" = Days 8-14.
         val recentRecs = records.filter { !it.startTime.isBefore(splitPoint) }
         val olderRecs = records.filter { it.startTime.isBefore(splitPoint) }
 
-        // Function to calc avg duration in minutes
+        // --- DURATION ---
         fun getAvgMinutes(list: List<androidx.health.connect.client.records.SleepSessionRecord>): Double {
             if (list.isEmpty()) return 0.0
             return list.map { Duration.between(it.startTime, it.endTime).toMinutes() }.average()
         }
 
-        val recentAvg = getAvgMinutes(recentRecs)
-        val olderAvg = getAvgMinutes(olderRecs)
+        val recentAvgMin = getAvgMinutes(recentRecs)
+        val olderAvgMin = getAvgMinutes(olderRecs)
+        val diffMin = (recentAvgMin - olderAvgMin).toInt()
 
-        // Compare
-        val diff = recentAvg - olderAvg // Positive means we sleep MORE now
-        val percentChange = if (olderAvg > 0) ((diff / olderAvg) * 100).toInt() else 0
+        // --- QUALITY SCORE ---
+        fun getAvgScore(list: List<androidx.health.connect.client.records.SleepSessionRecord>): Int {
+            if (list.isEmpty()) return 0
+            // Calculate score for each record and average it
+            return list.map { SleepScoreUtils.calculateScore(it) }.average().toInt()
+        }
+
+        val recentScore = getAvgScore(recentRecs)
+        val olderScore = getAvgScore(olderRecs)
+        val diffScore = recentScore - olderScore
 
         comparisonData = ComparisonResult(
-            recentAvgHours = recentAvg / 60,
-            olderAvgHours = olderAvg / 60,
-            percentChange = percentChange
+            recentAvgHours = recentAvgMin / 60,
+            olderAvgHours = olderAvgMin / 60,
+            diffMinutes = diffMin,
+            diffScore = diffScore,
+            recentAvgScore = recentScore,
+            olderAvgScore = olderScore
         )
     }
 

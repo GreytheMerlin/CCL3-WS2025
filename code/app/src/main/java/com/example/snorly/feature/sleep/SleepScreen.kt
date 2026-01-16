@@ -156,7 +156,7 @@ fun SleepScreen(
                                         }
                                         Column(horizontalAlignment = Alignment.End) {
                                             Text(
-                                                "Sleep Score",
+                                                "Snorly Sleep Score",
                                                 color = Color.Gray,
                                                 fontSize = 12.sp
                                             )
