@@ -12,11 +12,20 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.Settings
 import androidx.core.app.NotificationCompat
+import com.example.snorly.core.database.AppDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AlarmRingingService : Service() {
 
     private var player: MediaPlayer? = null
     private var vibrator: Vibrator? = null
+
+    // Create a scope for database operations
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun onCreate() {
         super.onCreate()
@@ -56,7 +65,36 @@ class AlarmRingingService : Service() {
         startActivity(fsIntent)
 
         // Start ringing (use your stored ringtone later; here: default alarm sound)
-        startRinging(Settings.System.DEFAULT_ALARM_ALERT_URI)
+        startActivity(fsIntent)
+
+        // 4. Fetch Sound & Play asynchronously
+        serviceScope.launch {
+            val ringtoneUri = withContext(Dispatchers.IO) {
+                try {
+                    if (alarmId != -1L) {
+                        val db = AppDatabase.getDatabase(applicationContext)
+                        val alarm = db.alarmDao().getById(alarmId)
+
+                        // Check if we have a valid stored URI
+                        if (!alarm.ringtoneUri.isNullOrBlank()) {
+                            Uri.parse(alarm.ringtoneUri)
+                        } else {
+                            null
+                        }
+                    } else {
+                        null
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+            }
+
+            // If DB fetch failed or URI was empty, fallback to default
+            val finalUri = ringtoneUri ?: Settings.System.DEFAULT_ALARM_ALERT_URI
+
+            startRinging(finalUri)
+        }
 
         // Vibrate (simple pattern)
         startVibration()
@@ -81,6 +119,10 @@ class AlarmRingingService : Service() {
             }
         } catch (_: Exception) {
             // If anything fails, don't crash the alarm
+            // Fallback: If specific file fails (e.g. deleted), try default
+            if (uri != Settings.System.DEFAULT_ALARM_ALERT_URI) {
+                startRinging(Settings.System.DEFAULT_ALARM_ALERT_URI)
+            }
         }
     }
 
