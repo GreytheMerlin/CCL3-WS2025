@@ -19,6 +19,7 @@ roomKtxVersion = "2.8.4"
 uiGraphics = "1.10.0"
 uiText = "1.10.0"
 uiGraphicsVersion = "1.10.1"
+animation = "1.10.1"
 
 [libraries]
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
@@ -46,6 +47,7 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtxV
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "uiGraphics" }
 androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
 ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "uiGraphicsVersion" }
+androidx-compose-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
 
 
 [plugins]
