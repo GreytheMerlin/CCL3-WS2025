@@ -9,6 +9,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.snorly.feature.alarm.model.Ringtone
+import com.example.snorly.feature.alarm.model.RingtoneData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -75,14 +76,25 @@ class RingtoneListViewModel(
         return ringtoneList
     }
 
+    // helper to construct valid resource URIs
+    private fun getResourceUri(resourceId: Int): String {
+        return "android.resource://${getApplication<Application>().packageName}/$resourceId"
+    }
+
+    // Return different sounds based on category
+    // MUST have these files in res/raw for this to work
     private fun fetchCategoryRingtones(category: String): List<Ringtone> {
-        // Mock Data for specific categories since we don't have real assets yet
-        return listOf(
-            Ringtone("1", "$category - Morning Rise", ""),
-            Ringtone("2", "$category - Gentle Rain", ""),
-            Ringtone("3", "$category - Forest Birds", ""),
-            Ringtone("4", "$category - Deep Focus", "")
-        )
+        // Get the raw definitions from our Data Object
+        val definitions = RingtoneData.getSoundsForCategory(category)
+
+        // Map them to the UI Model (Ringtone) with full URIs
+        return definitions.map { def ->
+            Ringtone(
+                id = def.id,
+                title = def.title,
+                uri = getResourceUri(def.resId) // Convert Int -> URI String
+            )
+        }
     }
 
     fun onRingtoneClick(selected: Ringtone) {

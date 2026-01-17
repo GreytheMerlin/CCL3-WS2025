@@ -103,20 +103,19 @@ fun AlarmCreateScreen(
     LaunchedEffect(Unit) {
         val handle = navController.currentBackStackEntry?.savedStateHandle ?: return@LaunchedEffect
 
-        // Observe both flows
-        val nameFlow = handle.getStateFlow<String?>("selected_ringtone_name", null)
-        val uriFlow = handle.getStateFlow<String?>("selected_ringtone_uri", null)
-
-        // Combine logic (simplified for clarity)
-        // You can also just collect one and read the other from the handle immediately
-        nameFlow.collect { name ->
+        // Watch for the NAME specifically
+        handle.getStateFlow<String?>("selected_ringtone_name", null).collect { name ->
             if (name != null) {
+                // Get the URI stored alongside it
                 val uri = handle.get<String>("selected_ringtone_uri") ?: ""
 
-                // Pass both to ViewModel
-                alarmViewModel.setRingtone(name, uri)
+                // DEBUG LOG: Ensure Name is a Name ("Classic") and URI is a URI ("content://...")
+                println("SnorlyDebug: Setting Ringtone -> Name: $name | Uri: $uri")
 
-                // Clean up
+                // Update ViewModel: Function signature is setRingtone(name, uri)
+                alarmViewModel.setRingtone(name = name, uri = uri)
+
+                // Clear state to prevent loop
                 handle["selected_ringtone_name"] = null
                 handle["selected_ringtone_uri"] = null
             }
