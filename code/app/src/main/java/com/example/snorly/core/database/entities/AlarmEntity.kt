@@ -9,7 +9,8 @@ data class AlarmEntity (
     val label:String,
     val time:String,
     val challenge: List<String> = emptyList(),
-    val ringtone: String,
+    val ringtone: String,      // Display Name (e.g. "Morning Birds")
+    val ringtoneUri: String,   // Playable URI (e.g. "content://media/internal/...")
     val vibration: String,
     val isActive: Boolean,
     val snoozeMinutes: Int,

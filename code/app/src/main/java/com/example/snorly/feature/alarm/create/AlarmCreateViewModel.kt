@@ -38,7 +38,7 @@ class AlarmCreateViewModel(application: Application) : AndroidViewModel(applicat
     fun setHour(v: Int) = _uiState.update { it.copy(hour = v, saved = false) }
     fun setMinute(v: Int) = _uiState.update { it.copy(minute = v, saved = false) }
     fun setLabel(v: String) = _uiState.update { it.copy(label = v, saved = false) }
-    fun setRingtone(v: String) = _uiState.update { it.copy(ringtone = v, saved = false) }
+    fun setRingtone(name: String, uri: String) = _uiState.update { it.copy(ringtone = name,ringtoneUri = uri, saved = false) }
     fun setVibration(v: String) = _uiState.update { it.copy(vibration = v, saved = false) }
     fun setRepeatDays(v: List<Int>) = _uiState.update { it.copy(repeatDays = v, saved = false) }
     fun setDynamicWake(v: Boolean) = _uiState.update { it.copy(dynamicWake = v, saved = false) }
@@ -59,6 +59,7 @@ class AlarmCreateViewModel(application: Application) : AndroidViewModel(applicat
                 label = state.label,
                 time = time,
                 ringtone = state.ringtone,
+                ringtoneUri = state.ringtoneUri,
                 vibration = state.vibration,
                 days = state.repeatDays,
                 challenge = state.selectedChallenges,
@@ -105,6 +106,7 @@ class AlarmCreateViewModel(application: Application) : AndroidViewModel(applicat
                         minute = m,
                         label = alarm.label,
                         ringtone = alarm.ringtone,
+                        ringtoneUri = alarm.ringtoneUri,
                         vibration = alarm.vibration,
                         repeatDays = alarm.days,
                         selectedChallenges = alarm.challenge,

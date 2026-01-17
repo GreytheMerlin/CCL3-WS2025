@@ -99,6 +99,30 @@ fun AlarmCreateScreen(
         }
     }
 
+    // Handle Ringtone Selection Result
+    LaunchedEffect(Unit) {
+        val handle = navController.currentBackStackEntry?.savedStateHandle ?: return@LaunchedEffect
+
+        // Observe both flows
+        val nameFlow = handle.getStateFlow<String?>("selected_ringtone_name", null)
+        val uriFlow = handle.getStateFlow<String?>("selected_ringtone_uri", null)
+
+        // Combine logic (simplified for clarity)
+        // You can also just collect one and read the other from the handle immediately
+        nameFlow.collect { name ->
+            if (name != null) {
+                val uri = handle.get<String>("selected_ringtone_uri") ?: ""
+
+                // Pass both to ViewModel
+                alarmViewModel.setRingtone(name, uri)
+
+                // Clean up
+                handle["selected_ringtone_name"] = null
+                handle["selected_ringtone_uri"] = null
+            }
+        }
+    }
+
 
     // Close after save
     LaunchedEffect(state.saved) {

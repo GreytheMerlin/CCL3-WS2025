@@ -38,7 +38,8 @@ import com.example.snorly.feature.sleep.SleepDetailScreen
 import com.example.snorly.feature.sleep.SleepDetailViewModel
 import com.example.snorly.feature.sleep.SleepViewModel
 import com.example.snorly.core.data.SleepRepository
-import com.example.snorly.feature.alarm.AlarmViewModel
+import com.example.snorly.feature.alarm.overview.AlarmScreenViewModel
+import com.example.snorly.feature.alarm.screens.RingtoneListScreen
 import com.example.snorly.feature.sleep.SleepScreen
 
 @Composable
@@ -47,7 +48,7 @@ fun AppNavHost(
 
 ) {
     val alarmCreateViewModel: AlarmCreateViewModel = viewModel()
-    val alarmViewModel: AlarmViewModel = viewModel()
+    val alarmViewModel: AlarmScreenViewModel = viewModel()
 
     // Initialize the manager using the current context
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -175,6 +176,7 @@ fun AppNavHost(
                 })
 
         }
+
         composable("alarm_vibration") {
             VibrationScreen(onBack = { navController.popBackStack() })
         }
@@ -184,8 +186,23 @@ fun AppNavHost(
             route = "ringtone_list/{categoryId}",
             arguments = listOf(navArgument("categoryId") { type = NavType.StringType })
         ) {
-            val id = it.arguments?.getString("categoryId")
-            // RingtoneListScreen(categoryId = id) ...
+            // We don't need to extract args manually if using SavedStateHandle in ViewModel
+            // But we pass callbacks to handle the selection result
+            RingtoneListScreen(
+                categoryId = it.arguments?.getString("categoryId") ?: "device",
+                onBack = { navController.popBackStack() },
+                onRingtoneSelected = { uri, name ->
+                    // Pass result back to AlarmCreateScreen
+                    // We assume 'alarm_create' is in the backstack.
+                    // We set the result in the 'savedStateHandle' of the previous entry.
+                    navController.getBackStackEntry("alarm_create").savedStateHandle.set("selected_ringtone_uri", uri)
+                    navController.getBackStackEntry("alarm_create").savedStateHandle.set("selected_ringtone_name", name)
+
+                    // Pop back to Create Screen (skipping category selection)
+                    // Or pop once to go back to categories. Usually, selecting a sound returns to the form.
+                    navController.popBackStack("alarm_create", inclusive = false)
+                }
+            )
         }
         // === Challenges ===
         navigation(
