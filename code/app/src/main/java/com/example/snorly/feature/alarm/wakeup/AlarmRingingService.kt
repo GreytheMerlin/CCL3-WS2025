@@ -1,7 +1,7 @@
-package com.example.snorly.feature.alarm
+package com.example.snorly.feature.alarm.wakeup
 
+import android.R
 import android.app.*
-import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
 import android.media.MediaPlayer
@@ -40,7 +40,7 @@ class AlarmRingingService : Service() {
         )
 
         val notif = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setSmallIcon(R.drawable.ic_lock_idle_alarm)
             .setContentTitle("Alarm")
             .setContentText("Tap to open")
             .setPriority(NotificationCompat.PRIORITY_MAX)
@@ -107,7 +107,7 @@ class AlarmRingingService : Service() {
 
     private fun createChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-        val mgr = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val mgr = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         val channel = NotificationChannel(
             CHANNEL_ID,
             "Alarms",

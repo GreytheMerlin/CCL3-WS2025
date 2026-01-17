@@ -46,8 +46,19 @@ android {
 
 dependencies {
 
+    // CameraX
+    implementation("androidx.camera:camera-core:1.3.4")
+    implementation("androidx.camera:camera-camera2:1.3.4")
+    implementation("androidx.camera:camera-lifecycle:1.3.4")
+    implementation("androidx.camera:camera-view:1.3.4")
+
+    // ML Kit barcode scanning
+    implementation("com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.1")
+
+
     implementation("androidx.compose.material:material-icons-extended")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("com.google.guava:guava:33.2.1-android")
 
 
     implementation(libs.androidx.room.runtime)
@@ -57,6 +68,7 @@ dependencies {
     implementation(libs.room.ktx)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.compose.ui.text)
+    implementation(libs.ui.graphics)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.common.jvm)
     implementation(libs.androidx.room.ktx)

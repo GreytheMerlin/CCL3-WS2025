@@ -1,4 +1,4 @@
-package com.example.snorly.feature.alarm
+package com.example.snorly.feature.alarm.wakeup
 
 import android.content.BroadcastReceiver
 import android.content.Context

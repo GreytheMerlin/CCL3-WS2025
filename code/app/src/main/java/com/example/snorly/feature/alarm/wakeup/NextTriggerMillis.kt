@@ -1,4 +1,4 @@
-package com.example.snorly.feature.alarm
+package com.example.snorly.feature.alarm.wakeup
 
 import java.util.Calendar
 

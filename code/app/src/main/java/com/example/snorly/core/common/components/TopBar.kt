@@ -19,7 +19,8 @@ import androidx.compose.ui.Modifier
 @Composable
 fun HomeTopBar(
     title: String,
-    onSettingsClick: () -> Unit = {}
+    onSettingsClick: () -> Unit = {},
+    actions: @Composable () -> Unit = {}   // ✅ NEW, optional
 ) {
     TopAppBar(
         title = {
@@ -33,12 +34,14 @@ fun HomeTopBar(
             titleContentColor = MaterialTheme.colorScheme.onBackground,
             actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
-//        actions = {
-//            // Example: A settings icon on the top right of main screens
-//            IconButton(onClick = onSettingsClick) {
-//                Icon(Icons.Default.Settings, contentDescription = "Settings")
-//            }
-//        }
+        actions = {
+            actions()
+
+            // OPTIONAL: keep settings icon if you want
+            // IconButton(onClick = onSettingsClick) {
+            //     Icon(Icons.Default.Settings, contentDescription = "Settings")
+            // }
+        }
     )
 }
 

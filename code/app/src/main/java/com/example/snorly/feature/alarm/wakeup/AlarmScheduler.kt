@@ -1,11 +1,10 @@
-package com.example.snorly.feature.alarm
+package com.example.snorly.feature.alarm.wakeup
 
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.provider.Settings
 
 class AlarmScheduler(private val context: Context) {
 
