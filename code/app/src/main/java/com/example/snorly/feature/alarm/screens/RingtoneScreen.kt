@@ -11,93 +11,182 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.snorly.core.common.components.BackTopBar
-import com.example.snorly.feature.alarm.components.AuroraRingtoneCard
+import com.example.snorly.core.ui.shader.ShaderLibrary
 import com.example.snorly.feature.alarm.components.DeviceAlarmBanner
+import com.example.snorly.feature.alarm.components.OrganicShaderCard
 
 @Composable
 fun RingtoneScreen(
     onBack: () -> Unit,
     onCategoryClick: (String) -> Unit = {}
 ) {
-    Scaffold(
-        topBar = { BackTopBar(title = "Ringtones", onBackClick = onBack) }
-    ) { innerPadding ->
+    Scaffold(topBar = { BackTopBar(title = "Ringtones", onBackClick = onBack) }) { innerPadding ->
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(
-                top = innerPadding.calculateTopPadding() + 16.dp,
-                bottom = 16.dp, start = 16.dp, end = 16.dp
-            ),
+            contentPadding = PaddingValues(top = innerPadding.calculateTopPadding() + 16.dp, bottom = 16.dp, start = 16.dp, end = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            // 1. Device Banner
-            item(span = { GridItemSpan(2) }) {
-                DeviceAlarmBanner(onClick = { onCategoryClick("device") })
-            }
+            item(span = { GridItemSpan(2) }) { DeviceAlarmBanner(onClick = { onCategoryClick("device") }) }
 
-            // 2. Spotify (Vibrant Green Glow)
+            // 1. Spotify (Green/Black - Electric)
             item {
-                AuroraRingtoneCard(
+                OrganicShaderCard(
                     title = "Spotify", subtitle = "Your music",
                     icon = Icons.Default.MusicNote,
-                    accentColor = Color(0xFF1DB954),
+                    color1 = Color(0xFF1DB954), color2 = Color(0xFF000000),
+                    shaderCode = ShaderLibrary.PULSE_PLASMA,
                     onClick = { onCategoryClick("spotify") }
                 )
             }
 
-            // 3. Composer (Warm Gold Glow)
+            // 2. Composer (Gold/Brown - Sharp)
             item {
-                AuroraRingtoneCard(
+                OrganicShaderCard(
                     title = "Composer", subtitle = "Create custom",
                     icon = Icons.Default.Build,
-                    accentColor = Color(0xFFFFC107),
+                    color1 = Color(0xFFD4AF37), color2 = Color(0xFF3E2723),
+                    shaderCode = ShaderLibrary.SILK_FOG,
                     onClick = { onCategoryClick("composer") }
                 )
             }
 
-            // 4. Classic (Cool Blue/Grey Glow)
+            // 3. Classic (Grey/Blue - Grain)
             item {
-                AuroraRingtoneCard(
+                OrganicShaderCard(
                     title = "Classic", subtitle = "Traditional",
                     icon = Icons.Default.Notifications,
-                    accentColor = Color(0xFF90CAF9),
+                    color1 = Color(0xFF505050),
+                    color2 = Color(0xFFF5F2E8), // Not used by this shader, but required by the component signature
+                    shaderCode = ShaderLibrary.CLASSIC_PEARL,
                     count = "4 sounds",
                     onClick = { onCategoryClick("classic") }
                 )
             }
 
-            // 5. Alarms (Intense Red Glow)
+            // 4. Alarms (Red/Black - Deep Void)
             item {
-                AuroraRingtoneCard(
+                OrganicShaderCard(
                     title = "Alarms", subtitle = "Attention",
                     icon = Icons.Outlined.ErrorOutline,
-                    accentColor = Color(0xFFFF5252),
-                    count = "4 sounds",
-                    onClick = { onCategoryClick("alarms") }
+                    color1 = Color(0xFF000000), color2 = Color(0xFFB71C1C),
+                    shaderCode = ShaderLibrary.DEEP_VOID,
+                    count = "4 sounds", onClick = { onCategoryClick("alarms") }
                 )
             }
 
-            // 6. Nature (Soft Teal Glow)
+            // 5. Nature (Green/Teal - Aurora)
             item {
-                AuroraRingtoneCard(
+                OrganicShaderCard(
                     title = "Nature", subtitle = "Peaceful",
                     icon = Icons.Default.Landscape,
-                    accentColor = Color(0xFF4DB6AC),
+                    // Color1: Bright Neon Green (The Glow)
+                    color1 = Color(0xFF69F0AE),
+                    // Color2: Deep Dark Green (The Atmosphere)
+                    color2 = Color(0xFF003300),
+                    shaderCode = ShaderLibrary.SOFT_BLOOM, // <--- New Shader
                     count = "5 sounds",
                     onClick = { onCategoryClick("nature") }
                 )
             }
 
-            // 7. Animals (Sunset Orange Glow)
+            // 6. Animals (Orange/Dark - Heatmap)
             item {
-                AuroraRingtoneCard(
+                OrganicShaderCard(
                     title = "Animals", subtitle = "Wild calls",
                     icon = Icons.Default.MusicNote,
-                    accentColor = Color(0xFFFFB74D),
+                    color1 = Color(0xFFFF6F00), color2 = Color(0xFFBF360C),
+                    shaderCode = ShaderLibrary.HEATMAP,
+                    count = "4 sounds", onClick = { onCategoryClick("animals") }
+                )
+            }
+
+            // 7. Abstract (Purple/Pink - Liquid)
+            item {
+                OrganicShaderCard(
+                    title = "Abstract", subtitle = "Unique sounds",
+                    icon = Icons.Default.Palette,
+                    color1 = Color(0xFF7B1FA2), color2 = Color(0xFFC2185B),
+                    shaderCode = ShaderLibrary.LIQUID,
+                    count = "6 sounds", onClick = { onCategoryClick("abstract") }
+                )
+            }
+
+            // 8. Sleep (Blue/Indigo - Focus)
+            item {
+                OrganicShaderCard(
+                    title = "Sleep", subtitle = "Ambient noise",
+                    icon = Icons.Default.Bedtime,
+                    color1 = Color(0xFF304FFE), color2 = Color(0xFF1A237E),
+                    shaderCode = ShaderLibrary.FOCUS,
+                    count = "8 sounds", onClick = { onCategoryClick("sleep") }
+                )
+            }
+            item {
+                OrganicShaderCard(
+                    title = "Classic", subtitle = "Traditional",
+                    icon = Icons.Default.Notifications,
+                    color1 = Color(0xFF70BFE5), // Light GreyBlue
+                    color2 = Color(0xFF627885), // Dark Charcoal
+                    shaderCode = ShaderLibrary.HEAVY_FILM_GRAIN, // <--- New Shader
                     count = "4 sounds",
-                    onClick = { onCategoryClick("animals") }
+                    onClick = { onCategoryClick("classic") }
+                )
+            }
+
+            // Example: Alarms using INVERTED_PULSE
+            // High contrast works best here. Bright edge, dark center.
+            item {
+                OrganicShaderCard(
+                    title = "Alarms", subtitle = "Attention",
+                    icon = Icons.Outlined.ErrorOutline,
+                    color2 = Color(0xFF5A965A), // Bright Neon Red (Edge)
+                    color1 = Color(0xFF253622), // Pure Black (Center)
+                    shaderCode = ShaderLibrary.INVERTED_PULSE, // <--- New Shader
+                    count = "4 sounds",
+                    onClick = { onCategoryClick("alarms") }
+                )
+            }
+            item {
+                OrganicShaderCard(
+                    title = "Modern", subtitle = "Data Grid",
+                    icon = Icons.Default.GraphicEq,
+                    // Color 1: Bright Cyan (Big Dots)
+                    color1 = Color(0xFF00E5FF),
+                    // Color 2: Deep Blue (Small/Medium Dots)
+                    color2 = Color(0xFF2962FF),
+                    shaderCode = ShaderLibrary.LED_MATRIX, // <--- The new halftone shader
+                    count = "4 sounds",
+                    onClick = { onCategoryClick("modern") }
+                )
+            }
+            item {
+                OrganicShaderCard(
+                    title = "Modern", subtitle = "Data Grid",
+                    icon = Icons.Default.GraphicEq,
+                    // Color 1: Bright Cyan (Big Dots)
+                    color1 = Color(0xFF2D628D),
+                    // Color 2: Deep Blue (Small/Medium Dots)
+                    color2 = Color(0xFF162F73),
+                    shaderCode = ShaderLibrary.LED_MATRIX, // <--- The new halftone shader
+                    count = "4 sounds",
+                    onClick = { onCategoryClick("modern") }
+                )
+            }
+            // Example 2: "Modern" -> Cyan/Blue Data Flow
+            // This gives a high-tech, flowing data vibe.
+            item {
+                OrganicShaderCard(
+                    title = "Modern", subtitle = "Contemporary",
+                    icon = Icons.Default.GraphicEq,
+                    // Bright Cyan
+                    color1 = Color(0xFF00E5FF),
+                    // Deep Midnight Blue
+                    color2 = Color(0xFF001040),
+                    shaderCode = ShaderLibrary.LIQUID_FLOW, // <--- The new shader
+                    count = "4 sounds",
+                    onClick = { onCategoryClick("modern") }
                 )
             }
         }

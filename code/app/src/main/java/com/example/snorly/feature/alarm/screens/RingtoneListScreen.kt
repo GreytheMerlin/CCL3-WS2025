@@ -1,5 +1,6 @@
 package com.example.snorly.feature.alarm.screens
 
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -9,25 +10,25 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FolderOpen // Add this icon
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource.Companion.SideEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.snorly.core.common.components.BackTopBar
+import com.example.snorly.feature.alarm.components.SoundWaveAnimation
 import com.example.snorly.feature.alarm.model.Ringtone
 import com.example.snorly.feature.alarm.viewmodel.RingtoneListViewModel
 
@@ -149,8 +150,6 @@ fun RingtoneListScreen(
                     onClick = {
                         viewModel.onRingtoneClick(ringtone)
                     },
-                    // Add a specific Select button or stick to click-to-select
-                    onSelect = { onRingtoneSelected(ringtone.title, ringtone.uri) }
                 )
                 Divider(color = Color(0xFF1F1F1F), thickness = 1.dp)
             }
@@ -161,49 +160,51 @@ fun RingtoneListScreen(
 @Composable
 fun RingtoneItemRow(
     item: Ringtone,
-    onClick: () -> Unit,
-    onSelect: () -> Unit
+    onClick: () -> Unit
 ) {
+
+    SideEffect {
+        Log.d("UI_DEBUG", "Row '${item.title}': isSelected=${item.isSelected}, isPlaying=${item.isPlaying}")
+    }
+
+    // Define Colors based on state
+    val activeColor = Color(0xFF1677FF)
+    val inactiveColor = Color.White
+    val contentColor = if (item.isSelected) activeColor else inactiveColor
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick) // Click plays/pauses
             .padding(vertical = 16.dp, horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.Start
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            // Play Icon
-            Icon(
-                imageVector = if (item.isPlaying) Icons.Default.Stop else Icons.Default.PlayArrow,
-                contentDescription = null,
-                tint = if (item.isSelected) Color(0xFF1677FF) else Color.Gray,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = item.title,
-                color = if (item.isSelected) Color(0xFF1677FF) else Color.White,
-                fontWeight = if (item.isSelected) FontWeight.Bold else FontWeight.Normal,
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
-
-        // Selection Radio/Check
-        // If playing, show a "Select" button, or just keep the check logic
-        if (item.isSelected) {
-            Icon(Icons.Default.Check, contentDescription = "Selected", tint = Color(0xFF1677FF))
-        }
-        if (item.isPlaying) {
-            // Optional: Show a "Use This" button when previewing
-            Button(
-                onClick = onSelect,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1677FF)),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-                modifier = Modifier.height(32.dp)
-            ) {
-                Text("Set", fontSize = 12.sp)
+        Box(
+            modifier = Modifier.size(24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (item.isPlaying) {
+                // The new Animation
+                SoundWaveAnimation(color = activeColor)
+            } else {
+                // Static Icon
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = null,
+                    tint = if (item.isSelected) activeColor else Color.Gray,
+                    modifier = Modifier.size(24.dp)
+                )
             }
         }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Text(
+            text = item.title,
+            color = contentColor,
+            fontWeight = if (item.isSelected) FontWeight.Bold else FontWeight.Normal,
+            style = MaterialTheme.typography.bodyLarge
+        )
+
     }
 }

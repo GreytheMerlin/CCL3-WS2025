@@ -5,6 +5,7 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -98,24 +99,47 @@ class RingtoneListViewModel(
     }
 
     fun onRingtoneClick(selected: Ringtone) {
-        // 1. Update UI Selection & Playing State
-        _uiState.update { list ->
-            list.map { item ->
-                item.copy(
-                    isSelected = item.uri == selected.uri,
-                    isPlaying = item.uri == selected.uri
-                )
+        val currentlyPlayingId = _uiState.value.find { it.isPlaying }?.id
+        val isSameItem = currentlyPlayingId == selected.id
+
+        if (isSameItem) {
+            // Toggle OFF: Stop everything
+            stopPreview()
+        } else {
+            // Toggle ON:
+            // 1. Stop audio only (don't reset UI yet, we are about to set it)
+            stopAudioOnly()
+
+            // 2. Play new sound
+            if (selected.uri.isNotEmpty()) {
+                playPreview(Uri.parse(selected.uri))
+            }
+
+            // 3. Update UI: Set the new item to Playing=true
+            _uiState.update { list ->
+                list.map { item ->
+                    item.copy(
+                        isSelected = item.uri == selected.uri,
+                        isPlaying = item.id == selected.id
+                    )
+                }
             }
         }
+    }
 
-        // 2. Play Sound
-        if (selected.uri.isNotEmpty()) {
-            playPreview(Uri.parse(selected.uri))
+    private fun stopAudioOnly() {
+        try {
+            if (mediaPlayer?.isPlaying == true) {
+                mediaPlayer?.stop()
+            }
+            mediaPlayer?.release()
+            mediaPlayer = null
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
     private fun playPreview(uri: Uri) {
-        stopPreview() // Stop previous
         mediaPlayer = MediaPlayer().apply {
             setAudioAttributes(
                 AudioAttributes.Builder()
@@ -127,25 +151,26 @@ class RingtoneListViewModel(
                 setDataSource(context, uri)
                 prepare()
                 start()
+
+                setOnCompletionListener {
+                    // When sound finishes naturally, THEN we reset the UI
+                    stopPreview()
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
+                stopPreview()
             }
         }
     }
 
+    // Stops audio AND resets UI (Used for pausing or exiting)
     fun stopPreview() {
-        try {
-            if (mediaPlayer?.isPlaying == true) {
-                mediaPlayer?.stop()
-            }
-            mediaPlayer?.release()
-            mediaPlayer = null
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        stopAudioOnly()
 
-        // Reset playing icon in UI
-        _uiState.update { list -> list.map { it.copy(isPlaying = false) } }
+        // Reset UI state to all false
+        _uiState.update { list ->
+            list.map { it.copy(isPlaying = false) }
+        }
     }
 
     override fun onCleared() {
