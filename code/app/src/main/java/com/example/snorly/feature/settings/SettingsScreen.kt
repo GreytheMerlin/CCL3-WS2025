@@ -88,6 +88,10 @@ fun SettingsScreen(
                         icon = Icons.Outlined.Notifications,
                         title = "Default Alarm Settings",
                         onClick = { })
+                    SettingsTile(
+                        icon = Icons.Outlined.RoomService,
+                        title = "Service",
+                        onClick = { })
                     SettingsSwitchTile(
                         icon = Icons.Outlined.VolumeUp,
                         title = "Gradually Increase Volume",

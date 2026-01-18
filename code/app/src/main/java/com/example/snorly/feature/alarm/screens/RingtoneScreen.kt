@@ -1,22 +1,18 @@
 package com.example.snorly.feature.alarm.screens
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.snorly.core.common.components.BackTopBar
-import com.example.snorly.core.ui.shader.ShaderLibrary
-import com.example.snorly.feature.alarm.components.*
-import com.example.snorly.feature.alarm.model.RingtoneData
-import com.example.snorly.feature.alarm.model.RingtoneItem
-import com.example.snorly.feature.alarm.model.ShaderType
+import com.example.snorly.feature.alarm.components.AuroraRingtoneCard
+import com.example.snorly.feature.alarm.components.DeviceAlarmBanner
 
 @Composable
 fun RingtoneScreen(
@@ -24,9 +20,7 @@ fun RingtoneScreen(
     onCategoryClick: (String) -> Unit = {}
 ) {
     Scaffold(
-        topBar = {
-            BackTopBar(title = "Ringtones", onBackClick = onBack)
-        }
+        topBar = { BackTopBar(title = "Ringtones", onBackClick = onBack) }
     ) { innerPadding ->
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
@@ -43,36 +37,68 @@ fun RingtoneScreen(
                 DeviceAlarmBanner(onClick = { onCategoryClick("device") })
             }
 
-            // 2. All Cards (Unified)
-            items(RingtoneData.items) { item ->
-                when (item) {
-                    is RingtoneItem.Device -> { /* Already handled above */ }
+            // 2. Spotify (Vibrant Green Glow)
+            item {
+                AuroraRingtoneCard(
+                    title = "Spotify", subtitle = "Your music",
+                    icon = Icons.Default.MusicNote,
+                    accentColor = Color(0xFF1DB954),
+                    onClick = { onCategoryClick("spotify") }
+                )
+            }
 
-                    is RingtoneItem.Card -> {
-                        // Map Shader Enum to String
-                        val shaderCode = when (item.shader) {
-                            ShaderType.NEBULA -> ShaderLibrary.NEBULA
-                            ShaderType.GRID -> ShaderLibrary.GRID
-                            ShaderType.WAVES -> ShaderLibrary.WAVES
-                            ShaderType.RETRO_NOISE -> ShaderLibrary.RETRO_NOISE
-                            ShaderType.CYBER_GLITCH -> ShaderLibrary.CYBER_GLITCH
-                            ShaderType.AURORA -> ShaderLibrary.AURORA
-                        }
+            // 3. Composer (Warm Gold Glow)
+            item {
+                AuroraRingtoneCard(
+                    title = "Composer", subtitle = "Create custom",
+                    icon = Icons.Default.Build,
+                    accentColor = Color(0xFFFFC107),
+                    onClick = { onCategoryClick("composer") }
+                )
+            }
 
-                        ExperimentalRingtoneCard(
-                            title = item.title,
-                            subtitle = item.subtitle,
-                            icon = item.icon,
-                            count = item.countText.takeIf { it.isNotEmpty() },
-                            colorStart = item.colorStart,
-                            colorEnd = item.colorEnd,
-                            shaderCode = shaderCode,
-                            shapeStart = getShapeForType(item.shapeStart),
-                            shapeEnd = getShapeForType(item.shapeEnd),
-                            onClick = { onCategoryClick(item.id) }
-                        )
-                    }
-                }
+            // 4. Classic (Cool Blue/Grey Glow)
+            item {
+                AuroraRingtoneCard(
+                    title = "Classic", subtitle = "Traditional",
+                    icon = Icons.Default.Notifications,
+                    accentColor = Color(0xFF90CAF9),
+                    count = "4 sounds",
+                    onClick = { onCategoryClick("classic") }
+                )
+            }
+
+            // 5. Alarms (Intense Red Glow)
+            item {
+                AuroraRingtoneCard(
+                    title = "Alarms", subtitle = "Attention",
+                    icon = Icons.Outlined.ErrorOutline,
+                    accentColor = Color(0xFFFF5252),
+                    count = "4 sounds",
+                    onClick = { onCategoryClick("alarms") }
+                )
+            }
+
+            // 6. Nature (Soft Teal Glow)
+            item {
+                AuroraRingtoneCard(
+                    title = "Nature", subtitle = "Peaceful",
+                    icon = Icons.Default.Landscape,
+                    accentColor = Color(0xFF4DB6AC),
+                    count = "5 sounds",
+                    onClick = { onCategoryClick("nature") }
+                )
+            }
+
+            // 7. Animals (Sunset Orange Glow)
+            item {
+                AuroraRingtoneCard(
+                    title = "Animals", subtitle = "Wild calls",
+                    icon = Icons.Default.MusicNote,
+                    accentColor = Color(0xFFFFB74D),
+                    count = "4 sounds",
+                    onClick = { onCategoryClick("animals") }
+                )
             }
         }
     }

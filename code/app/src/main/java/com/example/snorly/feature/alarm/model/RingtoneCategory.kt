@@ -50,9 +50,9 @@ object RingtoneData {
     // Internal Sound Database
     private val classicSounds = listOf(
         SoundDefinition("c1", "Classic Alarm", R.raw.classic_alarm),
-        SoundDefinition("c2", "Human Beep", R.raw.delelele),
+        SoundDefinition("c2", "The Human Beep", R.raw.delelele),
         SoundDefinition("c3", "Retro Emergency", R.raw.alarm1000),
-        SoundDefinition("c4", "Bell Tower", R.raw.classic_alarm) // Placeholder
+        SoundDefinition("c4", "Bell Tower", R.raw.classic_alarm)
     )
     private val natureSounds = listOf(
         SoundDefinition("n1", "Morning Birds", R.raw.morning_birds),
