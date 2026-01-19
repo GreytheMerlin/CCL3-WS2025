@@ -1,6 +1,10 @@
 package com.example.snorly.feature.alarm.ToneGenerator
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -51,6 +55,8 @@ fun ComposerScreen(
     // Save Dialog State
     var showSaveDialog by remember { mutableStateOf(false) }
     var songName by remember { mutableStateOf("") }
+
+    val arePadsEnabled = state.recordingState != RecordingState.PLAYING
 
     if (showSaveDialog) {
         AlertDialog(
@@ -121,31 +127,25 @@ fun ComposerScreen(
             Spacer(Modifier.height(16.dp))
 
             // 2. VISUALIZER
-            Box(
+            BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .height(140.dp) // Fixed, tight height
                     .background(Color(0xFF111111), RoundedCornerShape(24.dp))
                     .border(1.dp, Color(0xFF222222), RoundedCornerShape(24.dp))
                     .clip(RoundedCornerShape(24.dp))
             ) {
-                // Grid Background
+                // Get exact dimensions to calculate dot positions
+                val containerWidth = maxWidth
+                val containerHeight = maxHeight
+
+                // Playhead (Canvas is better for continuous lines)
                 Canvas(modifier = Modifier.fillMaxSize()) {
-                    val width = size.width
-                    val height = size.height
-                    for (i in 1..7) {
-                        drawLine(
-                            color = Color.White.copy(alpha = 0.05f),
-                            start = Offset(0f, height * (i / 8f)),
-                            end = Offset(width, height * (i / 8f)),
-                            strokeWidth = 1.dp.toPx()
-                        )
-                    }
-                    val playheadX = width * state.progress
+                    val playheadX = size.width * state.progress
                     drawLine(
                         color = Color(0xFF1677FF).copy(alpha = 0.5f),
                         start = Offset(playheadX, 0f),
-                        end = Offset(playheadX, height),
+                        end = Offset(playheadX, size.height),
                         strokeWidth = 2.dp.toPx()
                     )
                 }
@@ -156,32 +156,31 @@ fun ComposerScreen(
                     val minFreq = ToneGenerator.SCALE_NOTES.first().second
                     val maxFreq = ToneGenerator.SCALE_NOTES.last().second
                     val pitchPercent = ((note.frequency - minFreq) / (maxFreq - minFreq)).toFloat().coerceIn(0f, 1f)
-                    val yPercent = 1f - pitchPercent
+
+                    // Invert Y so high pitch is at top.
+                    // Add 16dp padding to Top/Bottom so dots don't touch the edges.
+                    val verticalPadding = 16.dp
+                    val usableHeight = containerHeight - (verticalPadding * 2)
+
+                    // Calculate Y position: Top Padding + (Height * inverted pitch)
+                    val yPos = verticalPadding + (usableHeight * (1f - pitchPercent))
+
+                    // Calculate X position
+                    val xPos = containerWidth * timePercent
 
                     Box(
                         modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .offset(
-                                x = (300.dp * timePercent),
-                                y = (200.dp * yPercent)
-                            )
-                            .padding(
-                                start = (320.dp * timePercent),
-                                top = (200.dp * yPercent)
-                            )
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(10.dp)
-                                .clip(CircleShape)
-                                .background(getInstrumentColor(note.instrument))
-                                .border(1.dp, Color.White.copy(0.5f), CircleShape)
-                        )
-                    }
+                            // Center the 10dp dot on the calculated point
+                            .offset(x = xPos - 5.dp, y = yPos - 5.dp)
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(getInstrumentColor(note.instrument))
+                            .border(1.dp, Color.White.copy(0.5f), CircleShape)
+                    )
                 }
 
-                // Overlay
-                Box(modifier = Modifier.padding(16.dp)) {
+                // Overlay Status Text
+                Box(modifier = Modifier.padding(12.dp)) {
                     val statusText = when (state.recordingState) {
                         RecordingState.RECORDING -> "REC"
                         RecordingState.PLAYING -> "PLAY"
@@ -203,7 +202,6 @@ fun ComposerScreen(
                     )
                 }
             }
-
             Spacer(Modifier.height(24.dp))
 
             // 3. CONTROLS
@@ -269,6 +267,7 @@ fun ComposerScreen(
                         noteName = noteName,
                         isCircle = isCircle,
                         activeColor = getInstrumentColor(state.selectedInstrument),
+                        enabled = arePadsEnabled,
                         onPlayNote = {
                             viewModel.onNoteClick(noteName)
                         }
@@ -287,11 +286,16 @@ fun ComposerPad(
     noteName: String,
     isCircle: Boolean,
     activeColor: Color,
+    enabled: Boolean = true,
     onPlayNote: () -> Unit
 ) {
     // 1. We manually track state so we can react instantly to "Down" events
     var isPressed by remember { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
+
+    // Visuals based on Enabled/Pressed state
+    // If disabled, dim the whole pad
+    val contentAlpha = if (enabled) 1f else 0.3f
 
     // 2. Instant Color Change (No Animation on Press)
     val backgroundColor = if (isPressed) activeColor.copy(alpha = 0.8f) else Color(0xFF252525)
@@ -314,7 +318,9 @@ fun ComposerPad(
             .border(1.dp, borderColor, shape)
             // 4. CRITICAL FIX: Use pointerInput instead of clickable
             // This detects the "Press" (finger down) instantly.
-            .pointerInput(Unit) {
+            .pointerInput(enabled) {
+                if (!enabled) return@pointerInput // Ignore touches if disabled
+
                 detectTapGestures(
                     onPress = {
                         isPressed = true
@@ -334,7 +340,10 @@ fun ComposerPad(
             modifier = Modifier
                 .size(6.dp)
                 .clip(CircleShape)
-                .background(if (isPressed) Color.White else Color.Gray.copy(alpha = 0.5f))
+                .background(
+                    (if (isPressed) Color.White else Color.Gray.copy(alpha = 0.5f))
+                        .copy(alpha = contentAlpha) // Apply dimming
+                )
         )
     }
 }
