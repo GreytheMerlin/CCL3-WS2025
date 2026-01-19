@@ -38,7 +38,7 @@ import com.example.snorly.feature.sleep.SleepDetailScreen
 import com.example.snorly.feature.sleep.SleepDetailViewModel
 import com.example.snorly.feature.sleep.SleepViewModel
 import com.example.snorly.core.data.SleepRepository
-import com.example.snorly.feature.alarm.AlarmViewModel
+
 import com.example.snorly.feature.sleep.SleepScreen
 
 @Composable
@@ -47,7 +47,6 @@ fun AppNavHost(
 
 ) {
     val alarmCreateViewModel: AlarmCreateViewModel = viewModel()
-    val alarmViewModel: AlarmViewModel = viewModel()
 
     // Initialize the manager using the current context
     val context = androidx.compose.ui.platform.LocalContext.current
