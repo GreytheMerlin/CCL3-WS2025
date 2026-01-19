@@ -43,6 +43,7 @@ import com.example.snorly.feature.alarm.ToneGenerator.ComposerScreen
 import com.example.snorly.feature.alarm.ToneGenerator.ComposerViewModel
 import com.example.snorly.feature.alarm.overview.AlarmScreenViewModel
 import com.example.snorly.feature.alarm.screens.RingtoneListScreen
+
 import com.example.snorly.feature.sleep.SleepScreen
 
 @Composable
@@ -51,7 +52,6 @@ fun AppNavHost(
 
 ) {
     val alarmCreateViewModel: AlarmCreateViewModel = viewModel()
-    val alarmViewModel: AlarmScreenViewModel = viewModel()
 
     // Initialize the manager using the current context
     val context = androidx.compose.ui.platform.LocalContext.current
