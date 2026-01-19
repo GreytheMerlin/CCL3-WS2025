@@ -71,7 +71,6 @@
       text-decoration: underline;
     }
 
-    /* ✅ Prototype section styles */
     .muted {
       color: #94a3b8;
       margin-top: -6px;
@@ -105,6 +104,18 @@
       color: #cbd5e1;
     }
 
+    /* Small pill/badge for placeholders */
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #0b1224;
+      border: 1px solid #1e293b;
+      color: #cbd5e1;
+      font-size: 0.85rem;
+      margin-top: 6px;
+    }
+
     footer {
       text-align: center;
       padding: 20px;
@@ -124,9 +135,14 @@
   <!-- MAIN CONTENT -->
   <main>
 
-    <!-- DESCRIPTION -->
+    <!-- PROJECT DETAILS -->
     <div class="card">
-      <h2> About the App</h2>
+      <h2>Project Details</h2>
+
+      <h3>Name of the Solution</h3>
+      <p><strong>Snorly</strong></p>
+
+      <h3>Brief Description</h3>
       <p>
         Snorly is a smart sleep tracker and alarm clock app designed to help users wake up more easily and improve their sleep habits.
         The app tracks sleep duration and sleep quality during the night and presents the data in a simple and easy-to-understand way.
@@ -138,25 +154,38 @@
       <p>
         Snorly is designed for students and busy people who struggle to wake up on time and want to build healthier sleep routines.
       </p>
+
+      <h3>Team Members</h3>
+      <ul>
+        <li>Pesendorfer Lukas</li>
+        <li>Tuerk Laurens</li>
+      </ul>
     </div>
 
-    <!-- ✅ PROTOTYPE SECTION (NEW) -->
+    <!-- APP DEVELOPMENT DOCUMENTATION -->
     <div class="card">
-      <h2> Prototype</h2>
-      <p class="muted">Screens from the first UI prototype of Snorly.</p>
+      <h2>Documentation of App Development</h2>
 
-      <h3 style="margin-top: 18px;">Use Case</h3>
+      <h3>App Concept</h3>
+      <p>
+        A combined sleep-tracking and alarm app that provides sleep insights and supports waking up reliably.
+        The core differentiator is puzzle-based alarm dismissal to reduce oversleeping and improve alertness.
+      </p>
+
+      <h3>Use Case</h3>
       <p>
         Users set one or multiple alarms, track their sleep during the night, and review reports to understand sleep duration and quality.
         In the morning, the alarm can include a puzzle challenge to ensure the user is fully awake before turning it off.
       </p>
 
-      <h3>Target Users</h3>
+      <h3>Target User</h3>
       <p>
         Snorly is mainly designed for students and busy people who often oversleep, struggle with waking up on time,
         and want a simple way to improve sleep habits with clear insights and routines.
       </p>
 
+      <h3>Hi-fi Prototype (User Flow)</h3>
+      <p class="muted">Add your high-fidelity prototype screens and a clear user flow here.</p>
       <div class="prototype-grid">
         <figure>
           <!-- Put your image in: /images/prototype.png (or change the src below) -->
@@ -166,22 +195,204 @@
           </figcaption>
         </figure>
 
-        <!-- If you add more images later, just copy another <figure>...</figure> here -->
+        <!-- Optional: add a second image that shows a flow diagram -->
+        <!--
+        <figure>
+          <img src="images/userflow.png" alt="Snorly user flow diagram" />
+          <figcaption>
+            User flow: Set alarm → Start sleep tracking → Alarm rings → Solve puzzle → View report.
+          </figcaption>
+        </figure>
+        -->
       </div>
+
+      <h3>SQLite Database Design (ERD)</h3>
+      <p class="muted">Placeholder — add your ERD image here when ready.</p>
+      <span class="badge">TODO: Add ERD image (e.g., images/erd.png)</span>
+
+      <h3>Repository (Source Code)</h3>
+      <p class="muted">Replace the link below with your GitHub repository URL.</p>
+      <ul>
+        <li><a href="#" target="_blank" rel="noopener">GitHub Repository Link (TODO)</a></li>
+      </ul>
+
+      <h3>APK Download</h3>
+      <p class="muted">You said you’ll add the APK later — put it in a visible folder (e.g., /apk/) and link it here.</p>
+      <ul>
+        <li><a href="#" download>Download APK (TODO: link your APK file)</a></li>
+      </ul>
+      <span class="badge">Example path: apk/Snorly.apk</span>
     </div>
 
-    <!-- TEAM -->
+    <!-- FINAL REFLECTIONS -->
     <div class="card">
-      <h2> Team Members</h2>
+      <h2>Final Reflection</h2>
+      <p class="muted">Fill in each student reflection. Keep it honest and specific (challenges, contribution, improvements).</p>
+
+      <h3>Pesendorfer Lukas</h3>
       <ul>
-        <li>Pesendorfer Lukas</li>
-        <li>Tuerk Laurens</li>
+        <li><strong>Challenges:</strong> <span class="muted">TODO</span></li>
+        <li><strong>My Contribution:</strong> <span class="muted">TODO</span></li>
+        <li><strong>Concept vs Final App:</strong> <span class="muted">TODO</span></li>
+        <li><strong>Possible Improvements:</strong> <span class="muted">TODO</span></li>
+      </ul>
+
+      <h3>Tuerk Laurens</h3>
+      <ul>
+        <li><strong>Challenges:</strong> <span class="muted">TODO</span></li>
+        <li><strong>My Contribution:</strong> <span class="muted">TODO</span></li>
+        <li><strong>Concept vs Final App:</strong> <span class="muted">TODO</span></li>
+        <li><strong>Possible Improvements:</strong> <span class="muted">TODO</span></li>
       </ul>
     </div>
 
-    <!-- DOCUMENTATION INDEX -->
+    <!-- USABILITY TEST DOCUMENTATION -->
     <div class="card">
-      <h2> Documentation Index</h2>
+      <h2>Documentation of Usability Test</h2>
+
+      <!-- PART 1: HEURISTIC EVALUATION -->
+      <h3>Usability Test Plan & Heuristic Evaluation</h3>
+
+      <h3 style="margin-top: 18px;">Part 1: Heuristic Evaluation</h3>
+      <p><strong>Methodology:</strong> Nielsen’s 10 Usability Heuristics</p>
+      <p><strong>Scope:</strong> Initial MVP Prototype (Android / Jetpack Compose)</p>
+      <p><strong>Evaluators:</strong> Team Snorly</p>
+
+      <h4>1) Description of the Evaluation</h4>
+      <p>
+        We examined the interface against Jakob Nielsen's usability heuristics to identify usability problems before user testing.
+        We focused on the critical paths: Setting an alarm, Sleep Tracking, and Puzzle Dismissal.
+      </p>
+
+      <h4>2) Results (Heuristic Violations & Severity)</h4>
+      <p class="muted">Severity scale: 0 (No problem) to 4 (Usability catastrophe)</p>
+
+      <h4>A. Visibility of System Status (Heuristic #1)</h4>
+      <ul>
+        <li><strong>Finding:</strong> When "Sleep Tracking" is active, there is no clear indication outside the app (e.g., notification bar) that the app is running.</li>
+        <li><strong>Impact:</strong> Users might think tracking stopped if they minimize the app.</li>
+        <li><strong>Severity:</strong> 3 (Major)</li>
+        <li><strong>Recommendation:</strong> Implement a persistent notification or a distinct “Recording” animation on the TopAppBar while tracking is active.</li>
+      </ul>
+
+      <h4>B. User Control and Freedom (Heuristic #3)</h4>
+      <ul>
+        <li><strong>Finding:</strong> While the "Puzzle Alarm" intends to restrict control, there is no emergency dismiss (e.g., long press for 10 seconds) in case of a bug or a sensitive real-world context.</li>
+        <li><strong>Impact:</strong> Users may force-close or uninstall the app if they cannot stop the alarm in an inappropriate setting.</li>
+        <li><strong>Severity:</strong> 2 (Minor / Strategic)</li>
+        <li><strong>Recommendation:</strong> Keep the puzzle, but consider allowing a more accessible snooze, while keeping “Dismiss” hard.</li>
+      </ul>
+
+      <h4>C. Error Prevention (Heuristic #5)</h4>
+      <ul>
+        <li><strong>Finding:</strong> In the “Set Alarm” dialog, the AM/PM toggle (if using 12h format) is small or too close to the “Save” button.</li>
+        <li><strong>Impact:</strong> Users might accidentally set an alarm for 7:00 PM instead of 7:00 AM.</li>
+        <li><strong>Severity:</strong> 4 (Catastrophe — failed core value)</li>
+        <li><strong>Recommendation:</strong> Use a 24h clock by default or make AM/PM very distinct. Add a “Time until alarm” confirmation (e.g., “Alarm set for 8 hours from now”).</li>
+      </ul>
+
+      <h4>D. Recognition Rather Than Recall (Heuristic #6)</h4>
+      <ul>
+        <li><strong>Finding:</strong> Puzzle difficulty is labeled “Easy/Medium/Hard”, but there is no preview of what “Medium” looks like until the alarm rings.</li>
+        <li><strong>Impact:</strong> Users have to guess if they can solve it while groggy.</li>
+        <li><strong>Severity:</strong> 2 (Minor)</li>
+        <li><strong>Recommendation:</strong> Add a “Preview Puzzle” button on the Settings screen.</li>
+      </ul>
+
+      <!-- PART 2: USER TEST PLAN -->
+      <h3 style="margin-top: 24px;">Part 2: User Test Plan (Lab/Field Test)</h3>
+
+      <h4>1) Hypotheses & Testable Questions</h4>
+      <ul>
+        <li><strong>Hypothesis A:</strong> Users using the “Puzzle” dismissal method will demonstrate higher cognitive alertness immediately after dismissal compared to standard “Swipe” dismissal.</li>
+        <li><strong>Hypothesis B:</strong> Users will perceive the “Math” puzzle as more effective but more frustrating than the “Memory” puzzle.</li>
+        <li><strong>Testable question:</strong> Does the friction introduced by the puzzle cause users to force-close the app rather than solve the puzzle?</li>
+      </ul>
+
+      <h4>2) Planned Data to Collect (Variables)</h4>
+      <p><strong>Independent Variables</strong></p>
+      <ul>
+        <li>Dismissal Type: Standard Swipe vs. Math Puzzle vs. Memory Puzzle</li>
+        <li>Context: Testing during the day (simulated nap) vs. morning (real use)</li>
+      </ul>
+
+      <p><strong>Dependent Variables</strong></p>
+      <ol>
+        <li><strong>Time to Dismiss (Quantitative):</strong> Time in seconds from alarm start to successful dismissal</li>
+        <li><strong>Error Rate (Quantitative):</strong> Failed attempts or accidental “Snooze” taps</li>
+        <li><strong>Force Close Rate (Quantitative):</strong> Did the user kill the app instead of solving?</li>
+        <li><strong>Subjective Alertness (Qualitative):</strong> Self-reported (1–5) “How awake do you feel?”</li>
+        <li><strong>User Satisfaction (Qualitative):</strong> Simplified SUS-style prompt: “I found this alarm annoying in a helpful way.”</li>
+      </ol>
+
+      <h4>3) Methods Used (Tasks & Materials)</h4>
+      <p><strong>Participants:</strong> 3–5 students (hallway testing / fellow students)</p>
+      <p><strong>Materials:</strong></p>
+      <ul>
+        <li>Smartphone with MVP app installed</li>
+        <li>Observation sheet (spreadsheet)</li>
+        <li>SUS questionnaire (Google Forms)</li>
+        <li>Post-test questionnaire (Google Forms)</li>
+      </ul>
+
+      <p><strong>Task List (Script):</strong></p>
+      <ul>
+        <li><strong>Task 1: Setup (Onboarding)</strong>
+          <ul>
+            <li><strong>Prompt:</strong> “Open the app for the first time. Set up an alarm for 2 minutes from now. Choose a ‘Math’ puzzle as your wake-up requirement.”</li>
+            <li><strong>Observation focus:</strong> Can they find the settings?</li>
+          </ul>
+        </li>
+        <li><strong>Task 2: Sleep Simulation</strong>
+          <ul>
+            <li><strong>Prompt:</strong> “Start the sleep tracking feature and lock the phone. Wait for the alarm.”</li>
+            <li><strong>Observation focus:</strong> Do they know how to start sleep tracking? Does the app stay active?</li>
+          </ul>
+        </li>
+        <li><strong>Task 3: Wake Up</strong>
+          <ul>
+            <li><strong>Prompt:</strong> “When the alarm rings, turn it off completely.”</li>
+            <li><strong>Observation focus:</strong> Do they struggle with touch targets? Do they try to swipe out of habit?</li>
+          </ul>
+        </li>
+      </ul>
+
+      <p><strong>Post-Test Questionnaire (Examples):</strong></p>
+      <ol>
+        <li>On a scale of 1–5, how confident were you that the alarm was set correctly?</li>
+        <li>Did the puzzle difficulty feel appropriate?</li>
+        <li>What was the first thing you looked for on the home screen?</li>
+      </ol>
+    </div>
+
+    <!-- USER TEST RESULTS -->
+    <div class="card">
+      <h2>User Test Results</h2>
+      <p class="muted">Placeholder — add your real results after you run the test.</p>
+
+      <h3>Participants (Count & Demographics)</h3>
+      <span class="badge">TODO: e.g., 5 participants, age range, student/non-student, etc.</span>
+
+      <h3>Quantitative Summary (Charts/Tables)</h3>
+      <p class="muted">Add tables or screenshots of charts here.</p>
+      <span class="badge">TODO: images/results-table.png or embed a small HTML table</span>
+
+      <h3>Key Feedback Excerpts</h3>
+      <ul>
+        <li><span class="muted">TODO: “Most relevant comment #1”</span></li>
+        <li><span class="muted">TODO: “Most relevant comment #2”</span></li>
+        <li><span class="muted">TODO: “Most relevant comment #3”</span></li>
+      </ul>
+
+      <h3>Updates Made Based on Feedback</h3>
+      <ul>
+        <li><span class="muted">TODO: Example: Added tracking indicator / improved AM-PM toggle / added preview puzzle</span></li>
+      </ul>
+    </div>
+
+    <!-- DOCUMENTATION INDEX (OPTIONAL) -->
+    <div class="card">
+      <h2>Documentation Index</h2>
       <ul>
         <li><a href="#">Day 1 – Project Idea & Planning</a></li>
         <!-- Add new days here -->
