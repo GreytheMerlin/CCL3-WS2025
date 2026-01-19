@@ -38,6 +38,9 @@ import com.example.snorly.feature.sleep.SleepDetailScreen
 import com.example.snorly.feature.sleep.SleepDetailViewModel
 import com.example.snorly.feature.sleep.SleepViewModel
 import com.example.snorly.core.data.SleepRepository
+import com.example.snorly.core.database.repository.RingtoneRepository
+import com.example.snorly.feature.alarm.ToneGenerator.ComposerScreen
+import com.example.snorly.feature.alarm.ToneGenerator.ComposerViewModel
 import com.example.snorly.feature.alarm.overview.AlarmScreenViewModel
 import com.example.snorly.feature.alarm.screens.RingtoneListScreen
 import com.example.snorly.feature.sleep.SleepScreen
@@ -54,6 +57,8 @@ fun AppNavHost(
     val context = androidx.compose.ui.platform.LocalContext.current
 
     val database = remember { AppDatabase.getDatabase(context) }
+
+    val ringtoneRepository = remember { RingtoneRepository(database.composedRingtoneDao()) }
 
     val healthConnectManager = remember { HealthConnectManager(context) }
 
@@ -172,9 +177,25 @@ fun AppNavHost(
                 onCategoryClick = { categoryId ->
                     // Route to the list screen, passing the ID
                     // e.g. "ringtone_list/nature" or "ringtone_list/spotify"
-                    navController.navigate("ringtone_list/$categoryId")
+                    if (categoryId == "composer") {
+                        navController.navigate("composer")
+                    } else {
+                        // Otherwise, go to the standard list (Nature, Spotify, etc.)
+                        navController.navigate("ringtone_list/$categoryId")
+                    }
                 })
 
+        }
+
+        composable("composer") {
+            val viewModel: ComposerViewModel = viewModel(
+                factory = ComposerViewModel.Factory(ringtoneRepository)
+            )
+
+            ComposerScreen(
+                onBack = { navController.popBackStack() },
+                viewModel = viewModel
+            )
         }
 
         composable("alarm_vibration") {

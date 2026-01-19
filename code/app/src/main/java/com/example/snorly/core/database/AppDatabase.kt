@@ -9,9 +9,11 @@ import com.example.snorly.core.database.dao.SleepSessionDao
 import com.example.snorly.core.database.entities.AlarmEntity
 import com.example.snorly.core.database.entities.SleepSessionEntity
 import com.example.snorly.core.database.entities.UserProfileEntity
+import com.example.snorly.core.database.entities.ComposedRingtoneEntity
+
 
 @Database(
-    entities = [AlarmEntity::class, UserProfileEntity::class, SleepSessionEntity::class],
+    entities = [AlarmEntity::class, UserProfileEntity::class, SleepSessionEntity::class, ComposedRingtoneEntity::class],
     version = 1,
     exportSchema = false
 )
@@ -20,6 +22,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun alarmDao(): AlarmDao
     abstract fun UserProfileDao(): UserProfileDao
     abstract fun sleepSessionDao(): SleepSessionDao
+    abstract fun composedRingtoneDao(): ComposedRingtoneDao
 
     companion object{
 
