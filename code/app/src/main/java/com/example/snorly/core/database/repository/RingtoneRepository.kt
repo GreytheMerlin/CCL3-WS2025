@@ -8,15 +8,6 @@ class RingtoneRepository(private val dao: ComposedRingtoneDao) {
 
     val allComposedRingtones: Flow<List<ComposedRingtoneEntity>> = dao.getAll()
 
-    suspend fun saveRingtone(name: String, notes: List<Double>) {
-        val sequenceString = notes.joinToString(",")
-        val ringtone = ComposedRingtoneEntity(
-            name = name,
-            noteSequence = sequenceString
-        )
-        dao.insert(ringtone)
-    }
-
     // In RingtoneRepository.kt
     suspend fun saveComplexRingtone(name: String, sequence: String) {
         val ringtone = ComposedRingtoneEntity(name = name, noteSequence = sequence)

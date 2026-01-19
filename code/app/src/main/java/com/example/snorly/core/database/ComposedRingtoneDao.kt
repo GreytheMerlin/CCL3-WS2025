@@ -13,6 +13,9 @@ interface ComposedRingtoneDao {
     @Query("SELECT * FROM composed_ringtones ORDER BY createdAt DESC")
     fun getAll(): Flow<List<ComposedRingtoneEntity>>
 
+    @Query("SELECT * FROM composed_ringtones WHERE id = :id")
+    suspend fun getById(id: Long): ComposedRingtoneEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(ringtone: ComposedRingtoneEntity): Long
 

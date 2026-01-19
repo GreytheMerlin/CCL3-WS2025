@@ -161,12 +161,7 @@ class ComposerViewModel(private val repository: RingtoneRepository) : ViewModel(
         }
 
         viewModelScope.launch {
-            repository.saveRingtone(name, notes.map { it.frequency }) // Legacy param, ignored now?
-            // WAIT! We need to update the Repository to save THIS string format.
-            // For now, let's piggyback on the existing function but pass our formatted string
-            // inside the repository directly.
-
-            repository.saveComplexRingtone(name, sequenceString) // **NEW METHOD NEEDED**
+            repository.saveComplexRingtone(name, sequenceString)
         }
     }
 

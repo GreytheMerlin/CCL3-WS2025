@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Divider
@@ -35,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.snorly.core.database.entities.ComposedRingtoneEntity
 import com.example.snorly.feature.alarm.components.SoundWaveAnimation
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -44,6 +46,7 @@ import java.util.Locale
 @Composable
 fun ComposerListScreen(
     onBack: () -> Unit,
+    onSelect: (ComposedRingtoneEntity) -> Unit,
     viewModel: ComposerListViewModel = viewModel()
 ) {
     val ringtones by viewModel.uiState.collectAsState()
@@ -75,6 +78,7 @@ fun ComposerListScreen(
                     ComposerListItem(
                         item = item,
                         onPlay = { viewModel.togglePlay(item.data) },
+                        onSelect = { onSelect(item.data) },
                         onDelete = { viewModel.deleteRingtone(item.data) }
                     )
                     Divider(color = Color(0xFF1F1F1F), thickness = 1.dp)
@@ -88,6 +92,7 @@ fun ComposerListScreen(
 fun ComposerListItem(
     item: ComposedRingtoneUi,
     onPlay: () -> Unit,
+    onSelect: () -> Unit,
     onDelete: () -> Unit
 ) {
     val dateFormat = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
@@ -137,12 +142,25 @@ fun ComposerListItem(
         }
 
         // DELETE
-        IconButton(onClick = onDelete) {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = "Delete",
-                tint = Color.Gray.copy(alpha = 0.5f)
-            )
+// ACTIONS ROW
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // Select Button
+            IconButton(onClick = onSelect) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = "Select",
+                    tint = Color(0xFF1677FF) // Blue to indicate action
+                )
+            }
+
+            // Delete Button
+            IconButton(onClick = onDelete) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = Color.Gray.copy(alpha = 0.5f)
+                )
+            }
         }
     }
 }

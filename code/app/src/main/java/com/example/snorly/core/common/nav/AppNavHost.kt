@@ -206,6 +206,19 @@ fun AppNavHost(
             )
             ComposerListScreen(
                 onBack = { navController.popBackStack() },
+                onSelect = { ringtone ->
+                    // Pass result back to AlarmCreateScreen
+                    val previousBackStack = navController.getBackStackEntry("alarm_create")
+
+                    // Set the Name to display in the UI
+                    previousBackStack.savedStateHandle["selected_ringtone_name"] = ringtone.name
+
+                    // Set the URI with a special prefix "composed:" so the Service recognizes it
+                    previousBackStack.savedStateHandle["selected_ringtone_uri"] = "composed:${ringtone.id}"
+
+                    //Return to Alarm Create (pop everything above it)
+                    navController.popBackStack("alarm_create", inclusive = false)
+                },
                 viewModel = viewModel
             )
         }
