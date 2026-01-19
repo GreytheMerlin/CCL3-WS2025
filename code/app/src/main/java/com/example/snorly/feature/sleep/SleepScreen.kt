@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,7 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.health.connect.client.PermissionController
 import com.example.snorly.feature.sleep.components.ConnectHealthConnectBanner
 import com.example.snorly.feature.sleep.components.SleepHistoryItem
-import com.example.snorly.feature.sleep.components.SleepTrackingCard
+import com.example.snorly.feature.sleep.components.UpgradedSleepCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,13 +111,21 @@ fun SleepScreen(
                         )
                     }
                 }
-                // Main Action Card (Blue)
+//                // Main Action Card
+//                item {
+//                    SleepTrackingCard(
+//                        isTracking = viewModel.isTracking,
+//                        onToggleTracking = { viewModel.toggleTracking() }
+//                    )
+//                }
                 item {
-                    SleepTrackingCard(
+                    UpgradedSleepCard(
                         isTracking = viewModel.isTracking,
                         onToggleTracking = { viewModel.toggleTracking() }
                     )
                 }
+
+
 
                 // TODAY'S STATS (Replaces old Averages)
                 // We show the most recent item from history as "Today/Last Night"

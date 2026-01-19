@@ -1,22 +1,27 @@
 package com.example.snorly.feature.settings
 
-import android.app.TimePickerDialog
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.snorly.feature.settings.components.CircularSleepPicker
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,22 +30,26 @@ fun ProfileScreen(
     onBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
-    val context = LocalContext.current
 
-    // Initialize state. If null, use empty string/defaults
-    var age by remember(state) { mutableStateOf(state.age?.toString() ?: "") }
-    var sex by remember(state) { mutableStateOf(state.sex ?: "") }
-    var chronotype by remember(state) { mutableStateOf(state.chronotype ?: "") }
-    var sleepNeed by remember(state) { mutableStateOf(state.sleepNeedCategory ?: "") }
+    // FIX 1: Removed 'val context = LocalContext.current' because we don't need it anymore.
 
-    // For times, we keep them null internally if not set, or use a placeholder for display
-    var bedTime by remember(state) { mutableStateOf(state.targetBedTime) }
-    var wakeTime by remember(state) { mutableStateOf(state.targetWakeTime) }
+    // Parse existing or Default (23:00 - 07:00)
+    var bedTime by remember(state) {
+        mutableStateOf(parseLocalTime(state.targetBedTime, 23, 0))
+    }
+    var wakeTime by remember(state) {
+        mutableStateOf(parseLocalTime(state.targetWakeTime, 7, 0))
+    }
+
+    // Calculate Duration Live
+    // FIX 2: These functions are defined at the bottom of this file
+    val durationHours = calculateDurationLive(bedTime, wakeTime)
+    val feedback = getMedicalFeedback(durationHours)
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Optimization Profile", color = Color.White) },
+                title = { Text("Edit Schedule", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
@@ -48,184 +57,166 @@ fun ProfileScreen(
                 },
                 actions = {
                     IconButton(onClick = {
+                        val fmt = DateTimeFormatter.ofPattern("HH:mm")
                         viewModel.saveProfile(
-                            age = age.toIntOrNull(),
-                            sex = sex.ifBlank { null },
-                            chronotype = chronotype.ifBlank { null },
-                            sleepNeed = sleepNeed.ifBlank { null },
-                            bedTime = bedTime,
-                            wakeTime = wakeTime
+                            bedTime = bedTime.format(fmt),
+                            wakeTime = wakeTime.format(fmt)
                         )
                         onBack()
                     }) {
                         Icon(Icons.Default.Check, contentDescription = "Save", tint = Color(0xFF4CAF50))
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black),
+                windowInsets = WindowInsets(0.dp)
             )
         },
         containerColor = Color.Black
     ) { innerPadding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+                .padding(16.dp)
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 1. AGE & SEX
-            item {
-                Text("Bio", color = Color.Gray, fontSize = 14.sp)
-                Spacer(Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(
-                        value = age,
-                        onValueChange = { if(it.length <= 2) age = it.filter { char -> char.isDigit() } },
-                        label = { Text("Age") },
-                        placeholder = { Text("e.g. 25") }, // Hint if empty
-                        modifier = Modifier.weight(1f),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            focusedBorderColor = Color(0xFF4A90E2),
-                            unfocusedBorderColor = Color.Gray
-                        )
+
+            // 1. Digital Display (Top)
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Bedtime, null, tint = Color.LightGray, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("BEDTIME", color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Text(
+                        text = bedTime.format(DateTimeFormatter.ofPattern("HH:mm")),
+                        color = Color.White,
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold
                     )
-                    ProfileDropdown(
-                        label = "Sex",
-                        current = sex,
-                        options = listOf("Male", "Female"),
-                        onSelect = { sex = it },
-                        modifier = Modifier.weight(1f)
+                }
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.WbSunny, null, tint = Color(0xFFFFD54F), modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("WAKE UP", color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Text(
+                        text = wakeTime.format(DateTimeFormatter.ofPattern("HH:mm")),
+                        color = Color.White,
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
 
-            // 2. CHRONOTYPE
-            item {
-                Text("Sleep Type", color = Color.Gray, fontSize = 14.sp)
-                Spacer(Modifier.height(8.dp))
+            // 2. THE CIRCULAR PICKER
+            Box(
+                modifier = Modifier
+                    .weight(1f) // Fill available center space
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                // Background Center Text (Duration)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "${String.format("%.0f", durationHours)}hr ${((durationHours % 1) * 60).toInt()}min",
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text("Duration", color = Color.Gray, fontSize = 12.sp)
+                }
 
-                ProfileOptionCard(
-                    title = "Chronotype",
-                    currentValue = chronotype,
-                    options = listOf("Early Bird", "Intermediate", "Night Owl"),
-                    onSelect = { chronotype = it }
-                )
-
-                Spacer(Modifier.height(16.dp))
-
-                ProfileOptionCard(
-                    title = "Sleep Need",
-                    currentValue = sleepNeed,
-                    options = listOf("Low (<7h)", "Average (7-8h)", "High (>9h)"),
-                    onSelect = { sleepNeed = it.split(" ")[0] }
+                // The Wheel
+                CircularSleepPicker(
+                    bedTime = bedTime,
+                    wakeTime = wakeTime,
+                    onSelectionChange = { newBed, newWake ->
+                        bedTime = newBed
+                        wakeTime = newWake
+                    },
+                    modifier = Modifier.fillMaxWidth(0.9f)
                 )
             }
 
-            // 3. TARGET SCHEDULE
-            item {
-                Text("Target Schedule", color = Color.Gray, fontSize = 14.sp)
-                Spacer(Modifier.height(8.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    // Display "--:--" if null
-                    TimePickerButton("Bedtime", bedTime ?: "--:--") {
-                        showTimePicker(context, bedTime ?: "23:00") { newTime -> bedTime = newTime }
-                    }
-                    TimePickerButton("Wake Up", wakeTime ?: "--:--") {
-                        showTimePicker(context, wakeTime ?: "07:00") { newTime -> wakeTime = newTime }
-                    }
+            Spacer(Modifier.height(24.dp))
+
+            // 3. MEDICAL FEEDBACK (Bottom)
+            Card(
+                colors = CardDefaults.cardColors(containerColor = feedback.color.copy(alpha = 0.15f)),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = feedback.icon,
+                        contentDescription = null,
+                        tint = feedback.color,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = feedback.message,
+                        color = Color.LightGray,
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp
+                    )
                 }
             }
+            Spacer(Modifier.height(24.dp))
         }
     }
 }
 
-@Composable
-fun ProfileDropdown(
-    label: String,
-    current: String,
-    options: List<String>,
-    onSelect: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Box(modifier = modifier) {
-        OutlinedTextField(
-            value = current,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            trailingIcon = {
-                IconButton(onClick = { expanded = true }) { /* Icon */ }
-            },
-            modifier = Modifier.fillMaxWidth().clickable { expanded = true },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
-            )
+// --- HELPERS (Make sure these are included at the bottom of the file) ---
+
+data class MedicalFeedback(
+    val message: String,
+    val color: Color,
+    val icon: ImageVector
+)
+
+fun parseLocalTime(s: String?, defH: Int, defM: Int): LocalTime {
+    return if (s.isNullOrBlank()) LocalTime.of(defH, defM)
+    else try { LocalTime.parse(s) } catch (e: Exception) { LocalTime.of(defH, defM) }
+}
+
+fun calculateDurationLive(start: LocalTime, end: LocalTime): Double {
+    var diff = ChronoUnit.MINUTES.between(start, end)
+    if (diff < 0) diff += 1440
+    return diff / 60.0
+}
+
+fun getMedicalFeedback(hours: Double): MedicalFeedback {
+    return when {
+        hours < 6.0 -> MedicalFeedback(
+            "This schedule is quite short. Most adults need 7-9 hours to function optimally.",
+            Color(0xFFFF5252), // Red
+            Icons.Default.Warning
         )
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option) },
-                    onClick = {
-                        onSelect(option)
-                        expanded = false
-                    }
-                )
-            }
-        }
+        hours < 7.0 -> MedicalFeedback(
+            "You are slightly under the recommended range (7-9h). Aim for 7+ hours for better recovery.",
+            Color(0xFFFFC107), // Orange
+            Icons.Default.Info
+        )
+        hours in 7.0..9.0 -> MedicalFeedback(
+            "Great schedule! 7-9 hours is the medically recommended range for optimal health.",
+            Color(0xFF4CAF50), // Green
+            Icons.Default.Check
+        )
+        else -> MedicalFeedback(
+            "Long sleep duration. If you consistently need >9 hours, ensure quality is high.",
+            Color(0xFF64B5F6), // Blue
+            Icons.Default.Info
+        )
     }
-}
-
-@Composable
-fun ProfileOptionCard(
-    title: String,
-    currentValue: String,
-    options: List<String>,
-    onSelect: (String) -> Unit
-) {
-    Column {
-        Text(title, color = Color.White, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            options.forEach { option ->
-                val isSelected = currentValue == option || (title == "Sleep Need" && option.startsWith(currentValue))
-                FilterChip(
-                    selected = isSelected,
-                    onClick = { onSelect(option) },
-                    label = { Text(option) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Color(0xFF4A90E2),
-                        selectedLabelColor = Color.White
-                    )
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun TimePickerButton(label: String, time: String, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1C1C1E)),
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.width(160.dp).height(80.dp)
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(label, color = Color.Gray, fontSize = 12.sp)
-            Text(time, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-fun showTimePicker(context: android.content.Context, current: String, onTimeSelected: (String) -> Unit) {
-    val parts = current.split(":")
-    val h = parts.getOrElse(0) { "00" }.toInt()
-    val m = parts.getOrElse(1) { "00" }.toInt()
-
-    TimePickerDialog(context, { _, hour, minute ->
-        onTimeSelected(String.format("%02d:%02d", hour, minute))
-    }, h, m, true).show()
 }

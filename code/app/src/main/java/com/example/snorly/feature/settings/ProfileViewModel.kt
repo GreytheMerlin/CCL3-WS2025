@@ -29,18 +29,10 @@ class ProfileViewModel(private val dao: UserProfileDao) : ViewModel() {
     }
 
     fun saveProfile(
-        age: Int?,
-        sex: String?,
-        chronotype: String?,
-        sleepNeed: String?,
         bedTime: String?,
         wakeTime: String?
     ) {
         val updated = _state.value.copy(
-            age = age,
-            sex = sex,
-            chronotype = chronotype,
-            sleepNeedCategory = sleepNeed,
             targetBedTime = bedTime,
             targetWakeTime = wakeTime
         )
