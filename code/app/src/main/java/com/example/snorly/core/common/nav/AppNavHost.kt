@@ -39,6 +39,8 @@ import com.example.snorly.feature.sleep.SleepDetailViewModel
 import com.example.snorly.feature.sleep.SleepViewModel
 import com.example.snorly.core.data.SleepRepository
 import com.example.snorly.core.database.repository.RingtoneRepository
+import com.example.snorly.feature.alarm.ToneGenerator.ComposerListScreen
+import com.example.snorly.feature.alarm.ToneGenerator.ComposerListViewModel
 import com.example.snorly.feature.alarm.ToneGenerator.ComposerViewModel
 import com.example.snorly.feature.alarm.ToneGenerator.ComposerScreen
 import com.example.snorly.feature.alarm.screens.RingtoneListScreen
@@ -192,6 +194,17 @@ fun AppNavHost(
             )
 
             ComposerScreen(
+                onBack = { navController.popBackStack() },
+                onListClick = { navController.navigate("composer_list") },
+                viewModel = viewModel
+            )
+        }
+
+        composable("composer_list") {
+            val viewModel: ComposerListViewModel = viewModel(
+                factory = ComposerListViewModel.Factory(ringtoneRepository)
+            )
+            ComposerListScreen(
                 onBack = { navController.popBackStack() },
                 viewModel = viewModel
             )
