@@ -39,9 +39,8 @@ import com.example.snorly.feature.sleep.SleepDetailViewModel
 import com.example.snorly.feature.sleep.SleepViewModel
 import com.example.snorly.core.data.SleepRepository
 import com.example.snorly.core.database.repository.RingtoneRepository
-import com.example.snorly.feature.alarm.ToneGenerator.ComposerScreen
 import com.example.snorly.feature.alarm.ToneGenerator.ComposerViewModel
-import com.example.snorly.feature.alarm.overview.AlarmScreenViewModel
+import com.example.snorly.feature.alarm.ToneGenerator.ComposerScreen
 import com.example.snorly.feature.alarm.screens.RingtoneListScreen
 
 import com.example.snorly.feature.sleep.SleepScreen
