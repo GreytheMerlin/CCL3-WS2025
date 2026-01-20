@@ -35,6 +35,7 @@ class ComposerViewModel(private val repository: RingtoneRepository) : ViewModel(
     val uiState = _uiState.asStateFlow()
 
     private var timerJob: Job? = null
+    private var playbackJob: Job? = null // TRACK PLAYBACK JOB
     private val MAX_DURATION = 10000L // 10 Seconds
 
     // --- INSTRUMENT CONTROLS ---
@@ -56,8 +57,15 @@ class ComposerViewModel(private val repository: RingtoneRepository) : ViewModel(
     }
 
     fun stopRecording() {
+        stopAll()
+        _uiState.update { it.copy(recordingState = RecordingState.IDLE, progress = 0f) }
+    }
+
+    private fun stopAll() {
         timerJob?.cancel()
-        _uiState.update { it.copy(recordingState = RecordingState.IDLE, progress = 1f) }
+        playbackJob?.cancel() // STOP THE MUSIC LOOP
+        timerJob = null
+        playbackJob = null
     }
 
     private fun startTimer() {
@@ -78,7 +86,12 @@ class ComposerViewModel(private val repository: RingtoneRepository) : ViewModel(
 
     // --- PLAYING NOTES ---
     fun onNoteClick(noteName: String) {
-        val freq = ToneGenerator.NOTES[noteName] ?: return
+        // Prevent manual playing while sequence is previewing
+        if (_uiState.value.recordingState == RecordingState.PLAYING) return
+
+        // ... rest of the function (Find note, Play Sound, Record it) ...
+        val notePair = ToneGenerator.SCALE_NOTES.find { it.first == noteName } ?: return
+        val freq = notePair.second
         val currentInstrument = _uiState.value.selectedInstrument
 
         // 1. Play Sound
@@ -101,12 +114,14 @@ class ComposerViewModel(private val repository: RingtoneRepository) : ViewModel(
         val notes = _uiState.value.recordedNotes.sortedBy { it.timeOffset }
         if (notes.isEmpty()) return
 
-        viewModelScope.launch {
+        stopAll() // Cancel any running playback first
+
+        playbackJob = viewModelScope.launch {
             _uiState.update { it.copy(recordingState = RecordingState.PLAYING, progress = 0f) }
 
             val playbackStart = System.currentTimeMillis()
 
-            // Launch a visual timer for the playback bar
+            // Visual Timer (Child Job)
             val visualJob = launch {
                 while(true) {
                     val elapsed = System.currentTimeMillis() - playbackStart
@@ -146,12 +161,7 @@ class ComposerViewModel(private val repository: RingtoneRepository) : ViewModel(
         }
 
         viewModelScope.launch {
-            repository.saveRingtone(name, notes.map { it.frequency }) // Legacy param, ignored now?
-            // WAIT! We need to update the Repository to save THIS string format.
-            // For now, let's piggyback on the existing function but pass our formatted string
-            // inside the repository directly.
-
-            repository.saveComplexRingtone(name, sequenceString) // **NEW METHOD NEEDED**
+            repository.saveComplexRingtone(name, sequenceString)
         }
     }
 

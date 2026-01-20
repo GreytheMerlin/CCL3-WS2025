@@ -39,9 +39,10 @@ import com.example.snorly.feature.sleep.SleepDetailViewModel
 import com.example.snorly.feature.sleep.SleepViewModel
 import com.example.snorly.core.data.SleepRepository
 import com.example.snorly.core.database.repository.RingtoneRepository
-import com.example.snorly.feature.alarm.ToneGenerator.ComposerScreen
+import com.example.snorly.feature.alarm.ToneGenerator.ComposerListScreen
+import com.example.snorly.feature.alarm.ToneGenerator.ComposerListViewModel
 import com.example.snorly.feature.alarm.ToneGenerator.ComposerViewModel
-import com.example.snorly.feature.alarm.overview.AlarmScreenViewModel
+import com.example.snorly.feature.alarm.ToneGenerator.ComposerScreen
 import com.example.snorly.feature.alarm.screens.RingtoneListScreen
 
 import com.example.snorly.feature.sleep.SleepScreen
@@ -194,6 +195,30 @@ fun AppNavHost(
 
             ComposerScreen(
                 onBack = { navController.popBackStack() },
+                onListClick = { navController.navigate("composer_list") },
+                viewModel = viewModel
+            )
+        }
+
+        composable("composer_list") {
+            val viewModel: ComposerListViewModel = viewModel(
+                factory = ComposerListViewModel.Factory(ringtoneRepository)
+            )
+            ComposerListScreen(
+                onBack = { navController.popBackStack() },
+                onSelect = { ringtone ->
+                    // Pass result back to AlarmCreateScreen
+                    val previousBackStack = navController.getBackStackEntry("alarm_create")
+
+                    // Set the Name to display in the UI
+                    previousBackStack.savedStateHandle["selected_ringtone_name"] = ringtone.name
+
+                    // Set the URI with a special prefix "composed:" so the Service recognizes it
+                    previousBackStack.savedStateHandle["selected_ringtone_uri"] = "composed:${ringtone.id}"
+
+                    //Return to Alarm Create (pop everything above it)
+                    navController.popBackStack("alarm_create", inclusive = false)
+                },
                 viewModel = viewModel
             )
         }
