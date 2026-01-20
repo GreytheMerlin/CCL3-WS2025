@@ -14,6 +14,8 @@ import com.example.snorly.core.common.components.BackTopBar
 import com.example.snorly.core.ui.shader.ShaderLibrary
 import com.example.snorly.feature.alarm.components.DeviceAlarmBanner
 import com.example.snorly.feature.alarm.components.OrganicShaderCard
+import com.example.snorly.feature.alarm.model.RingtoneData
+
 
 @Composable
 fun RingtoneScreen(
@@ -29,7 +31,7 @@ fun RingtoneScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             item(span = { GridItemSpan(2) }) { DeviceAlarmBanner(onClick = { onCategoryClick("device") }) }
-
+/*
             // 1. Spotify (Green/Black - Electric)
             item {
                 OrganicShaderCard(
@@ -39,7 +41,7 @@ fun RingtoneScreen(
                     shaderCode = ShaderLibrary.PULSE_PLASMA,
                     onClick = { onCategoryClick("spotify") }
                 )
-            }
+            }*/
 
             // 2. Composer (Gold/Brown - Sharp)
             item {
@@ -60,7 +62,7 @@ fun RingtoneScreen(
                     color1 = Color(0xFF505050),
                     color2 = Color(0xFFF5F2E8), // Not used by this shader, but required by the component signature
                     shaderCode = ShaderLibrary.CLASSIC_PEARL,
-                    count = "4 sounds",
+                    count = "${ RingtoneData.getSoundsForCategory("classic").size} sounds",
                     onClick = { onCategoryClick("classic") }
                 )
             }
@@ -72,7 +74,7 @@ fun RingtoneScreen(
                     icon = Icons.Outlined.ErrorOutline,
                     color1 = Color(0xFF000000), color2 = Color(0xFFB71C1C),
                     shaderCode = ShaderLibrary.DEEP_VOID,
-                    count = "4 sounds", onClick = { onCategoryClick("alarms") }
+                    count = "${ RingtoneData.getSoundsForCategory("alarms").size} sounds", onClick = { onCategoryClick("alarms") }
                 )
             }
 
@@ -86,7 +88,7 @@ fun RingtoneScreen(
                     // Color2: Deep Dark Green (The Atmosphere)
                     color2 = Color(0xFF003300),
                     shaderCode = ShaderLibrary.SOFT_BLOOM, // <--- New Shader
-                    count = "5 sounds",
+                    count = "${ RingtoneData.getSoundsForCategory("nature").size} sounds",
                     onClick = { onCategoryClick("nature") }
                 )
             }
@@ -98,7 +100,7 @@ fun RingtoneScreen(
                     icon = Icons.Default.MusicNote,
                     color1 = Color(0xFFFF6F00), color2 = Color(0xFFBF360C),
                     shaderCode = ShaderLibrary.HEATMAP,
-                    count = "4 sounds", onClick = { onCategoryClick("animals") }
+                    count = "${ RingtoneData.getSoundsForCategory("animals").size} sounds", onClick = { onCategoryClick("animals") }
                 )
             }
 
@@ -109,20 +111,20 @@ fun RingtoneScreen(
                     icon = Icons.Default.Palette,
                     color1 = Color(0xFF7B1FA2), color2 = Color(0xFFC2185B),
                     shaderCode = ShaderLibrary.LIQUID,
-                    count = "6 sounds", onClick = { onCategoryClick("abstract") }
+                    count = "${ RingtoneData.getSoundsForCategory("abstract").size} sounds", onClick = { onCategoryClick("abstract") }
                 )
             }
 
             // 8. Sleep (Blue/Indigo - Focus)
             item {
                 OrganicShaderCard(
-                    title = "Sleep", subtitle = "Ambient noise",
+                    title = "Funny", subtitle = "Ambient noise",
                     icon = Icons.Default.Bedtime,
                     color1 = Color(0xFF304FFE), color2 = Color(0xFF1A237E),
                     shaderCode = ShaderLibrary.FOCUS,
-                    count = "8 sounds", onClick = { onCategoryClick("sleep") }
+                    count = "${ RingtoneData.getSoundsForCategory("funny").size} sounds", onClick = { onCategoryClick("funny") }
                 )
-            }
+            }/*
             item {
                 OrganicShaderCard(
                     title = "Classic", subtitle = "Traditional",
@@ -130,37 +132,25 @@ fun RingtoneScreen(
                     color1 = Color(0xFF70BFE5), // Light GreyBlue
                     color2 = Color(0xFF627885), // Dark Charcoal
                     shaderCode = ShaderLibrary.HEAVY_FILM_GRAIN, // <--- New Shader
-                    count = "4 sounds",
+                    count = "${ RingtoneData.getSoundsForCategory("classic").size} sounds",
                     onClick = { onCategoryClick("classic") }
                 )
-            }
+            }*/
 
             // Example: Alarms using INVERTED_PULSE
             // High contrast works best here. Bright edge, dark center.
             item {
                 OrganicShaderCard(
-                    title = "Alarms", subtitle = "Attention",
+                    title = "AI", subtitle = "AI Speech",
                     icon = Icons.Outlined.ErrorOutline,
                     color2 = Color(0xFF5A965A), // Bright Neon Red (Edge)
                     color1 = Color(0xFF253622), // Pure Black (Center)
                     shaderCode = ShaderLibrary.INVERTED_PULSE, // <--- New Shader
-                    count = "4 sounds",
-                    onClick = { onCategoryClick("alarms") }
+                    count = "${ RingtoneData.getSoundsForCategory("ai").size} sounds",
+                    onClick = { onCategoryClick("ai") }
                 )
             }
-            item {
-                OrganicShaderCard(
-                    title = "Modern", subtitle = "Data Grid",
-                    icon = Icons.Default.GraphicEq,
-                    // Color 1: Bright Cyan (Big Dots)
-                    color1 = Color(0xFF00E5FF),
-                    // Color 2: Deep Blue (Small/Medium Dots)
-                    color2 = Color(0xFF2962FF),
-                    shaderCode = ShaderLibrary.LED_MATRIX, // <--- The new halftone shader
-                    count = "4 sounds",
-                    onClick = { onCategoryClick("modern") }
-                )
-            }
+/*
             item {
                 OrganicShaderCard(
                     title = "Modern", subtitle = "Data Grid",
@@ -170,7 +160,7 @@ fun RingtoneScreen(
                     // Color 2: Deep Blue (Small/Medium Dots)
                     color2 = Color(0xFF162F73),
                     shaderCode = ShaderLibrary.LED_MATRIX, // <--- The new halftone shader
-                    count = "4 sounds",
+                    count = "${ RingtoneData.getSoundsForCategory("modern").size} sounds",
                     onClick = { onCategoryClick("modern") }
                 )
             }
@@ -185,10 +175,10 @@ fun RingtoneScreen(
                     // Deep Midnight Blue
                     color2 = Color(0xFF001040),
                     shaderCode = ShaderLibrary.LIQUID_FLOW, // <--- The new shader
-                    count = "4 sounds",
+                    count = "${ RingtoneData.getSoundsForCategory("modern").size} sounds",
                     onClick = { onCategoryClick("modern") }
                 )
-            }
+            }*/
         }
     }
 }

@@ -52,7 +52,15 @@ object RingtoneData {
         SoundDefinition("c1", "Classic Alarm", R.raw.classic_alarm),
         SoundDefinition("c2", "The Human Beep", R.raw.delelele),
         SoundDefinition("c3", "Retro Emergency", R.raw.alarm1000),
-        SoundDefinition("c4", "Bell Tower", R.raw.classic_alarm)
+        SoundDefinition("c4", "Minions", R.raw.classic_beedoo_minions),
+        SoundDefinition("c5", "Beep", R.raw.classic_beep),
+        SoundDefinition("c6", "The Human Beep", R.raw.classic_human_beep),
+        SoundDefinition("c7", "Space scan", R.raw.classic_space_scan),
+        SoundDefinition("c8", "Urgent", R.raw.classic_urgent),
+        SoundDefinition("c9", "Dream of victory", R.raw.classig_dreaming_of_victory),
+        SoundDefinition("c10", "Samsung", R.raw.samsung_galaxy_s25),
+        SoundDefinition("c11", "Samsung sms", R.raw.samsung_galaxy_s25_sms),
+
     )
     private val natureSounds = listOf(
         SoundDefinition("n1", "Morning Birds", R.raw.morning_birds),
@@ -62,35 +70,53 @@ object RingtoneData {
         SoundDefinition("n5", "River Stream", R.raw.morning_birds)
     )
     private val animalSounds = listOf(
-        SoundDefinition("a1", "Rooster", R.raw.chicken),
+        SoundDefinition("a1", "Chicken", R.raw.chicken),
         SoundDefinition("a2", "Mooing Cow", R.raw.moo),
-        SoundDefinition("a3", "Cat Purr", R.raw.chicken),
-        SoundDefinition("a4", "Dog Bark", R.raw.moo)
+        SoundDefinition("a3", "Cat Purr", R.raw.animal_cat),
+        SoundDefinition("a4", "Bird", R.raw.animal_bird),
+        SoundDefinition("a5", "Farm", R.raw.animal_farm),
+        SoundDefinition("a6", "Horse", R.raw.animal_horse),
+        SoundDefinition("a7", "Monkey", R.raw.animal_monkey),
+        SoundDefinition("a8", "Pig", R.raw.animal_pig),
+        SoundDefinition("a9", "Frog", R.raw.animal_frog),
+        SoundDefinition("a10", "Crickets", R.raw.animal_crickets),
+
     )
     // Empty lists for others to demonstrate dynamic counting
     private val alarmSounds = listOf(
         SoundDefinition("al1", "Nuclear", R.raw.alarm1000),
-        SoundDefinition("al2", "Siren", R.raw.alarm1000),
-        SoundDefinition("al3", "Buzzer", R.raw.alarm1000),
-        SoundDefinition("al4", "Pager", R.raw.alarm1000)
+        SoundDefinition("al2", "Fire", R.raw.alarm_fire),
+        SoundDefinition("al3", "Retro", R.raw.alarm_retro),
+        SoundDefinition("al4", "Imperial", R.raw.imperial_alarm),
+        SoundDefinition("al5", "Loud alarm", R.raw.alarm_loud),
+
     )
-    private val musicSounds = listOf(
-        SoundDefinition("m1", "Piano", R.raw.classic_alarm),
-        SoundDefinition("m2", "Synth", R.raw.classic_alarm),
-        SoundDefinition("m3", "Lo-Fi", R.raw.classic_alarm),
-        SoundDefinition("m4", "Jazz", R.raw.classic_alarm)
+    private val ai = listOf(
+        SoundDefinition("ai1", "Speech German", R.raw.motivational_speech_german),
+        SoundDefinition("ai2", "Speech soldier", R.raw.motivational_speech_soldier),
+
     )
-    private val modernSounds = listOf(
-        SoundDefinition("mo1", "Ping", R.raw.delelele),
-        SoundDefinition("mo2", "Glass", R.raw.delelele),
-        SoundDefinition("mo3", "Notify", R.raw.delelele),
-        SoundDefinition("mo4", "Pop", R.raw.delelele)
+    private val Funny = listOf(
+        SoundDefinition("f1", "Opening Bier", R.raw.bierflasche_offnen),
+        SoundDefinition("f2", "it rattles", R.raw.es_rappelt_im_karton),
+        SoundDefinition("f3", "Take your phone", R.raw.geh_mal_an_dein_handy_ran),
+        SoundDefinition("f4", "Pipi Langstrumpf", R.raw.hey_pippi_langstrumpf_remix),
+        SoundDefinition("f5", "Is here no one?", R.raw.ist_da_keiner),
+        SoundDefinition("f6", "Benny Hill", R.raw.lustiger_benny_hill),
+        SoundDefinition("f7", "Raumschiff Surprise", R.raw.raumschiff_suprise_space_taxi),
+        SoundDefinition("f8", "stairway fart", R.raw.stairway_fart_wars),
     )
     private val abstractSounds = listOf(
-        SoundDefinition("ab1", "Dream", R.raw.morning_birds),
-        SoundDefinition("ab2", "Void", R.raw.morning_birds),
-        SoundDefinition("ab3", "Space", R.raw.morning_birds),
-        SoundDefinition("ab4", "Time", R.raw.morning_birds)
+        SoundDefinition("ab1", "Made by laurens1", R.raw.abstract_ringtone_1),
+        SoundDefinition("ab2", "Made by laurens2", R.raw.abstract_ringtone_2),
+        SoundDefinition("ab3", "Made by laurens3", R.raw.abstract_ringtone_3),
+        SoundDefinition("ab4", "Made by laurens4", R.raw.abstract_ringtone_4),
+        SoundDefinition("ab5", "Made by laurens5", R.raw.abstract_ringtone_5),
+        SoundDefinition("ab6", "Made by laurens6", R.raw.abstract_ringtone_6),
+        SoundDefinition("ab7", "Made by laurens7", R.raw.abstract_ringtone_7),
+        SoundDefinition("ab8", "Made by laurens8", R.raw.abstract_ringtone_8),
+        SoundDefinition("ab9", "Made by laurens9", R.raw.abstract_ringtone_9),
+        SoundDefinition("ab10", "Made by laurens10", R.raw.abstract_ringtone_10),
     )
 
     // Public Items List (Fully Mapped to Design System)
@@ -133,7 +159,7 @@ object RingtoneData {
             shapeStart = ShapeType.SCALLOP, shader = ShaderType.AURORA
         ),
         RingtoneItem.Card(
-            id = "music", title = "Music", subtitle = "Wake-up tunes",
+            id = "ai", title = "AI", subtitle = "AI speech",
             icon = Icons.Default.MusicNote,
             colorStart = Color(0xFFE040FB), colorEnd = Color(0xFF311B92),
             shapeStart = ShapeType.ROUNDED_RECT, shader = ShaderType.WAVES
@@ -147,7 +173,7 @@ object RingtoneData {
             shapeStart = ShapeType.STAR, shader = ShaderType.NEBULA
         ),
         RingtoneItem.Card(
-            id = "modern", title = "Modern", subtitle = "Contemporary",
+            id = "funny", title = "Funny", subtitle = "Funny Sounds",
             icon = Icons.Default.GraphicEq,
             colorStart = Color(0xFF00E5FF), colorEnd = Color(0xFF0D47A1),
             shapeStart = ShapeType.ROUNDED_RECT, shader = ShaderType.GRID,
@@ -167,8 +193,8 @@ object RingtoneData {
             "nature" -> natureSounds
             "animals" -> animalSounds
             "alarms" -> alarmSounds
-            "music" -> musicSounds
-            "modern" -> modernSounds
+            "ai" -> ai
+            "funny" -> Funny
             "abstract" -> abstractSounds
             else -> emptyList()
         }
