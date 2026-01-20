@@ -241,12 +241,12 @@ fun AlarmCreateScreen(
                     value = state.ringtone,
                     onClick = onNavigateToRingtone
                 )
-
+/*
                 SettingRow(
                     title = "Vibration",
                     value = state.vibration,
                     onClick = onNavigateToVibration
-                )
+                )*/
 
                 SettingRow(
                     title = "Dismiss Challenge",
