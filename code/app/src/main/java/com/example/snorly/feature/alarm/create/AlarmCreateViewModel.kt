@@ -1,6 +1,7 @@
 package com.example.snorly.feature.alarm.create
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.snorly.core.database.AppDatabase
@@ -29,6 +30,8 @@ class AlarmCreateViewModel(application: Application) : AndroidViewModel(applicat
 
         if (alarmId == null) {
             _uiState.value = AlarmCreateUiState()
+
+
         } else {
             loadForEdit(alarmId)
         }
@@ -46,6 +49,7 @@ class AlarmCreateViewModel(application: Application) : AndroidViewModel(applicat
     fun setEnableSnooze(v: Boolean) = _uiState.update { it.copy(enableSnooze = v, saved = false) }
     fun setSnoozeMinutes(v: Int) = _uiState.update { it.copy(snoozeMinutes = v, saved = false) }
     fun setSelectedChallenges(v: List<String>) = _uiState.update { it.copy(selectedChallenges = v, saved = false) }
+
 
     fun save() = viewModelScope.launch {
         val state = _uiState.value
