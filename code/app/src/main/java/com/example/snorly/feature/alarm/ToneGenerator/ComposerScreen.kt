@@ -146,7 +146,6 @@ fun ComposerScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Black
                 ),
-                windowInsets = WindowInsets(0)
             )
         },
         containerColor = Color.Black

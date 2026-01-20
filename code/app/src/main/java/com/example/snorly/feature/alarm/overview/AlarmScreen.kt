@@ -8,20 +8,24 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.snorly.core.common.components.HomeTopBar
 import com.example.snorly.feature.alarm.components.AlarmCard
 import com.example.snorly.feature.alarm.components.premiumBackground
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlarmScreen(
     onEditAlarm: (Long) -> Unit,
@@ -29,6 +33,7 @@ fun AlarmScreen(
 ) {
     val alarms by viewModel.alarms.collectAsState()
     val selection by viewModel.selectionUiState.collectAsState()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -36,9 +41,11 @@ fun AlarmScreen(
     ) {
         Scaffold(
             containerColor = Color.Transparent,
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 HomeTopBar( // transparent bg
                     title = if (selection.selectionMode) "${selection.selectedIds.size} selected" else "Alarm",
+                    scrollBehavior = scrollBehavior,
                     actions = {
                         if (selection.selectionMode) {
                             IconButton(onClick = { viewModel.deleteSelected() }) {

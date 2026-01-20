@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.snorly.core.common.components.MainTopBar
 import com.example.snorly.feature.settings.components.SettingsSectionCard
 import com.example.snorly.feature.settings.components.SettingsSwitchTile
 import com.example.snorly.feature.settings.components.SettingsTile
@@ -32,36 +33,23 @@ fun SettingsScreen(
 
     Scaffold(
         containerColor = bg,
-
+        topBar = {
+            MainTopBar(
+                title = "Settings"
+            )
+        }
         ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black), // Set back to Black
+            .padding(innerPadding),
             contentPadding = PaddingValues(
                 top = 16.dp,
                 bottom = innerPadding.calculateBottomPadding() + 80.dp,
                 start = 16.dp,
-                end = 16.dp
-            ),
+                end = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Sleep",
-                        color = Color.White,
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-
             // 2. SLEEP GOALS (Renamed from Optimization)
             item {
                 SettingsSectionCard(title = "SLEEP GOALS") {

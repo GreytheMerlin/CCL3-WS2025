@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -34,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.health.connect.client.PermissionController
+import com.example.snorly.core.common.components.MainTopBar
 import com.example.snorly.feature.sleep.components.ConnectHealthConnectBanner
 import com.example.snorly.feature.sleep.components.SleepHistoryItem
 import com.example.snorly.feature.sleep.components.UpgradedSleepCard
@@ -55,19 +57,23 @@ fun SleepScreen(
     val pullRefreshState = rememberPullToRefreshState()
 
     Scaffold(
-        containerColor = Color.Black
-    ) { innerPadding ->
+        containerColor = Color.Black, topBar = {
+            MainTopBar(
+                title = "Sleep",
+                actionIcon = Icons.Default.Add,
+                actionDescription = "Add Sleep",
+                onActionClick = { onAddSleepClick() })
+        }) { innerPadding ->
         PullToRefreshBox(
             isRefreshing = viewModel.isSyncing,
             onRefresh = { viewModel.syncSleepData() },
             state = pullRefreshState,
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black), // Set back to Black
+                    .padding(innerPadding),
                 contentPadding = PaddingValues(
                     top = 16.dp,
                     bottom = innerPadding.calculateBottomPadding() + 80.dp,
@@ -76,39 +82,13 @@ fun SleepScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Header Title
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Sleep",
-                            color = Color.White,
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        IconButton(
-                            onClick = onAddSleepClick,
-                            modifier = Modifier
-                        ) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = "Add Sleep",
-                                tint = Color.White
-                            )
-                        }
-                    }
-                }
+
                 if (viewModel.isHealthConnectAvailable && !viewModel.hasPermission) {
                     item {
                         ConnectHealthConnectBanner(
                             onConnectClick = {
                                 permissionsLauncher.launch(viewModel.requiredPermissions)
-                            }
-                        )
+                            })
                     }
                 }
 //                // Main Action Card
@@ -121,10 +101,8 @@ fun SleepScreen(
                 item {
                     UpgradedSleepCard(
                         isTracking = viewModel.isTracking,
-                        onToggleTracking = { viewModel.toggleTracking() }
-                    )
+                        onToggleTracking = { viewModel.toggleTracking() })
                 }
-
 
 
                 // TODAY'S STATS (Replaces old Averages)
@@ -224,11 +202,9 @@ fun SleepScreen(
                 } else {
                     items(viewModel.sleepHistory) { day ->
                         SleepHistoryItem(
-                            data = day,
-                            onClick = {
+                            data = day, onClick = {
                                 if (day.id.isNotEmpty()) onSleepItemClick(day.id)
-                            }
-                        )
+                            })
                     }
                 }
             }

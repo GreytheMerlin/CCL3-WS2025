@@ -157,7 +157,6 @@ fun AlarmCreateScreen(
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 ),
-                        windowInsets = WindowInsets(0)
             )
         },
         bottomBar = {

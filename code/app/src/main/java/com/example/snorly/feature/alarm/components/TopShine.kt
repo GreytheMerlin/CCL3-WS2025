@@ -3,8 +3,12 @@ package com.example.snorly.feature.alarm.components
 import android.graphics.RuntimeShader
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -19,7 +23,6 @@ import androidx.compose.ui.graphics.toArgb
 import kotlin.math.PI
 
 // --- COLORS ---
-val PremiumBaseColor = Color(0xFF000000)
 val PremiumCyanColor = Color(0xFF082B36) // Deep Cyan
 val PremiumSlateColor = Color(0xFF192135) // Deep Violet/Slate
 
