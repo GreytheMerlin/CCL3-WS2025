@@ -1,6 +1,5 @@
 package com.example.snorly.feature.alarm.ToneGenerator
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +19,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -81,7 +81,7 @@ fun ComposerListScreen(
                         onSelect = { onSelect(item.data) },
                         onDelete = { viewModel.deleteRingtone(item.data) }
                     )
-                    Divider(color = Color(0xFF1F1F1F), thickness = 1.dp)
+                    HorizontalDivider(thickness = 1.dp, color = Color(0xFF1F1F1F))
                 }
             }
         }
@@ -106,12 +106,6 @@ fun ComposerListItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         // PLAY ICON / ANIMATION
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(Color(0xFF222222), androidx.compose.foundation.shape.CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
             if (item.isPlaying) {
                 SoundWaveAnimation(color = Color(0xFF1677FF))
             } else {
@@ -122,7 +116,7 @@ fun ComposerListItem(
                     modifier = Modifier.size(24.dp)
                 )
             }
-        }
+
 
         Spacer(Modifier.width(16.dp))
 

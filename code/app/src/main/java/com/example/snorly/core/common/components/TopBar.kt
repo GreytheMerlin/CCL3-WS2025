@@ -1,8 +1,10 @@
 package com.example.snorly.core.common.components
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.BottomAppBarDefaults.windowInsets
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -25,16 +27,13 @@ fun HomeTopBar(
     TopAppBar(
         title = {
             Text(
-                text = title,
-                style = MaterialTheme.typography.headlineMedium
+                text = title, style = MaterialTheme.typography.headlineMedium
             )
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
+        }, colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background,
             titleContentColor = MaterialTheme.colorScheme.onBackground,
             actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-        ),
-        actions = {
+        ), actions = {
             actions()
 
             // OPTIONAL: keep settings icon if you want
@@ -42,35 +41,33 @@ fun HomeTopBar(
             //     Icon(Icons.Default.Settings, contentDescription = "Settings")
             // }
         }
+        , windowInsets = WindowInsets(0)
     )
+
 }
 
 // 2. For Detail Screens (Create Alarm, Edit Sleep)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackTopBar(
-    title: String,
-    onBackClick: () -> Unit
+    title: String, onBackClick: () -> Unit
 ) {
     CenterAlignedTopAppBar( // Center aligned looks better for sub-pages
         title = {
             Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge
+                text = title, style = MaterialTheme.typography.titleLarge
             )
-        },
-        navigationIcon = {
+        }, navigationIcon = {
             IconButton(onClick = onBackClick) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back"
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back"
                 )
             }
-        },
-        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+        }, colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.background,
             titleContentColor = MaterialTheme.colorScheme.onBackground,
             navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        ), windowInsets = WindowInsets(0)
+
     )
 }

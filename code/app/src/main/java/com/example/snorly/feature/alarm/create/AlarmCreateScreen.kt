@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -148,22 +149,15 @@ fun AlarmCreateScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onClose) {
-                        Box(
-                            modifier = Modifier
-                                .size(44.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .border(1.dp, divider, RoundedCornerShape(8.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
                             Icon(Icons.Default.Close, contentDescription = "Close")
-                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = bg,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
-                )
+                ),
+                        windowInsets = WindowInsets(0)
             )
         },
         bottomBar = {
@@ -192,10 +186,10 @@ fun AlarmCreateScreen(
                 }
             }
         }
-    ) { inner ->
+    ) { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(inner)
+                .padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 18.dp)
