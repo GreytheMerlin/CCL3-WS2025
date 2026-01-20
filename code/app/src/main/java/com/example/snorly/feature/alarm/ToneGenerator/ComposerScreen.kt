@@ -243,14 +243,14 @@ fun ComposerScreen(
                     )
                 }
             }
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.weight(1f))
 
             // 3. CONTROLS
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                    .padding(bottom = 24.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Record
@@ -299,7 +299,6 @@ fun ComposerScreen(
                 columns = GridCells.Fixed(3),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.height(240.dp)
             ) {
                 itemsIndexed(notes) { index, (noteName, _) ->
                     val isCircle = index % 2 == 0
@@ -315,7 +314,7 @@ fun ComposerScreen(
                 }
             }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(24.dp))
         }
     }
 }
