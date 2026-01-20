@@ -1,10 +1,12 @@
 package com.example.snorly.feature.sleep
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -174,6 +176,14 @@ class SleepViewModel(
         // Save to disk immediately
         prefs.edit().putLong("tracking_start_time", now).apply()
         isTracking = true
+
+        ContextCompat.startForegroundService(
+            context,
+            Intent(context, SleepTimerService::class.java).apply {
+                action = SleepTimerService.ACTION_START
+            }
+        )
+
     }
 
     fun stopTracking() {
@@ -201,6 +211,13 @@ class SleepViewModel(
             isTracking = false
 
             // Trigger a sync/refresh to show the new item
+
+            context.startService(
+                Intent(context, SleepTimerService::class.java).apply {
+                    action = SleepTimerService.ACTION_STOP
+                }
+            )
+
             syncSleepData()
         }
     }

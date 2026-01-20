@@ -3,8 +3,8 @@ package com.example.snorly.feature.alarm.create
 data class AlarmCreateUiState(
     val id: Long? = null,
 
-    val hour: Int = 7,
-    val minute: Int = 30,
+    val hour: Int = 6,
+    val minute: Int = 0,
     val label: String = "Alarm Name",
     val ringtone: String = "Default",
     val ringtoneUri: String = "",

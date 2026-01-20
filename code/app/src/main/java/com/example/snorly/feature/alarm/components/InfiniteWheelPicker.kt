@@ -1,5 +1,6 @@
 package com.example.snorly.feature.alarm.components
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Box
@@ -56,6 +57,8 @@ fun InfiniteWheelPicker(
 
     // ✅ Only scroll when parent requests a DIFFERENT value than what we already show
     LaunchedEffect(items, initialValue) {
+
+
         if (items.isEmpty()) return@LaunchedEffect
 
         val safeIndex = items.indexOf(initialValue).takeIf { it >= 0 } ?: 0
@@ -80,7 +83,8 @@ fun InfiniteWheelPicker(
                 val visible = layoutInfo.visibleItemsInfo
                 if (visible.isEmpty()) return@collect
 
-                val viewportCenter = layoutInfo.viewportEndOffset / 2
+                val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
+
                 val centerIndex = visible
                     .minByOrNull { kotlin.math.abs((it.offset + it.size / 2) - viewportCenter) }
                     ?.index ?: return@collect
