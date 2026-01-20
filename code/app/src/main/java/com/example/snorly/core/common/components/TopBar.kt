@@ -15,6 +15,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 
 // 1. For Main Screens (Alarm, Sleep, Report)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,7 +31,7 @@ fun HomeTopBar(
                 text = title, style = MaterialTheme.typography.headlineMedium
             )
         }, colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = Color.Transparent,
             titleContentColor = MaterialTheme.colorScheme.onBackground,
             actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         ), actions = {
@@ -41,7 +42,6 @@ fun HomeTopBar(
             //     Icon(Icons.Default.Settings, contentDescription = "Settings")
             // }
         }
-        , windowInsets = WindowInsets(0)
     )
 
 }

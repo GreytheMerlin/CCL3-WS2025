@@ -52,7 +52,7 @@ fun SnorlyTheme(
         SideEffect {
             val window = (view.context as Activity).window
             // Status bar matches the background (Black)
-            window.statusBarColor = colorScheme.background.toArgb()
+            window.statusBarColor = Color.Transparent.toArgb()
             // Ensure icons in status bar are light (since background is dark)
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
