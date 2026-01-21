@@ -46,6 +46,6 @@ fun QrChallengeRoute(
             permissionLauncher.launch(Manifest.permission.CAMERA)
         },
         onQrScanned = vm::onQrScanned,
-        onSimulateSuccess = vm::simulateSuccessScan
+
     )
 }
