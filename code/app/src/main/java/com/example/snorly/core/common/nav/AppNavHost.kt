@@ -6,6 +6,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -107,7 +108,6 @@ fun AppNavHost(
 
                     Destination.REPORT -> {
                         val userProfileDao = database.UserProfileDao()
-                        // Reuse the SAME manager
                         val reportViewModel: ReportViewModel = viewModel(
                             factory = ReportViewModel.Factory(
                                 manager = healthConnectManager,
@@ -115,13 +115,15 @@ fun AppNavHost(
                             )
                         )
 
-                        // REFRESH LOGIC (Same pattern as Sleep Screen)
                         val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
-                        val refreshState by savedStateHandle?.getStateFlow("refresh_sleep", false)!!.collectAsState()
+                        // Use collectAsStateWithLifecycle for better resource management
+                        val refreshNeeded by savedStateHandle?.getStateFlow("refresh_sleep", false)!!
+                            .collectAsStateWithLifecycle()
 
-                        LaunchedEffect(refreshState) {
-                            if (refreshState) {
-                                reportViewModel.loadReportData() // Reload!
+                        LaunchedEffect(refreshNeeded) {
+                            if (refreshNeeded) {
+                                reportViewModel.refresh() // Trigger the reactive refresh
+                                savedStateHandle.set("refresh_sleep", false) // Reset trigger
                             }
                         }
 

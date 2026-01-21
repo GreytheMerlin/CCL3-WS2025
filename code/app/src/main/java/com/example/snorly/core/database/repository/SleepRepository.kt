@@ -5,7 +5,6 @@ import com.example.snorly.core.database.dao.SleepSessionDao
 import com.example.snorly.core.database.entities.SleepSessionEntity
 import com.example.snorly.core.health.HealthConnectManager
 import androidx.health.connect.client.records.SleepSessionRecord
-import com.example.snorly.feature.sleep.util.SleepScoreUtils
 import com.example.snorly.feature.sleep.util.SleepScoreUtils.calculateScore
 import kotlinx.coroutines.flow.Flow
 import java.time.Duration

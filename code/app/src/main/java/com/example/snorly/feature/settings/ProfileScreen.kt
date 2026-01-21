@@ -68,7 +68,6 @@ fun ProfileScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black),
-                windowInsets = WindowInsets(0.dp)
             )
         },
         containerColor = Color.Black

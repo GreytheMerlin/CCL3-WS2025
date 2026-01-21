@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,16 +42,21 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.snorly.core.common.components.MainTopBar
 import com.example.snorly.feature.sleep.util.SleepScoreUtils.getScoreColor
 import java.util.Locale
 
 @Composable
 fun ReportScreen(viewModel: ReportViewModel) {
-    val data = viewModel.weeklyGraphData
-    val stats = viewModel.stats
-    val comparison = viewModel.comparisonData
-    val consistency = viewModel.consistencyScore
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Destructure everything from the single state object
+    val data = uiState.weeklyGraphData
+    val stats = uiState.stats
+    val comparison = uiState.comparisonData
+    val consistency = uiState.consistencyScore
 
     val scrollState = rememberScrollState()
 
