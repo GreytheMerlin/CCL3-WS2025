@@ -1,11 +1,7 @@
 package com.example.snorly.core.common.components
 
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.BottomAppBarDefaults.windowInsets
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -26,7 +22,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 fun HomeTopBar(
     title: String,
     scrollBehavior: TopAppBarScrollBehavior? = null,
-    onSettingsClick: () -> Unit = {},
     actions: @Composable () -> Unit = {}
 ) {
     TopAppBar(
@@ -73,7 +68,7 @@ fun MainTopBar(
         },
         modifier = modifier,
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.background,
             titleContentColor = MaterialTheme.colorScheme.onSurface,
             actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
