@@ -1,11 +1,15 @@
 package com.example.snorly.feature.settings
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -13,9 +17,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
 import com.example.snorly.core.common.components.MainTopBar
 import com.example.snorly.feature.settings.components.SettingsSectionCard
 import com.example.snorly.feature.settings.components.SettingsSwitchTile
@@ -30,6 +36,7 @@ fun SettingsScreen(
     // Collect Real Data
     val userProfile by viewModel.userProfile.collectAsState()
     val bg = Color.Black
+    val context = LocalContext.current
 
     Scaffold(
         containerColor = bg,
@@ -75,20 +82,26 @@ fun SettingsScreen(
                     SettingsTile(
                         icon = Icons.Outlined.Notifications,
                         title = "Default Alarm Settings",
-                        onClick = { })
+                        onClick = {val intent = Intent(
+                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            Uri.fromParts("package", context.packageName, null)
+                        )
+                            context.startActivity(intent)
+                        })/*
                     SettingsTile(
                         icon = Icons.Outlined.RoomService,
                         title = "Service",
                         onClick = { })
+
                     SettingsSwitchTile(
-                        icon = Icons.Outlined.VolumeUp,
+                        icon = Icons.AutoMirrored.Outlined.VolumeUp,
                         title = "Gradually Increase Volume",
-                        checked = true,
-                        onCheckedChange = { })
+                        checked = false,
+                        onCheckedChange = {viewModel.setMaxVolume(context) })
                     SettingsSwitchTile(
                         icon = Icons.Outlined.Snooze, // Changed Icon
                         title = "Smart Snooze",       // Changed Text
-                        checked = false, onCheckedChange = { })
+                        checked = false, onCheckedChange = { })*/
                 }
             }
 
@@ -98,10 +111,8 @@ fun SettingsScreen(
                     SettingsTile(
                         icon = Icons.Outlined.Info,
                         title = "App Version",
-                        value = "1.0.0",
-                        onClick = { })
-                    SettingsTile(
-                        icon = Icons.Outlined.Email, title = "Send Feedback", onClick = { })
+                        value = "1.0.0"
+                    )
                 }
             }
 
