@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -225,7 +226,7 @@ fun ReportScreen(viewModel: ReportViewModel) {
                         }
 
                         Spacer(Modifier.height(16.dp))
-                        Divider(color = Color.White.copy(alpha = 0.1f))
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
                         Spacer(Modifier.height(16.dp))
 
                         // --- QUALITY COMPARISON ROW ---

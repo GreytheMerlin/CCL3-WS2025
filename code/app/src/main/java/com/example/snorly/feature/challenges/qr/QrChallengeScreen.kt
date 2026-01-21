@@ -36,7 +36,6 @@ fun QrChallengeScreen(
     onEnableCamera: () -> Unit,
     onTryAgainPermission: () -> Unit,
     onQrScanned: (String) -> Unit,
-    onSimulateSuccess: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val bg = Brush.verticalGradient(listOf(Color(0xFF0B0F1A), Color(0xFF060812)))
@@ -61,7 +60,7 @@ fun QrChallengeScreen(
                                 expectedValue = state.expectedValue,
                                 showWrongQr = state.showWrongQr,
                                 onQrScanned = onQrScanned,
-                                onSimulateSuccess = onSimulateSuccess
+
                             )
                         }
                     }
@@ -175,7 +174,7 @@ private fun QrScannerContent(
     expectedValue: String?,
     showWrongQr: Boolean,
     onQrScanned: (String) -> Unit,
-    onSimulateSuccess: () -> Unit
+
 ) {
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         QrScannerPreview(onQrScanned = onQrScanned)
@@ -185,14 +184,7 @@ private fun QrScannerContent(
 
         Spacer(Modifier.height(14.dp))
         val purple = Color(0xFF8B5CF6)
-        Button(
-            onClick = onSimulateSuccess,
-            modifier = Modifier.fillMaxWidth().height(48.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = purple),
-            shape = RoundedCornerShape(14.dp)
-        ) {
-            Text("Simulate Successful Scan")
-        }
+
 
         if (expectedValue != null && showWrongQr) {
             Spacer(Modifier.height(8.dp))
