@@ -46,6 +46,7 @@ import com.example.snorly.feature.alarm.components.SettingRow
 import com.example.snorly.feature.alarm.components.SnoozeSlider
 import com.example.snorly.feature.alarm.components.TimePickerWheel
 import com.example.snorly.feature.alarm.components.ToggleRow
+import com.example.snorly.feature.challenges.model.ChallengeDataSource
 
 @Composable
 fun AlarmCreateScreen(
@@ -55,7 +56,7 @@ fun AlarmCreateScreen(
     onClose: () -> Unit = {},
     onNavigateToRingtone: () -> Unit = {},
     onNavigateToVibration: () -> Unit = {},
-    onNavigateToChallenge: () -> Unit = {},
+    onNavigateToChallenge: (Boolean, List<String>) -> Unit = { _, _ -> },
     selectedChallengesFromNav: List<String> = emptyList()
 ) {
     val state by alarmViewModel.uiState.collectAsState()
@@ -129,11 +130,26 @@ fun AlarmCreateScreen(
         if (state.saved) onClose()
     }
 
+    val firstChallengeTitle = state.selectedChallenges
+        .firstOrNull()
+        ?.let { id ->
+            ChallengeDataSource
+                .allChallenges
+                .find { it.id == id }
+                ?.title
+        }
+
+    fun challengeTitle(id: String): String =
+        ChallengeDataSource.allChallenges.find { it.id == id }?.title ?: id
+
     val dismissChallengeText =
         when (state.selectedChallenges.size) {
             0 -> "Off"
-            1 -> state.selectedChallenges.first()
-            else -> "${state.selectedChallenges.first()} +${state.selectedChallenges.size - 1}"
+            1 -> firstChallengeTitle ?: "Challenge"
+            else -> {
+                val firstTitle = challengeTitle(state.selectedChallenges.first())
+                "$firstTitle +${state.selectedChallenges.size - 1}"
+            }
         }
 
 
@@ -251,7 +267,12 @@ fun AlarmCreateScreen(
                     title = "Dismiss Challenge",
                     subtitle = "Complete a task to turn off",
                     value = dismissChallengeText,
-                    onClick = onNavigateToChallenge
+                    onClick = {
+                        onNavigateToChallenge(
+                            state.selectedChallenges.isNotEmpty(),
+                            state.selectedChallenges
+                        )
+                    }
                 )
             }
 

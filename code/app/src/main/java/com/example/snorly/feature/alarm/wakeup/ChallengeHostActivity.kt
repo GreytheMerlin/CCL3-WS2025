@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import com.example.snorly.core.database.AppDatabase
 
@@ -59,11 +60,18 @@ private fun ChallengeHostRoute(
     onAllSolved: () -> Unit
 ) {
     val context = LocalContext.current
-    var challenges by remember { mutableStateOf<List<String>>(emptyList()) }
-    var loading by remember { mutableStateOf(true) }
-    var index by remember { mutableStateOf(0) }
+    var challenges by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    var loading by rememberSaveable { mutableStateOf(true) }
+    var index by rememberSaveable { mutableIntStateOf(0) }
+
 
     LaunchedEffect(alarmId) {
+        // IMPORTANT: only load once
+        if (challenges.isNotEmpty()) {
+            loading = false
+            return@LaunchedEffect
+        }
+
         loading = true
         val dao = AppDatabase.getDatabase(context.applicationContext).alarmDao()
         challenges = try {
@@ -92,22 +100,22 @@ private fun ChallengeHostRoute(
     Log.d("ChallengeHost", "Current challenge = $current")
 
     val goNext = {
-        index += 1
+        index = index + 1
     }
 
 
+    Log.d("Challenge", "${current}")
     when (current) {
-        "MATH PROBLEM" ->
+        "2" ->
             MathChallengeRoute(onSolved = goNext)
 
-        "SHAKE PHONE" ->
+        "3" ->
             ShakeChallengeRoute(requiredShakes = 20, onSolved = goNext)
 
-        "STEP COUNTER" ->
-            StepChallengeRoute(requiredSteps = 10, onSolved = goNext)
-        "QR CODE" ->
+
+        "4" ->
             QrChallengeRoute (onSolved = goNext)
-        "MEMORY GAME" ->
+        "1" ->
             MemoryMatchRoute(onCompleted = goNext)
         else -> goNext()
     }

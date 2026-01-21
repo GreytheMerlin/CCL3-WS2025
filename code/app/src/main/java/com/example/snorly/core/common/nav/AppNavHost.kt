@@ -157,7 +157,7 @@ fun AppNavHost(
         ) { backStackEntry ->
 
             val selectedChallenges by backStackEntry.savedStateHandle.getStateFlow(
-                "selectedChallenges", emptyList<String>()
+                "selected_challenges_result", emptyList<String>()
             ).collectAsState()
 
             val alarmIdArg = backStackEntry.arguments?.getLong("alarmId") ?: -1L
@@ -169,7 +169,11 @@ fun AppNavHost(
                 onClose = { navController.popBackStack() },
                 onNavigateToRingtone = { navController.navigate("alarm_ringtone") },
                 onNavigateToVibration = { navController.navigate("alarm_vibration") },
-                onNavigateToChallenge = { navController.navigate("challenges_graph") },
+                onNavigateToChallenge = { enabled, ids->
+                    val idsStr = ids.joinToString(",")
+                    navController.navigate("challenges_graph?enabled=$enabled&ids=$idsStr")
+                }
+                ,
 
             )
         }
@@ -254,27 +258,39 @@ fun AppNavHost(
         }
         // === Challenges ===
         navigation(
-            startDestination = "challenges_main", route = "challenges_graph"
+            startDestination = "challenges_main", route = "challenges_graph?enabled={enabled}&ids={ids}"
         ) {
             // A. Create the ViewModel scoped to this GRAPH, not the whole app.
             // When you exit "challenges_graph", this ViewModel is cleared.
             composable("challenges_main") { backStackEntry ->
-                // We get the ViewModelStoreOwner from the graph entry
+
                 val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry("challenges_graph")
+                    navController.getBackStackEntry("challenges_graph?enabled={enabled}&ids={ids}")
                 }
                 val challengeViewModel: ChallengeViewModel = viewModel(parentEntry)
+
+                // ✅ read incoming args from THIS entry
+                val enabledArg = backStackEntry.arguments?.getString("enabled")?.toBooleanStrictOrNull() ?: false
+                val idsArg = backStackEntry.arguments?.getString("ids") ?: ""
+                val initialIds = if (idsArg.isBlank()) emptyList() else idsArg.split(",")
+
+                LaunchedEffect(Unit) {
+                    challengeViewModel.initFromSelection(enabledArg, initialIds)
+                }
 
                 DismissChallengesScreen(
                     onBack = { navController.popBackStack() },
                     onAddClick = { navController.navigate("challenges_add") },
                     viewModel = challengeViewModel,
-                    onResult = { selectedNames ->
+                    onResult = { selectedIds ->
                         navController.previousBackStackEntry?.savedStateHandle?.set(
-                            "selected_challenges_result", selectedNames
+                            "selected_challenges_result",
+                            selectedIds
                         )
-                    })
+                    }
+                )
             }
+
 
             composable("challenges_add") { backStackEntry ->
                 val parentEntry = remember(backStackEntry) {
