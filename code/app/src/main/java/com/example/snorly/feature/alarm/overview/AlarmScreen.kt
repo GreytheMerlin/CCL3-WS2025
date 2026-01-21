@@ -67,7 +67,7 @@ fun AlarmScreen(
             }
         ) { innerPadding ->
 
-            Box(modifier = Modifier.padding(innerPadding)) {
+            Box(modifier = Modifier.fillMaxSize()) {
                 if (alarms.isEmpty()) {
                     AlarmEmptyState()
                 } else {
