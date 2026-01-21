@@ -45,7 +45,7 @@ fun SettingsTile(
     icon: ImageVector? = null,
     title: String,
     value: String? = null,
-    onClick: () -> Unit
+    onClick: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
