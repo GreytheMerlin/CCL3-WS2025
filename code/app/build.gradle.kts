@@ -46,7 +46,8 @@ android {
 
 dependencies {
 
-
+    // Dataastore
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     implementation("androidx.camera:camera-core:1.4.2")
     implementation("androidx.camera:camera-camera2:1.4.2")
@@ -74,6 +75,9 @@ dependencies {
     implementation(libs.androidx.compose.animation.core)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.foundation)
+    implementation(libs.androidx.datastore.core)
+    implementation(libs.androidx.datastore.preferences.core)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.common.jvm)
     implementation(libs.androidx.room.ktx)

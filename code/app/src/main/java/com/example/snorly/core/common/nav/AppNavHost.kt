@@ -39,12 +39,16 @@ import com.example.snorly.feature.sleep.SleepDetailScreen
 import com.example.snorly.feature.sleep.SleepDetailViewModel
 import com.example.snorly.feature.sleep.SleepViewModel
 import com.example.snorly.core.data.SleepRepository
+import com.example.snorly.core.database.PreferenceManager
 import com.example.snorly.core.database.repository.RingtoneRepository
 import com.example.snorly.feature.alarm.ToneGenerator.ComposerListScreen
 import com.example.snorly.feature.alarm.ToneGenerator.ComposerListViewModel
 import com.example.snorly.feature.alarm.ToneGenerator.ComposerViewModel
 import com.example.snorly.feature.alarm.ToneGenerator.ComposerScreen
 import com.example.snorly.feature.alarm.screens.RingtoneListScreen
+import com.example.snorly.feature.onboarding.OnboardingScreen
+import com.example.snorly.feature.onboarding.OnboardingViewModel
+import com.example.snorly.feature.onboarding.OnboardingViewModelFactory
 import com.example.snorly.feature.settings.LegalScreen
 import com.example.snorly.feature.settings.components.LegalTexts
 
@@ -55,10 +59,18 @@ fun AppNavHost(
     navController: NavHostController, modifier: Modifier = Modifier
 
 ) {
+
     val alarmCreateViewModel: AlarmCreateViewModel = viewModel()
 
     // Initialize the manager using the current context
     val context = androidx.compose.ui.platform.LocalContext.current
+
+    // 1. Initialize PreferenceManager
+    val preferenceManager = remember { PreferenceManager(context) }
+
+    // 2. Collect the onboarding status as state
+    val isOnboardingCompleted by preferenceManager.isOnboardingCompleted
+        .collectAsState(initial = null) // null indicates "still loading from disk"
 
     val database = remember { AppDatabase.getDatabase(context) }
 
@@ -70,11 +82,42 @@ fun AppNavHost(
         SleepRepository(database.sleepSessionDao(), healthConnectManager)
     }
 
+    // 3. Handle the loading state
+    if (isOnboardingCompleted == null) {
+        // Optional: Return a Splash Screen or empty Box while reading from disk
+        return
+    }
+
+    // 4. Determine start destination
+    val startRoute = if (isOnboardingCompleted == true) {
+        Destination.ALARM.route
+    } else {
+        "onboarding_route"
+    }
+
     NavHost(
         navController = navController,
-        startDestination = Destination.ALARM.route,
+        startDestination = startRoute, // Destination.ALARM.route
         modifier = modifier
     ) {
+
+        // --- Onboarding Route (Standalone) ---
+        composable("onboarding_route") {
+            val onboardingViewModel: OnboardingViewModel = viewModel(
+                factory = OnboardingViewModelFactory(context, healthConnectManager, preferenceManager)
+            )
+
+            OnboardingScreen(
+                viewModel = onboardingViewModel,
+                onFinish = {
+                    // Navigate to Main and clear the onboarding from the backstack
+                    navController.navigate(Destination.ALARM.route) {
+                        popUpTo("onboarding_route") { inclusive = true }
+                    }
+                }
+            )
+        }
+
         Destination.entries.forEach { destination ->
             composable(destination.route) {
                 when (destination) {
@@ -475,6 +518,5 @@ fun AppNavHost(
                 onNavigateToProfile = { navController.navigate("settings_profile") },
                 onNavigateToLegal = { type -> navController.navigate("settings_legal/$type") })
         }
-
     }
 }
