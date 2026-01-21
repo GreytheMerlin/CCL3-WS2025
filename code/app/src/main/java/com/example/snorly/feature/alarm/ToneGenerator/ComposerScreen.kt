@@ -150,7 +150,7 @@ fun ComposerScreen(
         },
         containerColor = Color.Black
     ) { innerPadding ->
-        Column(
+        Column( //TODO scrollable
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
