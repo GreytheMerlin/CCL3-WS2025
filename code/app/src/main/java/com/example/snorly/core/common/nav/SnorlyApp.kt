@@ -15,7 +15,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun SnorlyApp() {
+fun SnorlyApp(onDataLoaded: () -> Unit) {
     val navController = rememberNavController()
     // Observe the current screen to decide if we show the FAB
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -53,6 +53,7 @@ fun SnorlyApp() {
     ) { innerPadding ->
         AppNavHost(
             navController = navController,
+            onDataLoaded = onDataLoaded,
             modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
         )
     }

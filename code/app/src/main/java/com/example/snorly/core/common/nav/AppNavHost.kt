@@ -56,7 +56,7 @@ import com.example.snorly.feature.sleep.SleepScreen
 
 @Composable
 fun AppNavHost(
-    navController: NavHostController, modifier: Modifier = Modifier
+    navController: NavHostController, onDataLoaded: () -> Unit, modifier: Modifier = Modifier
 
 ) {
 
@@ -65,12 +65,23 @@ fun AppNavHost(
     // Initialize the manager using the current context
     val context = androidx.compose.ui.platform.LocalContext.current
 
-    // 1. Initialize PreferenceManager
-    val preferenceManager = remember { PreferenceManager(context) }
 
-    // 2. Collect the onboarding status as state
+    // Initialize PreferenceManager
+    val preferenceManager = remember { PreferenceManager(context) }
+    // Collect the onboarding status as state
     val isOnboardingCompleted by preferenceManager.isOnboardingCompleted
         .collectAsState(initial = null) // null indicates "still loading from disk"
+    // Trigger the splash screen removal once we have a real value (true or false)
+    LaunchedEffect(isOnboardingCompleted) {
+        if (isOnboardingCompleted != null) {
+            onDataLoaded()
+        }
+    }
+    if (isOnboardingCompleted == null) {
+        // Keep screen empty; the Splash Screen is still visible above this
+        return
+    }
+
 
     val database = remember { AppDatabase.getDatabase(context) }
 
@@ -82,11 +93,7 @@ fun AppNavHost(
         SleepRepository(database.sleepSessionDao(), healthConnectManager)
     }
 
-    // 3. Handle the loading state
-    if (isOnboardingCompleted == null) {
-        // Optional: Return a Splash Screen or empty Box while reading from disk
-        return
-    }
+
 
     // 4. Determine start destination
     val startRoute = if (isOnboardingCompleted == true) {
