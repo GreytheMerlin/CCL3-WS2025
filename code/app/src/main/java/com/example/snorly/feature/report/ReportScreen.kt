@@ -61,18 +61,16 @@ fun ReportScreen(viewModel: ReportViewModel) {
         containerColor = Color.Black, topBar = {
             MainTopBar(
                 title = "Sleep Report"
-                // No actionIcon needed here based on your code
             )
         }) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(bg)
-                .padding(innerPadding)
                 .padding(horizontal = 16.dp)
                 .verticalScroll(scrollState)
         ) {
-
+            Spacer(Modifier.height(innerPadding.calculateTopPadding()))
 
             // 2. Sleep Score Card (Existing)
             Card(
@@ -117,9 +115,7 @@ fun ReportScreen(viewModel: ReportViewModel) {
                     }
                 }
             }
-
             Spacer(modifier = Modifier.height(24.dp))
-
             // 3. The Graph (Existing)
             Text(
                 "Weekly Trends", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold
@@ -170,7 +166,6 @@ fun ReportScreen(viewModel: ReportViewModel) {
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
@@ -430,8 +425,7 @@ fun ReportScreen(viewModel: ReportViewModel) {
                     modifier = Modifier.weight(1f)
                 )
             }
-
-            Spacer(modifier = Modifier.height(80.dp))
+            Spacer(Modifier.height(innerPadding.calculateBottomPadding() + 80.dp))
         }
     }
 }
