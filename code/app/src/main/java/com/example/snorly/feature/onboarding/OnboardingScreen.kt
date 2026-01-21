@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AlarmOn
 import androidx.compose.material.icons.outlined.BatteryAlert
 import androidx.compose.material.icons.outlined.Bedtime
+import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.HealthAndSafety
 import androidx.compose.material3.Button
@@ -82,7 +83,7 @@ fun OnboardingScreen(
                 userScrollEnabled = false // Control flow via buttons to ensure permission checks
             ) { pageIndex ->
                 OnboardingPageContent(
-                    page = getPageData(pageIndex),
+                    page = getPageData(pageIndex, uiState),
                     uiState = uiState,
                     onAction = { type, isSkip ->
                         handlePermissionAction(type, context, viewModel, healthConnectLauncher, isSkip) {
@@ -174,7 +175,7 @@ fun OnboardingPageContent(
             Text(text = page.buttonText, fontWeight = FontWeight.Bold, fontSize = 16.sp)
         }
 
-        // Skip/Back (Optional)
+        // Skip
         if (page.permissionType != PermissionType.WELCOME) {
             TextButton(onClick = { onAction(page.permissionType, true) }) {
                 Text("Maybe later", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -185,7 +186,7 @@ fun OnboardingPageContent(
 
 
 
-private fun getPageData(index: Int) = when (index) {
+private fun getPageData(index: Int, uiState: OnboardingUiState) = when (index) {
     0 -> OnboardingPage(
         "Welcome to Snorly",
         "Better mornings start with a reliable wakeup. Let's get your device ready.",
@@ -207,12 +208,25 @@ private fun getPageData(index: Int) = when (index) {
         "Fix Battery Settings",
         PermissionType.BATTERY
     )
-    3 -> OnboardingPage(
-        "Sleep Insights",
-        "Sync your sleep data with Health Connect to see trends and improve your consistency score.",
-        Icons.Outlined.HealthAndSafety,
-        "Connect Health",
-        PermissionType.HEALTH_CONNECT
-    )
+    3 -> {
+        if (uiState.isHealthConnectAvailable) {
+            OnboardingPage(
+                "Sleep Insights",
+                "Sync your sleep data with Health Connect to see trends and improve your consistency score.",
+                Icons.Outlined.HealthAndSafety,
+                "Connect Health",
+                PermissionType.HEALTH_CONNECT
+            )
+        } else {
+            // DISCLAIMER VERSION
+            OnboardingPage(
+                "Health Connect Unavailable",
+                "Your device does not support Health Connect. Sleep insights will be limited to local manual entries only.",
+                Icons.Outlined.Block, // Or a warning icon
+                "Continue",
+                PermissionType.WELCOME // Use WELCOME type to just call onNext()
+            )
+        }
+    }
     else -> OnboardingPage("Ready!", "You're all set for better sleep.", Icons.Outlined.CheckCircle, "Done", PermissionType.WELCOME)
 }

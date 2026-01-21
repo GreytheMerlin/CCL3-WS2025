@@ -41,10 +41,10 @@ fun handlePermissionAction(
         }
 
         PermissionType.HEALTH_CONNECT -> {
+            // Only launch if supported; otherwise, the UI should have mapped this to WELCOME
             viewModel.requestHealthPermissions(healthLauncher)
-            onNext()
+            onNext() // Optional: Move to final page after launching request
         }
-
         else -> onNext()
     }
 }

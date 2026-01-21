@@ -36,12 +36,14 @@ class OnboardingViewModel(
                 powerManager.isIgnoringBatteryOptimizations(context.packageName)
             } else true
 
-            val isHealthGranted = healthConnectManager.hasAllPermissions()
+            val isAvailable = healthConnectManager.isHealthConnectAvailable()
+            val isHealthGranted = if (isAvailable) healthConnectManager.hasAllPermissions() else false
 
             _uiState.value = _uiState.value.copy(
                 isExactAlarmGranted = isExactAlarmGranted,
                 isBatteryOptimized = !isBatteryIgnoringOptimizations,
-                isHealthConnectGranted = isHealthGranted
+                isHealthConnectGranted = isHealthGranted,
+                isHealthConnectAvailable = isAvailable
             )
         }
     }
@@ -65,5 +67,6 @@ data class OnboardingUiState(
     val isExactAlarmGranted: Boolean = false,
     val isBatteryOptimized: Boolean = true,
     val isHealthConnectGranted: Boolean = false,
+    val isHealthConnectAvailable: Boolean = false,
     val onboardingCompleted: Boolean = false
 )
