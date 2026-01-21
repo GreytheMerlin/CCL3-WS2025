@@ -1,5 +1,6 @@
 package com.example.snorly.feature.settings
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -19,6 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.snorly.feature.settings.components.CircularSleepPicker
+import org.checkerframework.checker.units.qual.h
+import org.checkerframework.checker.units.qual.m
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -31,8 +34,6 @@ fun ProfileScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
-    // FIX 1: Removed 'val context = LocalContext.current' because we don't need it anymore.
-
     // Parse existing or Default (23:00 - 07:00)
     var bedTime by remember(state) {
         mutableStateOf(parseLocalTime(state.targetBedTime, 23, 0))
@@ -42,9 +43,12 @@ fun ProfileScreen(
     }
 
     // Calculate Duration Live
-    // FIX 2: These functions are defined at the bottom of this file
-    val durationHours = calculateDurationLive(bedTime, wakeTime)
-    val feedback = getMedicalFeedback(durationHours)
+    val totalMinutes = calculateDuration(bedTime, wakeTime)
+    val displayHours = totalMinutes / 60
+    val displayMinutes = totalMinutes % 60
+
+    val feedbackHours = totalMinutes / 60.0
+    val feedback = getMedicalFeedback(feedbackHours)
 
     Scaffold(
         topBar = {
@@ -124,7 +128,7 @@ fun ProfileScreen(
                 // Background Center Text (Duration)
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "${String.format("%.0f", durationHours)}hr ${((durationHours % 1) * 60).toInt()}min",
+                        text = "${displayHours}hr ${displayMinutes}min",
                         color = Color.White,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
@@ -189,10 +193,11 @@ fun parseLocalTime(s: String?, defH: Int, defM: Int): LocalTime {
     else try { LocalTime.parse(s) } catch (e: Exception) { LocalTime.of(defH, defM) }
 }
 
-fun calculateDurationLive(start: LocalTime, end: LocalTime): Double {
+fun calculateDuration(start: LocalTime, end: LocalTime): Int {
     var diff = ChronoUnit.MINUTES.between(start, end)
-    if (diff < 0) diff += 1440
-    return diff / 60.0
+    Log.e("Duration", "$diff $start - $end")
+    if (diff < 0) diff += 1440 // Handle midnight wrap
+    return diff.toInt()
 }
 
 fun getMedicalFeedback(hours: Double): MedicalFeedback {
