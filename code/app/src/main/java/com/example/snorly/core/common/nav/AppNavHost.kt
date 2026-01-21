@@ -45,6 +45,8 @@ import com.example.snorly.feature.alarm.ToneGenerator.ComposerListViewModel
 import com.example.snorly.feature.alarm.ToneGenerator.ComposerViewModel
 import com.example.snorly.feature.alarm.ToneGenerator.ComposerScreen
 import com.example.snorly.feature.alarm.screens.RingtoneListScreen
+import com.example.snorly.feature.settings.LegalScreen
+import com.example.snorly.feature.settings.components.LegalTexts
 
 import com.example.snorly.feature.sleep.SleepScreen
 
@@ -76,13 +78,16 @@ fun AppNavHost(
         Destination.entries.forEach { destination ->
             composable(destination.route) {
                 when (destination) {
-                    Destination.ALARM -> AlarmScreen( onEditAlarm = { alarmId ->
+                    Destination.ALARM -> AlarmScreen(onEditAlarm = { alarmId ->
                         navController.navigate("alarm_create?alarmId=$alarmId")
                     })
+
                     Destination.SLEEP -> {
                         // We create the ViewModel right here, scoped to this screen
                         val sleepViewModel: SleepViewModel = viewModel(
-                            factory = SleepViewModel.Factory(sleepRepository, healthConnectManager, context)
+                            factory = SleepViewModel.Factory(
+                                sleepRepository, healthConnectManager, context
+                            )
                         )
 
                         // REFRESH LOGIC
@@ -110,15 +115,15 @@ fun AppNavHost(
                         val userProfileDao = database.UserProfileDao()
                         val reportViewModel: ReportViewModel = viewModel(
                             factory = ReportViewModel.Factory(
-                                manager = healthConnectManager,
-                                userProfileDao = userProfileDao
+                                manager = healthConnectManager, userProfileDao = userProfileDao
                             )
                         )
 
                         val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
                         // Use collectAsStateWithLifecycle for better resource management
-                        val refreshNeeded by savedStateHandle?.getStateFlow("refresh_sleep", false)!!
-                            .collectAsStateWithLifecycle()
+                        val refreshNeeded by savedStateHandle?.getStateFlow(
+                            "refresh_sleep", false
+                        )!!.collectAsStateWithLifecycle()
 
                         LaunchedEffect(refreshNeeded) {
                             if (refreshNeeded) {
@@ -139,21 +144,19 @@ fun AppNavHost(
                             viewModel = settingsViewModel,
                             onNavigateToProfile = {
                                 navController.navigate("settings_profile")
-                            }
-                        )
+                            },
+                            onNavigateToLegal = { type -> navController.navigate("settings_legal/$type") })
                     }
                 }
             }
         }
         // === Alarm screens ===
         composable(
-            route = "alarm_create?alarmId={alarmId}",
-            arguments = listOf(
+            route = "alarm_create?alarmId={alarmId}", arguments = listOf(
                 navArgument("alarmId") {
                     type = NavType.LongType
                     defaultValue = -1L
-                }
-            )
+                })
         ) { backStackEntry ->
 
             val selectedChallenges by backStackEntry.savedStateHandle.getStateFlow(
@@ -171,7 +174,7 @@ fun AppNavHost(
                 onNavigateToVibration = { navController.navigate("alarm_vibration") },
                 onNavigateToChallenge = { navController.navigate("challenges_graph") },
 
-            )
+                )
         }
 
         composable("alarm_ringtone") {
@@ -207,8 +210,7 @@ fun AppNavHost(
                 factory = ComposerListViewModel.Factory(ringtoneRepository)
             )
             ComposerListScreen(
-                onBack = { navController.popBackStack() },
-                onSelect = { ringtone ->
+                onBack = { navController.popBackStack() }, onSelect = { ringtone ->
                     // Pass result back to AlarmCreateScreen
                     val previousBackStack = navController.getBackStackEntry("alarm_create")
 
@@ -216,12 +218,12 @@ fun AppNavHost(
                     previousBackStack.savedStateHandle["selected_ringtone_name"] = ringtone.name
 
                     // Set the URI with a special prefix "composed:" so the Service recognizes it
-                    previousBackStack.savedStateHandle["selected_ringtone_uri"] = "composed:${ringtone.id}"
+                    previousBackStack.savedStateHandle["selected_ringtone_uri"] =
+                        "composed:${ringtone.id}"
 
                     //Return to Alarm Create (pop everything above it)
                     navController.popBackStack("alarm_create", inclusive = false)
-                },
-                viewModel = viewModel
+                }, viewModel = viewModel
             )
         }
 
@@ -243,14 +245,15 @@ fun AppNavHost(
                     // Pass result back to AlarmCreateScreen
                     // We assume 'alarm_create' is in the backstack.
                     // We set the result in the 'savedStateHandle' of the previous entry.
-                    navController.getBackStackEntry("alarm_create").savedStateHandle["selected_ringtone_name"] = name
-                    navController.getBackStackEntry("alarm_create").savedStateHandle["selected_ringtone_uri"] = uri
+                    navController.getBackStackEntry("alarm_create").savedStateHandle["selected_ringtone_name"] =
+                        name
+                    navController.getBackStackEntry("alarm_create").savedStateHandle["selected_ringtone_uri"] =
+                        uri
 
                     // Pop back to Create Screen (skipping category selection)
                     // Or pop once to go back to categories. Usually, selecting a sound returns to the form.
                     navController.popBackStack("alarm_create", inclusive = false)
-                }
-            )
+                })
         }
         // === Challenges ===
         navigation(
@@ -348,10 +351,11 @@ fun AppNavHost(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
                 onSaveSuccess = {
-                    navController.previousBackStackEntry?.savedStateHandle?.set("refresh_sleep", true)
+                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                        "refresh_sleep", true
+                    )
                     navController.popBackStack()
-                }
-            )
+                })
         }
 
         // 2. EDIT ROUTE (With ID)
@@ -372,9 +376,10 @@ fun AppNavHost(
                 onBack = { navController.popBackStack() },
                 onSaveSuccess = {
                     // Tell detail screen to refresh
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("refresh_detail", true)
+                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                        "refresh_detail",
+                        true
+                    )
 
                     // Also tell the main list (two steps back) to refresh
                     // (Optional, depends on flow)
@@ -393,12 +398,15 @@ fun AppNavHost(
 
             // Updated to use SleepDetailViewModel.Factory(repository, id)
             val detailViewModel: SleepDetailViewModel = viewModel(
-                factory = SleepDetailViewModel.Factory(sleepRepository, healthConnectManager, sleepId, context)
+                factory = SleepDetailViewModel.Factory(
+                    sleepRepository, healthConnectManager, sleepId, context
+                )
             )
 
-            val refreshDetail by backStackEntry.savedStateHandle
-                .getStateFlow("refresh_detail", false)
-                .collectAsState()
+            val refreshDetail by backStackEntry.savedStateHandle.getStateFlow(
+                "refresh_detail",
+                false
+            ).collectAsState()
 
             LaunchedEffect(refreshDetail) {
                 if (refreshDetail) {
@@ -406,9 +414,10 @@ fun AppNavHost(
                     detailViewModel.loadRecord()
 
                     // Update Previous Screen
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("refresh_sleep", true)
+                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                        "refresh_sleep",
+                        true
+                    )
 
                     // Reset Flag
                     backStackEntry.savedStateHandle["refresh_detail"] = false
@@ -425,13 +434,13 @@ fun AppNavHost(
                 onDeleteSuccess = {
                     // We need to set this on the Main Sleep Screen's handle
                     // "previousBackStackEntry" refers to the screen BEFORE Detail (which is Main Sleep)
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("refresh_sleep", true)
+                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                        "refresh_sleep",
+                        true
+                    )
 
                     navController.popBackStack()
-                }
-            )
+                })
         }
 
         composable("settings_profile") {
@@ -440,9 +449,32 @@ fun AppNavHost(
                 factory = ProfileViewModel.Factory(db.UserProfileDao())
             )
             ProfileScreen(
-                viewModel = viewModel,
-                onBack = { navController.popBackStack() }
-            )
+                viewModel = viewModel, onBack = { navController.popBackStack() })
         }
+        composable(
+            route = "settings_legal/{legalType}",
+            arguments = listOf(navArgument("legalType") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val type = backStackEntry.arguments?.getString("legalType")
+            val title = if (type == "privacy") "Privacy Policy" else "Terms of Service"
+            val content =
+                if (type == "privacy") LegalTexts.PRIVACY_POLICY else LegalTexts.TERMS_OF_SERVICE
+
+            LegalScreen(
+                title = title, content = content, onBack = { navController.popBackStack() })
+        }
+
+// Update the SETTINGS composable call:
+        composable(Destination.SETTINGS.route) {
+            val db = AppDatabase.getDatabase(context)
+            val settingsViewModel: SettingsViewModel = viewModel(
+                factory = SettingsViewModel.Factory(db.UserProfileDao())
+            )
+            SettingsScreen(
+                viewModel = settingsViewModel,
+                onNavigateToProfile = { navController.navigate("settings_profile") },
+                onNavigateToLegal = { type -> navController.navigate("settings_legal/$type") })
+        }
+
     }
 }

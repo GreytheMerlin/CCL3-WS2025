@@ -21,6 +21,8 @@ uiText = "1.10.0"
 uiGraphicsVersion = "1.10.1"
 animation = "1.10.1"
 animationCore = "1.10.1"
+material3 = "1.4.0"
+runtime = "1.10.1"
 
 [libraries]
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
@@ -50,6 +52,8 @@ androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", ve
 ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "uiGraphicsVersion" }
 androidx-compose-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
 androidx-compose-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animationCore" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
 
 
 [plugins]

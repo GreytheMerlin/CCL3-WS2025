@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,17 +37,14 @@ import com.example.snorly.core.common.components.MainTopBar
 import com.example.snorly.feature.settings.components.SettingsSectionCard
 import com.example.snorly.feature.settings.components.SettingsTile
 
-private const val PRIVACY_POLICY_URL =
-    "https://gist.githubusercontent.com/laurenstuerk/99b65e2b12bfd6a0964c5c4a3a3f9c11/raw"
-private const val TERMS_OF_SERVICE_URL =
-    "https://gist.githubusercontent.com/laurenstuerk/90f675a4361774ddf14e8ca0bb2740d3/raw"
-private const val SUPPORT_EMAIL = "your.email@example.com"
+
+private const val SUPPORT_EMAIL = "cheersUp.studio@gmail.com"
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    viewModel: SettingsViewModel, onNavigateToProfile: () -> Unit
+    viewModel: SettingsViewModel, onNavigateToProfile: () -> Unit, onNavigateToLegal: (String) -> Unit
 ) {
     // Collect Real Data
     val userProfile by viewModel.userProfile.collectAsState()
@@ -109,11 +105,6 @@ fun SettingsScreen(
                         onClick = { })
 
                     SettingsSwitchTile(
-                        icon = Icons.AutoMirrored.Outlined.VolumeUp,
-                        title = "Gradually Increase Volume",
-                        checked = false,
-                        onCheckedChange = {viewModel.setMaxVolume(context) })
-                    SettingsSwitchTile(
                         icon = Icons.Outlined.Snooze, // Changed Icon
                         title = "Smart Snooze",       // Changed Text
                         checked = false, onCheckedChange = { })*/
@@ -123,25 +114,17 @@ fun SettingsScreen(
             // 4. ABOUT & LEGAL
             item {
                 SettingsSectionCard(title = "ABOUT & LEGAL") {
-                    // Version Info
-                    SettingsTile(
-                        icon = Icons.Outlined.Info,
-                        title = "App Version",
-                        value = "1.0.0"
-                    )
-
                     // Privacy Policy
                     SettingsTile(
                         icon = Icons.Outlined.Shield,
                         title = "Privacy Policy",
-                        onClick = { openUrl(context, PRIVACY_POLICY_URL) }
+                        onClick = { onNavigateToLegal("privacy") }
                     )
 
-                    // Terms of Service
                     SettingsTile(
                         icon = Icons.Outlined.Description,
                         title = "Terms of Service",
-                        onClick = { openUrl(context, TERMS_OF_SERVICE_URL) }
+                        onClick = { onNavigateToLegal("terms") }
                     )
 
                     // Contact Support (Great for Play Store Trust)
@@ -167,7 +150,7 @@ fun SettingsScreen(
                         .fillMaxWidth()
                         .padding(vertical = 48.dp), // Increased padding for a better "end" feel
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Bedtime,
@@ -189,15 +172,14 @@ fun SettingsScreen(
                         color = Color.Gray.copy(alpha = 0.6f),
                         textAlign = TextAlign.Center
                     )
+                    Text(
+                        text = "Version 1.0.0",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.DarkGray,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
                 }
             }
         }
     }
-}
-
-
-// Helper function to keep code clean
-fun openUrl(context: android.content.Context, url: String) {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-    context.startActivity(intent)
 }
