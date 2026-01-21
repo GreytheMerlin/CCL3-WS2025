@@ -70,7 +70,7 @@ fun DismissChallengesScreen(
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
 
-            // ... Master Toggle (Same as before) ...
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
