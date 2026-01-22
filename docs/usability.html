@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Snorly – Usability</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Snorly</h1>
+        <p>Usability & Testing</p>
+        <nav>
+            <a href="index.html">Overview & Team</a>
+            <a href="development.html">App Development</a>
+            <a href="usability.html" class="active">Usability Tests</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="card">
+            <h2>Documentation of Usability Test</h2>
+             <h3>Usability Test Plan & Heuristic Evaluation</h3>
+
+      <h3 style="margin-top: 18px;">Part 1: Heuristic Evaluation</h3>
+      <p><strong>Methodology:</strong> Nielsen’s 10 Usability Heuristics</p>
+      <p><strong>Scope:</strong> Initial MVP Prototype (Android / Jetpack Compose)</p>
+      <p><strong>Evaluators:</strong> Team Snorly</p>
+
+      <h4>1) Description of the Evaluation</h4>
+      <p>
+        We examined the interface against Jakob Nielsen's usability heuristics to identify usability problems before user testing.
+        We focused on the critical paths: Setting an alarm, Sleep Tracking, and Puzzle Dismissal.
+      </p>
+
+      <h4>2) Results (Heuristic Violations & Severity)</h4>
+      <p class="muted">Severity scale: 0 (No problem) to 4 (Usability catastrophe)</p>
+
+      <h4>A. Visibility of System Status (Heuristic #1)</h4>
+      <ul>
+        <li><strong>Finding:</strong> When "Sleep Tracking" is active, there is no clear indication outside the app (e.g., notification bar) that the app is running.</li>
+        <li><strong>Impact:</strong> Users might think tracking stopped if they minimize the app.</li>
+        <li><strong>Severity:</strong> 3 (Major)</li>
+        <li><strong>Recommendation:</strong> Implement a persistent notification or a distinct “Recording” animation on the TopAppBar while tracking is active.</li>
+      </ul>
+
+      <h4>B. User Control and Freedom (Heuristic #3)</h4>
+      <ul>
+        <li><strong>Finding:</strong> While the "Puzzle Alarm" intends to restrict control, there is no emergency dismiss (e.g., long press for 10 seconds) in case of a bug or a sensitive real-world context.</li>
+        <li><strong>Impact:</strong> Users may force-close or uninstall the app if they cannot stop the alarm in an inappropriate setting.</li>
+        <li><strong>Severity:</strong> 2 (Minor / Strategic)</li>
+        <li><strong>Recommendation:</strong> Keep the puzzle, but consider allowing a more accessible snooze, while keeping “Dismiss” hard.</li>
+      </ul>
+
+      <h4>C. Error Prevention (Heuristic #5)</h4>
+      <ul>
+        <li><strong>Finding:</strong> In the “Set Alarm” dialog, the AM/PM toggle (if using 12h format) is small or too close to the “Save” button.</li>
+        <li><strong>Impact:</strong> Users might accidentally set an alarm for 7:00 PM instead of 7:00 AM.</li>
+        <li><strong>Severity:</strong> 4 (Catastrophe — failed core value)</li>
+        <li><strong>Recommendation:</strong> Use a 24h clock by default or make AM/PM very distinct. Add a “Time until alarm” confirmation (e.g., “Alarm set for 8 hours from now”).</li>
+      </ul>
+
+      <h4>D. Recognition Rather Than Recall (Heuristic #6)</h4>
+      <ul>
+        <li><strong>Finding:</strong> Puzzle difficulty is labeled “Easy/Medium/Hard”, but there is no preview of what “Medium” looks like until the alarm rings.</li>
+        <li><strong>Impact:</strong> Users have to guess if they can solve it while groggy.</li>
+        <li><strong>Severity:</strong> 2 (Minor)</li>
+        <li><strong>Recommendation:</strong> Add a “Preview Puzzle” button on the Settings screen.</li>
+      </ul>
+
+      <h3 style="margin-top: 24px;">Part 2: User Test Plan (Lab/Field Test)</h3>
+
+      <h4>1) Hypotheses & Testable Questions</h4>
+      <ul>
+        <li><strong>Hypothesis A:</strong> Users using the “Puzzle” dismissal method will demonstrate higher cognitive alertness immediately after dismissal compared to standard “Swipe” dismissal.</li>
+        <li><strong>Hypothesis B:</strong> Users will perceive the “Math” puzzle as more effective but more frustrating than the “Memory” puzzle.</li>
+        <li><strong>Testable question:</strong> Does the friction introduced by the puzzle cause users to force-close the app rather than solve the puzzle?</li>
+      </ul>
+
+      <h4>2) Planned Data to Collect (Variables)</h4>
+      <p><strong>Independent Variables</strong></p>
+      <ul>
+        <li>Dismissal Type: Standard Swipe vs. Math Puzzle vs. Memory Puzzle</li>
+        <li>Context: Testing during the day (simulated nap) vs. morning (real use)</li>
+      </ul>
+
+      <p><strong>Dependent Variables</strong></p>
+      <ol>
+        <li><strong>Time to Dismiss (Quantitative):</strong> Time in seconds from alarm start to successful dismissal</li>
+        <li><strong>Error Rate (Quantitative):</strong> Failed attempts or accidental “Snooze” taps</li>
+        <li><strong>Force Close Rate (Quantitative):</strong> Did the user kill the app instead of solving?</li>
+        <li><strong>Subjective Alertness (Qualitative):</strong> Self-reported (1–5) “How awake do you feel?”</li>
+        <li><strong>User Satisfaction (Qualitative):</strong> System Usability Scale (SUS)</li>
+      </ol>
+
+      <h4>3) Methods & Protocol (Tasks & Materials)</h4>
+      <p><strong>Participants:</strong> 3–5 students (hallway testing / fellow students)</p>
+      <p><strong>Materials:</strong></p>
+      <ul>
+        <li>Smartphone with MVP app installed</li>
+        <li>Observation sheet (spreadsheet)</li>
+        <li>SUS questionnaire (Google Forms)</li>
+        <li>Post-test questionnaire (Google Forms)</li>
+      </ul>
+
+      <p><strong>Task List (Script):</strong></p>
+      <ul>
+        <li><strong>Task 1: Setup (Onboarding)</strong>
+          <ul>
+            <li><strong>Prompt:</strong> “Open the app for the first time. Set up an alarm for 2 minutes from now. Choose a ‘Math’ puzzle as your wake-up requirement.”</li>
+            <li><strong>Observation focus:</strong> Can they find the settings?</li>
+          </ul>
+        </li>
+        <li><strong>Task 2: The Sleep Simulation</strong>
+          <ul>
+            <li><strong>Prompt:</strong> “Start the sleep tracking feature and lock the phone. Wait for the alarm.”</li>
+            <li><strong>Observation focus:</strong> Do they know how to start sleep tracking? Does the app stay active?</li>
+          </ul>
+        </li>
+        <li><strong>Task 3: The Wake Up</strong>
+          <ul>
+            <li><strong>Prompt:</strong> “When the alarm rings, turn it off completely.”</li>
+            <li><strong>Observation focus:</strong> Watch their fingers. Do they struggle with touch targets? Do they try to swipe it away out of habit?</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+        <div class="card" id="user-test-results">
+            <h2>User Test Results</h2>
+            <p class="muted">The charts below are generated from our collected data (demographics, questionnaire, and
+                SUS).
+                (Note: task completion time was not collected in these files — add it later if you have an observation
+                sheet.)</p>
+
+            <h3>Participants</h3>
+            <p>
+                <strong>Count:</strong> <span id="participants-count">—</span><br />
+                <strong>Gender:</strong> <span id="participants-gender">—</span><br />
+                <strong>Age:</strong> <span id="participants-age">—</span>
+            </p>
+
+            <div class="results-grid">
+                <div class="chart-card">
+                    <p class="chart-title">Boxplot: SUS Score (0–100)</p>
+                    <div class="chart-wrap">
+                        <svg class="chart" id="svg-box-sus" viewBox="0 0 760 280"></svg>
+                    </div>
+                    <p class="small-note" id="note-box-sus"></p>
+                </div>
+
+                <div class="chart-card">
+                    <p class="chart-title">App Structure Rating (1–5)</p>
+                    <div class="chart-wrap">
+                        <svg class="chart" id="svg-box-structure" viewBox="0 0 760 280"></svg>
+                    </div>
+                    <p class="small-note" id="note-box-structure"></p>
+                </div>
+
+                <div class="chart-card">
+                    <p class="chart-title">Puzzle Difficulty Appropriate?</p>
+                    <div class="chart-wrap">
+                        <svg class="chart" id="svg-bar-puzzle" viewBox="0 0 760 280"></svg>
+                    </div>
+                    <p class="small-note" id="note-bar-puzzle"></p>
+                </div>
+
+                <div class="chart-card">
+                    <p class="chart-title">Participant Ages</p>
+                    <div class="chart-wrap">
+                        <svg class="chart" id="svg-bar-age" viewBox="0 0 760 280"></svg>
+                    </div>
+                    <p class="small-note" id="note-bar-age"></p>
+                </div>
+            </div>
+
+            <h3>Quantitative Summary</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Participant</th>
+                        <th>Gender</th>
+                        <th>Age</th>
+                        <th>App Structure</th>
+                        <th>Puzzle Difficulty</th>
+                        <th>SUS Score</th>
+                    </tr>
+                </thead>
+                <tbody id="summary-table-body"></tbody>
+            </table>
+
+            <h3>Most Relevant Feedback</h3>
+            <ul id="feedback-excerpts"></ul>
+
+            <h3>Updates Made Based on Feedback</h3>
+            <ul>
+                <li class="muted">TODO: e.g., improve navigation clarity, make alarm creation easier to discover, add
+                    puzzle preview, etc.</li>
+            </ul>
+        </div>
+        </div>
+    </main>
+
+    <footer>
+        Snorly Project Documentation — CCL 2025
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+
+</html>
