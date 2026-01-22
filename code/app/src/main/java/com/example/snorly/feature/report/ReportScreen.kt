@@ -1,6 +1,7 @@
 package com.example.snorly.feature.report
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Bedtime
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Card
@@ -49,7 +51,7 @@ import com.example.snorly.feature.sleep.util.SleepScoreUtils.getScoreColor
 import java.util.Locale
 
 @Composable
-fun ReportScreen(viewModel: ReportViewModel) {
+fun ReportScreen(viewModel: ReportViewModel, onNavigateToInfo: (String) -> Unit) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -81,47 +83,61 @@ fun ReportScreen(viewModel: ReportViewModel) {
 
             // 2. Sleep Score Card (Existing)
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigateToInfo("score") },
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = cardBg)
             ) {
-                Row(
-                    modifier = Modifier
-                        .padding(24.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
-                        Text("Avg Sleep Score", color = Color.Gray, fontSize = 14.sp)
-                        Text(
-                            text = "${stats.avgScore}",
-                            color = getScoreColor(stats.avgScore),
-                            fontSize = 48.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            getScoreLabel(stats.avgScore),
-                            color = Color.White,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                    Box(
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = "Help",
+                        tint = Color.Gray.copy(alpha = 0.5f),
                         modifier = Modifier
-                            .size(80.dp)
-                            .clip(CircleShape)
-                            .background(getScoreColor(stats.avgScore).copy(alpha = 0.2f)),
-                        contentAlignment = Alignment.Center
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                            .size(20.dp)
+                    )
+                    Row(
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Icon(
-                            Icons.Default.WbSunny,
-                            null,
-                            tint = getScoreColor(stats.avgScore),
-                            modifier = Modifier.size(40.dp)
-                        )
+                        Column {
+                            Text("Avg Sleep Score", color = Color.Gray, fontSize = 14.sp)
+                            Text(
+                                text = "${stats.avgScore}",
+                                color = getScoreColor(stats.avgScore),
+                                fontSize = 48.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                getScoreLabel(stats.avgScore),
+                                color = Color.White,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(CircleShape)
+                                .background(getScoreColor(stats.avgScore).copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.WbSunny,
+                                null,
+                                tint = getScoreColor(stats.avgScore),
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
                     }
                 }
             }
+
             Spacer(modifier = Modifier.height(24.dp))
             // 3. The Graph (Existing)
             Text(
@@ -130,33 +146,46 @@ fun ReportScreen(viewModel: ReportViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigateToInfo("consistency") },
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = cardBg)
             ) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    if (data.isNotEmpty()) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(180.dp),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.Bottom
-                        ) {
-                            val maxHours = data.maxOfOrNull { it.hours } ?: 8f
-                            val safeMax = if (maxHours == 0f) 8f else maxHours
-                            data.forEach { day ->
-                                BarItem(dayName = day.dayName, value = day.hours, max = safeMax)
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = "Help",
+                        tint = Color.Gray.copy(alpha = 0.5f),
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                            .size(20.dp)
+                    )
+                    Column(modifier = Modifier.padding(24.dp)) {
+                        if (data.isNotEmpty()) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(180.dp),
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.Bottom
+                            ) {
+                                val maxHours = data.maxOfOrNull { it.hours } ?: 8f
+                                val safeMax = if (maxHours == 0f) 8f else maxHours
+                                data.forEach { day ->
+                                    BarItem(dayName = day.dayName, value = day.hours, max = safeMax)
+                                }
                             }
-                        }
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .height(150.dp)
-                                .fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("No data for graph", color = Color.Gray)
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .height(150.dp)
+                                    .fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("No data for graph", color = Color.Gray)
+                            }
                         }
                     }
                 }
@@ -436,6 +465,7 @@ fun ReportScreen(viewModel: ReportViewModel) {
         }
     }
 }
+
 
 // --- KEEPING YOUR EXISTING COMPONENTS ---
 @Composable

@@ -1,6 +1,5 @@
 package com.example.snorly.core.common.nav
 
-import android.util.Log
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
@@ -17,45 +16,44 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
+import com.example.snorly.core.data.SleepRepository
 import com.example.snorly.core.database.AppDatabase
+import com.example.snorly.core.database.PreferenceManager
+import com.example.snorly.core.database.repository.RingtoneRepository
 import com.example.snorly.core.health.HealthConnectManager
+import com.example.snorly.feature.alarm.ToneGenerator.ComposerListScreen
+import com.example.snorly.feature.alarm.ToneGenerator.ComposerListViewModel
+import com.example.snorly.feature.alarm.ToneGenerator.ComposerScreen
+import com.example.snorly.feature.alarm.ToneGenerator.ComposerViewModel
 import com.example.snorly.feature.alarm.create.AlarmCreateScreen
 import com.example.snorly.feature.alarm.create.AlarmCreateViewModel
 import com.example.snorly.feature.alarm.overview.AlarmScreen
 import com.example.snorly.feature.alarm.screens.RepeatScreen
+import com.example.snorly.feature.alarm.screens.RingtoneListScreen
 import com.example.snorly.feature.alarm.screens.RingtoneScreen
 import com.example.snorly.feature.alarm.screens.VibrationScreen
-
 import com.example.snorly.feature.challenges.screens.AddChallengeScreen
 import com.example.snorly.feature.challenges.screens.ChallengeDetailScreen
 import com.example.snorly.feature.challenges.screens.DismissChallengesScreen
 import com.example.snorly.feature.challenges.viewmodel.ChallengeViewModel
+import com.example.snorly.feature.onboarding.OnboardingScreen
+import com.example.snorly.feature.onboarding.OnboardingViewModel
+import com.example.snorly.feature.onboarding.OnboardingViewModelFactory
+import com.example.snorly.feature.report.MetricInfoScreen
 import com.example.snorly.feature.report.ReportScreen
 import com.example.snorly.feature.report.ReportViewModel
+import com.example.snorly.feature.settings.LegalScreen
 import com.example.snorly.feature.settings.ProfileScreen
 import com.example.snorly.feature.settings.ProfileViewModel
 import com.example.snorly.feature.settings.SettingsScreen
 import com.example.snorly.feature.settings.SettingsViewModel
+import com.example.snorly.feature.settings.components.LegalTexts
 import com.example.snorly.feature.sleep.AddSleepScreen
 import com.example.snorly.feature.sleep.AddSleepViewModel
 import com.example.snorly.feature.sleep.SleepDetailScreen
 import com.example.snorly.feature.sleep.SleepDetailViewModel
-import com.example.snorly.feature.sleep.SleepViewModel
-import com.example.snorly.core.data.SleepRepository
-import com.example.snorly.core.database.PreferenceManager
-import com.example.snorly.core.database.repository.RingtoneRepository
-import com.example.snorly.feature.alarm.ToneGenerator.ComposerListScreen
-import com.example.snorly.feature.alarm.ToneGenerator.ComposerListViewModel
-import com.example.snorly.feature.alarm.ToneGenerator.ComposerViewModel
-import com.example.snorly.feature.alarm.ToneGenerator.ComposerScreen
-import com.example.snorly.feature.alarm.screens.RingtoneListScreen
-import com.example.snorly.feature.onboarding.OnboardingScreen
-import com.example.snorly.feature.onboarding.OnboardingViewModel
-import com.example.snorly.feature.onboarding.OnboardingViewModelFactory
-import com.example.snorly.feature.settings.LegalScreen
-import com.example.snorly.feature.settings.components.LegalTexts
-
 import com.example.snorly.feature.sleep.SleepScreen
+import com.example.snorly.feature.sleep.SleepViewModel
 
 @Composable
 fun AppNavHost(
@@ -72,8 +70,7 @@ fun AppNavHost(
     // Initialize PreferenceManager
     val preferenceManager = remember { PreferenceManager(context) }
     // Collect the onboarding status as state
-    val isOnboardingCompleted by preferenceManager.isOnboardingCompleted
-        .collectAsState(initial = null) // null indicates "still loading from disk"
+    val isOnboardingCompleted by preferenceManager.isOnboardingCompleted.collectAsState(initial = null) // null indicates "still loading from disk"
     // Trigger the splash screen removal once we have a real value (true or false)
     LaunchedEffect(isOnboardingCompleted) {
         if (isOnboardingCompleted != null) {
@@ -109,10 +106,8 @@ fun AppNavHost(
     fun getTabIndex(route: String?): Int = mainTabs.indexOf(route)
 
     NavHost(
-        navController = navController,
-        startDestination = startRoute, // Destination.ALARM.route
-        modifier = modifier,
-        enterTransition = {
+        navController = navController, startDestination = startRoute, // Destination.ALARM.route
+        modifier = modifier, enterTransition = {
             val initialRoute = initialState.destination.route
             val targetRoute = targetState.destination.route
 
@@ -122,16 +117,23 @@ fun AppNavHost(
             if (initialIndex != -1 && targetIndex != -1) {
                 // Moving between main tabs
                 if (targetIndex > initialIndex) {
-                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(400))
+                    slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = tween(400)
+                    )
                 } else {
-                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(400))
+                    slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = tween(400)
+                    )
                 }
             } else {
                 // Standard "Push" animation (Opening a sub-screen)
-                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(400))
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(400)
+                )
             }
-        },
-        exitTransition = {
+        }, exitTransition = {
             val initialRoute = initialState.destination.route
             val targetRoute = targetState.destination.route
 
@@ -140,44 +142,49 @@ fun AppNavHost(
 
             if (initialIndex != -1 && targetIndex != -1) {
                 if (targetIndex > initialIndex) {
-                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(400))
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = tween(400)
+                    )
                 } else {
-                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(400))
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = tween(400)
+                    )
                 }
             } else {
                 // Backgrounding a screen
-                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(400))
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(400)
+                )
             }
-        },
-        popEnterTransition = {
+        }, popEnterTransition = {
             // "Coming back" animation
-            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(400))
-        },
-        popExitTransition = {
+            slideIntoContainer(
+                AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(400)
+            )
+        }, popExitTransition = {
             // "Dismissing" animation
-            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(400))
-        }
-    ) {
+            slideOutOfContainer(
+                AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(400)
+            )
+        }) {
 
         // --- Onboarding Route (Standalone) ---
         composable("onboarding_route") {
             val onboardingViewModel: OnboardingViewModel = viewModel(
                 factory = OnboardingViewModelFactory(
-                    context,
-                    healthConnectManager,
-                    preferenceManager
+                    context, healthConnectManager, preferenceManager
                 )
             )
 
             OnboardingScreen(
-                viewModel = onboardingViewModel,
-                onFinish = {
+                viewModel = onboardingViewModel, onFinish = {
                     // Navigate to Main and clear the onboarding from the backstack
                     navController.navigate(Destination.ALARM.route) {
                         popUpTo("onboarding_route") { inclusive = true }
                     }
-                }
-            )
+                })
         }
 
         Destination.entries.forEach { destination ->
@@ -239,7 +246,10 @@ fun AppNavHost(
                             }
                         }
 
-                        ReportScreen(viewModel = reportViewModel)
+                        ReportScreen(
+                            viewModel = reportViewModel, onNavigateToInfo = { type ->
+                                navController.navigate("report_info/$type")
+                            })
                     }
 
                     Destination.SETTINGS -> {
@@ -321,19 +331,19 @@ fun AppNavHost(
             )
             ComposerListScreen(
                 onBack = { navController.popBackStack() }, onSelect = { ringtone ->
-                    // Pass result back to AlarmCreateScreen
-                    val previousBackStack = navController.getBackStackEntry("alarm_create")
+                // Pass result back to AlarmCreateScreen
+                val previousBackStack = navController.getBackStackEntry("alarm_create")
 
-                    // Set the Name to display in the UI
-                    previousBackStack.savedStateHandle["selected_ringtone_name"] = ringtone.name
+                // Set the Name to display in the UI
+                previousBackStack.savedStateHandle["selected_ringtone_name"] = ringtone.name
 
-                    // Set the URI with a special prefix "composed:" so the Service recognizes it
-                    previousBackStack.savedStateHandle["selected_ringtone_uri"] =
-                        "composed:${ringtone.id}"
+                // Set the URI with a special prefix "composed:" so the Service recognizes it
+                previousBackStack.savedStateHandle["selected_ringtone_uri"] =
+                    "composed:${ringtone.id}"
 
-                    //Return to Alarm Create (pop everything above it)
-                    navController.popBackStack("alarm_create", inclusive = false)
-                }, viewModel = viewModel
+                //Return to Alarm Create (pop everything above it)
+                navController.popBackStack("alarm_create", inclusive = false)
+            }, viewModel = viewModel
             )
         }
 
@@ -395,11 +405,9 @@ fun AppNavHost(
                     viewModel = challengeViewModel,
                     onResult = { selectedIds ->
                         navController.previousBackStackEntry?.savedStateHandle?.set(
-                            "selected_challenges_result",
-                            selectedIds
+                            "selected_challenges_result", selectedIds
                         )
-                    }
-                )
+                    })
             }
 
 
@@ -501,8 +509,7 @@ fun AppNavHost(
                 onSaveSuccess = {
                     // Tell detail screen to refresh
                     navController.previousBackStackEntry?.savedStateHandle?.set(
-                        "refresh_detail",
-                        true
+                        "refresh_detail", true
                     )
 
                     // Also tell the main list (two steps back) to refresh
@@ -528,8 +535,7 @@ fun AppNavHost(
             )
 
             val refreshDetail by backStackEntry.savedStateHandle.getStateFlow(
-                "refresh_detail",
-                false
+                "refresh_detail", false
             ).collectAsState()
 
             LaunchedEffect(refreshDetail) {
@@ -539,8 +545,7 @@ fun AppNavHost(
 
                     // Update Previous Screen
                     navController.previousBackStackEntry?.savedStateHandle?.set(
-                        "refresh_sleep",
-                        true
+                        "refresh_sleep", true
                     )
 
                     // Reset Flag
@@ -559,8 +564,7 @@ fun AppNavHost(
                     // We need to set this on the Main Sleep Screen's handle
                     // "previousBackStackEntry" refers to the screen BEFORE Detail (which is Main Sleep)
                     navController.previousBackStackEntry?.savedStateHandle?.set(
-                        "refresh_sleep",
-                        true
+                        "refresh_sleep", true
                     )
 
                     navController.popBackStack()
@@ -598,6 +602,17 @@ fun AppNavHost(
                 viewModel = settingsViewModel,
                 onNavigateToProfile = { navController.navigate("settings_profile") },
                 onNavigateToLegal = { type -> navController.navigate("settings_legal/$type") })
+        }
+
+        // Report
+        composable(
+            route = "report_info/{type}",
+            arguments = listOf(navArgument("type") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val type = backStackEntry.arguments?.getString("type") ?: "score"
+
+            MetricInfoScreen(
+                metricType = type, onBack = { navController.popBackStack() })
         }
     }
 }
