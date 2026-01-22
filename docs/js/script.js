@@ -113,7 +113,7 @@ function drawSingleBoxplot(svgId, values, valueLabel, noteId, domainOverride=nul
   if (!svg) return; // Safely exit if chart doesn't exist on this page
   clearSvg(svg);
 
-  const W = 760, H = 280;
+  const W = 760, H = 540;
   const pad = { l: 60, r: 20, t: 20, b: 44 };
   const plotW = W - pad.l - pad.r;
 
