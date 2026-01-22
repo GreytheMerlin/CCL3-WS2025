@@ -101,6 +101,7 @@ fun SleepScreen(
                 item {
                     UpgradedSleepCard(
                         isTracking = viewModel.isTracking,
+                        startTime = viewModel.trackingStartTime,
                         onToggleTracking = { viewModel.toggleTracking() })
                 }
 

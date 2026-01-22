@@ -34,6 +34,9 @@ class SleepViewModel(
     var isTracking by mutableStateOf(false)
         private set
 
+    var trackingStartTime by mutableStateOf(-1L) // Add this
+        private set
+
     // Use SharedPreferences to persist state "overnight"
     private val prefs: SharedPreferences = context.getSharedPreferences("sleep_tracker_prefs", Context.MODE_PRIVATE)
 
@@ -161,6 +164,7 @@ class SleepViewModel(
     private fun restoreTrackingState() {
         val startTime = prefs.getLong("tracking_start_time", -1L)
         isTracking = (startTime != -1L)
+        trackingStartTime = startTime
     }
 
     fun toggleTracking() {
@@ -175,6 +179,7 @@ class SleepViewModel(
         val now = Instant.now().toEpochMilli()
         // Save to disk immediately
         prefs.edit().putLong("tracking_start_time", now).apply()
+        trackingStartTime = now
         isTracking = true
 
         ContextCompat.startForegroundService(
@@ -183,7 +188,6 @@ class SleepViewModel(
                 action = SleepTimerService.ACTION_START
             }
         )
-
     }
 
     fun stopTracking() {
@@ -208,6 +212,7 @@ class SleepViewModel(
 
             // Clear the preference
             prefs.edit().remove("tracking_start_time").apply()
+            trackingStartTime = -1L
             isTracking = false
 
             // Trigger a sync/refresh to show the new item

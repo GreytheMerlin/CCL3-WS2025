@@ -122,6 +122,7 @@ const val SCI_FI_SHADER = """
 @Composable
 fun UpgradedSleepCard(
     isTracking: Boolean,
+    startTime: Long,
     onToggleTracking: () -> Unit
 ) {
     val activeState by animateFloatAsState(
@@ -144,11 +145,16 @@ fun UpgradedSleepCard(
     )
 
     var secondsElapsed by remember { mutableLongStateOf(0L) }
-    LaunchedEffect(isTracking) {
-        if (isTracking) {
-            val startTime = System.currentTimeMillis()
+    LaunchedEffect(isTracking, startTime) {
+        // 1. Check if we are tracking AND have a valid startTime from the ViewModel
+        if (isTracking && startTime > 0) {
             while (true) {
-                secondsElapsed = (System.currentTimeMillis() - startTime) / 1000
+                val now = System.currentTimeMillis()
+
+                // 2. Use the 'startTime' parameter passed into the Composable,
+                // NOT a new local variable.
+                secondsElapsed = (now - startTime) / 1000
+
                 delay(500)
             }
         } else {
@@ -208,7 +214,7 @@ fun UpgradedSleepCard(
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Medium,
                         letterSpacing = (-2).sp,
-                        textAlign = TextAlign.Center // Good practice to force center alignment
+                        textAlign = TextAlign.Center
                     )
                 } else {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
