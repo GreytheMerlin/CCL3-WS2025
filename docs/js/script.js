@@ -73,30 +73,38 @@ function parseTimeToSeconds(raw) {
 
   const s = String(raw).trim().replace(",", ".");
 
-  // Case 1: mm.ss.xx  → 1.48.68
+  // Case 1: mm.ss.xx (e.g., 1.48.68)
   if ((s.match(/\./g) || []).length === 2) {
-    const parts = s.split(".");
-    const mm = parseFloat(parts[0]);
-    const ss = parseFloat(parts[1]);
-    const xx = parseFloat(parts[2]);
+    const [mmStr, ssStr, xxStr] = s.split(".");
+    const mm = parseInt(mmStr, 10);
+    const ss = parseInt(ssStr, 10);
+    const xx = parseInt(xxStr, 10);
     if (Number.isFinite(mm) && Number.isFinite(ss) && Number.isFinite(xx)) {
       return mm * 60 + ss + xx / 100;
     }
   }
 
-  // Case 2: mm.ss → 1.50
-  if ((s.match(/\./g) || []).length === 1 && parseFloat(s) >= 1) {
-    const parts = s.split(".");
-    if (parts[0].length <= 2 && parts[1].length <= 2) {
-      const mm = parseFloat(parts[0]);
-      const ss = parseFloat(parts[1]);
-      if (Number.isFinite(mm) && Number.isFinite(ss)) {
-        return mm * 60 + ss;
-      }
+  // Case 2: m.ss (minutes) ONLY when it clearly matches minutes pattern (e.g., 1.50, 5.08, 1.30)
+  if ((s.match(/\./g) || []).length === 1) {
+    const [a, b] = s.split(".");
+    const left = parseInt(a, 10);
+    const right = parseInt(b, 10);
+
+    const looksLikeMinutes =
+      a.length === 1 &&                 // 0–9 minutes
+      b.length === 2 &&                 // 2-digit seconds
+      right >= 0 && right <= 59;
+
+    if (looksLikeMinutes) {
+      return left * 60 + right;
     }
+
+    // otherwise treat as seconds.decimal (e.g., 51.73, 10.01, 8.4, 25.12)
+    const val = parseFloat(s);
+    return Number.isFinite(val) ? val : null;
   }
 
-  // Case 3: plain seconds → 53 or 8.4 or 25.12
+  // Case 3: plain seconds (e.g., "53")
   const val = parseFloat(s);
   return Number.isFinite(val) ? val : null;
 }
