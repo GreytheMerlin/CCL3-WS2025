@@ -29,7 +29,6 @@ import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -96,7 +95,7 @@ fun ReportScreen(viewModel: ReportViewModel, onNavigateToInfo: (String) -> Unit)
                         tint = Color.Gray.copy(alpha = 0.5f),
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .padding(16.dp)
+                            .padding(8.dp)
                             .size(20.dp)
                     )
                     Row(
@@ -107,7 +106,7 @@ fun ReportScreen(viewModel: ReportViewModel, onNavigateToInfo: (String) -> Unit)
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column {
-                            Text("Avg Sleep Score", color = Color.Gray, fontSize = 14.sp)
+                            Text("Avg Snorly Sleep Score", color = Color.Gray, fontSize = 14.sp)
                             Text(
                                 text = "${stats.avgScore}",
                                 color = getScoreColor(stats.avgScore),
@@ -147,48 +146,38 @@ fun ReportScreen(viewModel: ReportViewModel, onNavigateToInfo: (String) -> Unit)
 
             Card(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onNavigateToInfo("consistency") },
+                    .fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(containerColor = cardBg)
             ) {
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = "Help",
-                        tint = Color.Gray.copy(alpha = 0.5f),
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(16.dp)
-                            .size(20.dp)
-                    )
-                    Column(modifier = Modifier.padding(24.dp)) {
-                        if (data.isNotEmpty()) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(180.dp),
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                verticalAlignment = Alignment.Bottom
-                            ) {
-                                val maxHours = data.maxOfOrNull { it.hours } ?: 8f
-                                val safeMax = if (maxHours == 0f) 8f else maxHours
-                                data.forEach { day ->
-                                    BarItem(dayName = day.dayName, value = day.hours, max = safeMax)
-                                }
+
+                Column(modifier = Modifier.padding(24.dp)) {
+                    if (data.isNotEmpty()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(180.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            val maxHours = data.maxOfOrNull { it.hours } ?: 8f
+                            val safeMax = if (maxHours == 0f) 8f else maxHours
+                            data.forEach { day ->
+                                BarItem(dayName = day.dayName, value = day.hours, max = safeMax)
                             }
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .height(150.dp)
-                                    .fillMaxWidth(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text("No data for graph", color = Color.Gray)
-                            }
+                        }
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .height(150.dp)
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("No data for graph", color = Color.Gray)
                         }
                     }
                 }
+
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -203,99 +192,114 @@ fun ReportScreen(viewModel: ReportViewModel, onNavigateToInfo: (String) -> Unit)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onNavigateToInfo("consistency") },
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = cardBg)
                 ) {
-                    Column(modifier = Modifier.padding(24.dp)) {
-
-                        // --- DURATION COMPARISON ROW ---
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // Left: Trend Icon
-                            val isMoreTime = comparison.diffMinutes >= 0
-                            Icon(
-                                imageVector = if (isMoreTime) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
-                                contentDescription = null,
-                                tint = if (isMoreTime) Color(0xFF4CAF50) else Color(0xFFFF5252),
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-
-                            // Center: Description
-                            Column(Modifier.weight(1f)) {
-                                Text("Sleep Duration", color = Color.Gray, fontSize = 12.sp)
-                                Text(
-                                    text = "${abs(comparison.diffMinutes)}m ${if (isMoreTime) "more" else "less"}",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Help",
+                            tint = Color.Gray.copy(alpha = 0.5f),
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(8.dp)
+                                .size(20.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Column(modifier = Modifier.padding(24.dp)) {
+                            // --- DURATION COMPARISON ROW ---
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Left: Trend Icon
+                                val isMoreTime = comparison.diffMinutes >= 0
+                                Icon(
+                                    imageVector = if (isMoreTime) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                                    contentDescription = null,
+                                    tint = if (isMoreTime) Color(0xFF4CAF50) else Color(0xFFFF5252),
+                                    modifier = Modifier.size(24.dp)
                                 )
+                                Spacer(Modifier.width(8.dp))
+
+                                // Center: Description
+                                Column(Modifier.weight(1f)) {
+                                    Text("Sleep Duration", color = Color.Gray, fontSize = 12.sp)
+                                    Text(
+                                        text = "${abs(comparison.diffMinutes)}m ${if (isMoreTime) "more" else "less"}",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+
+                                // Right: Values
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text(
+                                        "This Week: ${
+                                            String.format(
+                                                Locale.US, "%.1fh", comparison.recentAvgHours
+                                            )
+                                        }", color = Color.White, fontSize = 12.sp
+                                    )
+                                    Text(
+                                        "Last Week: ${
+                                            String.format(
+                                                Locale.US, "%.1fh", comparison.olderAvgHours
+                                            )
+                                        }", color = Color.Gray, fontSize = 12.sp
+                                    )
+                                }
                             }
 
-                            // Right: Values
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text(
-                                    "This Week: ${
-                                        String.format(
-                                            Locale.US, "%.1fh", comparison.recentAvgHours
-                                        )
-                                    }", color = Color.White, fontSize = 12.sp
-                                )
-                                Text(
-                                    "Last Week: ${
-                                        String.format(
-                                            Locale.US, "%.1fh", comparison.olderAvgHours
-                                        )
-                                    }", color = Color.Gray, fontSize = 12.sp
-                                )
-                            }
-                        }
+                            Spacer(Modifier.height(16.dp))
+                            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+                            Spacer(Modifier.height(16.dp))
 
-                        Spacer(Modifier.height(16.dp))
-                        HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
-                        Spacer(Modifier.height(16.dp))
-
-                        // --- QUALITY COMPARISON ROW ---
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // Left: Trend Icon
-                            val isBetterScore = comparison.diffScore >= 0
-                            Icon(
-                                imageVector = if (isBetterScore) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
-                                contentDescription = null,
-                                tint = if (isBetterScore) Color(0xFF4CAF50) else Color(0xFFFF5252),
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-
-                            // Center: Description
-                            Column(Modifier.weight(1f)) {
-                                Text("Sleep Quality", color = Color.Gray, fontSize = 12.sp)
-                                Text(
-                                    text = "${abs(comparison.diffScore)} pts ${if (isBetterScore) "better" else "worse"}",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
+                            // --- QUALITY COMPARISON ROW ---
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Left: Trend Icon
+                                val isBetterScore = comparison.diffScore >= 0
+                                Icon(
+                                    imageVector = if (isBetterScore) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                                    contentDescription = null,
+                                    tint = if (isBetterScore) Color(0xFF4CAF50) else Color(
+                                        0xFFFF5252
+                                    ),
+                                    modifier = Modifier.size(24.dp)
                                 )
-                            }
+                                Spacer(Modifier.width(8.dp))
 
-                            // Right: Values
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text(
-                                    "This Week: ${comparison.recentAvgScore}",
-                                    color = Color.White,
-                                    fontSize = 12.sp
-                                )
-                                Text(
-                                    "Last Week: ${comparison.olderAvgScore}",
-                                    color = Color.Gray,
-                                    fontSize = 12.sp
-                                )
+                                // Center: Description
+                                Column(Modifier.weight(1f)) {
+                                    Text("Sleep Quality", color = Color.Gray, fontSize = 12.sp)
+                                    Text(
+                                        text = "${abs(comparison.diffScore)} pts ${if (isBetterScore) "better" else "worse"}",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+
+                                // Right: Values
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text(
+                                        "This Week: ${comparison.recentAvgScore}",
+                                        color = Color.White,
+                                        fontSize = 12.sp
+                                    )
+                                    Text(
+                                        "Last Week: ${comparison.olderAvgScore}",
+                                        color = Color.Gray,
+                                        fontSize = 12.sp
+                                    )
+                                }
                             }
                         }
                     }
@@ -500,12 +504,34 @@ fun BarItem(dayName: String, value: Float, max: Float) {
         modifier = Modifier.fillMaxHeight()
     ) {
         val barHeightWeight = (value / max).coerceIn(0f, 1f)
-        Spacer(modifier = Modifier.height(8.dp))
+
+        // NEW: Display the numerical value above the bar
+        // We only show it if value > 0 to keep the graph clean
+        if (value > 0) {
+            Text(
+                text = String.format(java.util.Locale.US, "%.1f", value),
+                color = Color.White.copy(alpha = 0.9f),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+        }
+
         Box(
             modifier = Modifier
-                .width(12.dp)
-                .weight(1f), contentAlignment = Alignment.BottomCenter
+                .width(14.dp) // Slightly wider for better visibility
+                .weight(1f),
+            contentAlignment = Alignment.BottomCenter
         ) {
+            // The Bar Track (Background)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
+                    .background(Color.White.copy(alpha = 0.05f))
+            )
+
+            // The Actual Data Bar
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -519,12 +545,14 @@ fun BarItem(dayName: String, value: Float, max: Float) {
                     )
             )
         }
+
         Spacer(modifier = Modifier.height(8.dp))
+
         Text(
-            text = dayName.take(1),
+            text = dayName.take(1).uppercase(),
             color = Color.Gray,
             fontSize = 12.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.ExtraBold
         )
     }
 }
