@@ -12,6 +12,128 @@ const participants = [
   { pid: "P6", gender: "Male", age: 36, appStructure: 1, puzzleAppropriate: "yes", firstLook: "alarm how it looks like",  susScore: 97.5 }
 ];
 
+// ---- Task Completion Times (Time Rate) ----
+// Source: observation notes provided by the team (see usability documentation)
+
+const timeRateData = [
+  {
+    participant: "Jona",
+    task1: "51,73",
+    task2: "1.48,68",
+    task3: "10.01",
+    task4: "",
+    notes: "Task1+2: fix with current time; emulator problems"
+  },
+  {
+    participant: "Paul",
+    task1: "42,47",
+    task2: "1.48.26",
+    task3: "11.53",
+    task4: "",
+    notes: "Emulator problems (wrong time on device)"
+  },
+  {
+    participant: "Matteo",
+    task1: "29,2",
+    task2: "1.50",
+    task3: "13",
+    task4: "",
+    notes: "Phone didn’t ring when device locked"
+  },
+  {
+    participant: "Tom",
+    task1: "25.12",
+    task2: "5.8",
+    task3: "4.4",
+    task4: "",
+    notes: ""
+  },
+  {
+    participant: "Jakob",
+    task1: "17.93",
+    task2: "1.30",
+    task3: "8.4",
+    task4: "",
+    notes: ""
+  },
+  {
+    participant: "Victor",
+    task1: "53",
+    task2: "1.50",
+    task3: "8",
+    task4: "9",
+    notes: "Difficulty finding challenge; 'last sleep card'"
+  }
+];
+
+// Convert "51,73" -> 51.73 seconds
+// Convert "1.48,68" or "1.48.26" or "1.50" -> treat as mm.ss.xx or mm.ss
+function parseTimeToSeconds(raw) {
+  if (!raw) return null;
+
+  const s = String(raw).trim();
+
+  // If it looks like minutes.seconds... (contains at least one '.')
+  if (s.includes(".")) {
+    const parts = s.split(".").map(p => p.replace(",", "."));
+
+    // mm.ss
+    if (parts.length === 2) {
+      const mm = parseFloat(parts[0]);
+      const ss = parseFloat(parts[1]);
+      if (Number.isFinite(mm) && Number.isFinite(ss)) return mm * 60 + ss;
+    }
+
+    // mm.ss.xx (e.g., 1.48.26)
+    if (parts.length === 3) {
+      const mm = parseFloat(parts[0]);
+      const ss = parseFloat(parts[1]);
+      const xx = parseFloat(parts[2]); // hundredths or decimals
+      if (Number.isFinite(mm) && Number.isFinite(ss) && Number.isFinite(xx)) {
+        return mm * 60 + ss + (xx / 100);
+      }
+    }
+  }
+
+  // Otherwise, plain seconds with optional comma decimal
+  const val = parseFloat(s.replace(",", "."));
+  return Number.isFinite(val) ? val : null;
+}
+
+function fmtSeconds(val) {
+  if (val === null || val === undefined) return "—";
+  // show 2 decimals if needed
+  return (Math.round(val * 100) / 100).toString();
+}
+
+function renderTimeRateTable() {
+  const tbody = document.getElementById("time-rate-table-body");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  timeRateData.forEach(row => {
+    const t1 = parseTimeToSeconds(row.task1);
+    const t2 = parseTimeToSeconds(row.task2);
+    const t3 = parseTimeToSeconds(row.task3);
+    const t4 = parseTimeToSeconds(row.task4);
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.participant}</td>
+      <td>${fmtSeconds(t1)}</td>
+      <td>${fmtSeconds(t2)}</td>
+      <td>${fmtSeconds(t3)}</td>
+      <td>${row.task4 ? fmtSeconds(t4) : "—"}</td>
+      <td>${row.notes || "—"}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Run after page load
+document.addEventListener("DOMContentLoaded", renderTimeRateTable);
+
 // ---------- utilities ----------
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const fmt = (n, d=1) => Number(n).toFixed(d);
