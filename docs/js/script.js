@@ -71,40 +71,42 @@ const timeRateData = [
 function parseTimeToSeconds(raw) {
   if (!raw) return null;
 
-  const s = String(raw).trim();
+  const s = String(raw).trim().replace(",", ".");
 
-  // If it looks like minutes.seconds... (contains at least one '.')
-  if (s.includes(".")) {
-    const parts = s.split(".").map(p => p.replace(",", "."));
-
-    // mm.ss
-    if (parts.length === 2) {
-      const mm = parseFloat(parts[0]);
-      const ss = parseFloat(parts[1]);
-      if (Number.isFinite(mm) && Number.isFinite(ss)) return mm * 60 + ss;
+  // Case 1: mm.ss.xx  → 1.48.68
+  if ((s.match(/\./g) || []).length === 2) {
+    const parts = s.split(".");
+    const mm = parseFloat(parts[0]);
+    const ss = parseFloat(parts[1]);
+    const xx = parseFloat(parts[2]);
+    if (Number.isFinite(mm) && Number.isFinite(ss) && Number.isFinite(xx)) {
+      return mm * 60 + ss + xx / 100;
     }
+  }
 
-    // mm.ss.xx (e.g., 1.48.26)
-    if (parts.length === 3) {
+  // Case 2: mm.ss → 1.50
+  if ((s.match(/\./g) || []).length === 1 && parseFloat(s) >= 1) {
+    const parts = s.split(".");
+    if (parts[0].length <= 2 && parts[1].length <= 2) {
       const mm = parseFloat(parts[0]);
       const ss = parseFloat(parts[1]);
-      const xx = parseFloat(parts[2]); // hundredths or decimals
-      if (Number.isFinite(mm) && Number.isFinite(ss) && Number.isFinite(xx)) {
-        return mm * 60 + ss + (xx / 100);
+      if (Number.isFinite(mm) && Number.isFinite(ss)) {
+        return mm * 60 + ss;
       }
     }
   }
 
-  // Otherwise, plain seconds with optional comma decimal
-  const val = parseFloat(s.replace(",", "."));
+  // Case 3: plain seconds → 53 or 8.4 or 25.12
+  const val = parseFloat(s);
   return Number.isFinite(val) ? val : null;
 }
 
+
 function fmtSeconds(val) {
-  if (val === null || val === undefined) return "—";
-  // show 2 decimals if needed
-  return (Math.round(val * 100) / 100).toString();
+  if (val == null) return "—";
+  return (Math.round(val * 100) / 100).toFixed(2) + " s";
 }
+
 
 function renderTimeRateTable() {
   const tbody = document.getElementById("time-rate-table-body");
