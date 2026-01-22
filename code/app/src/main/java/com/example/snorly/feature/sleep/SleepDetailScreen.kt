@@ -1,8 +1,24 @@
 package com.example.snorly.feature.sleep
 
-import androidx.health.connect.client.records.SleepSessionRecord
+import androidx.compose.animation.core.EaseInOutSine
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -12,15 +28,33 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Star
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.health.connect.client.records.SleepSessionRecord
 import java.time.Duration
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -224,40 +258,85 @@ fun SleepDetailScreen(
                 }
 
                 // disaply star rating
-                if (record.rating != null && record.rating > 0) {
-                    item {
-                        Text("Rating", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                        Spacer(Modifier.height(8.dp))
+                item {
+                    Text("Rating", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(16.dp))
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(cardColor, RoundedCornerShape(16.dp))
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            repeat(5) { index ->
-                                val starIndex = index + 1
-                                val isFilled = starIndex <= record.rating
-                                Icon(
-                                    imageVector = if (isFilled) Icons.Filled.Star else Icons.Outlined.Star,
-                                    contentDescription = null,
-                                    tint = if (isFilled) Color(0xFFFFC107) else Color.Gray,
-                                    modifier = Modifier.size(32.dp).padding(horizontal = 4.dp)
-                                )
-                            }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val infiniteTransition = rememberInfiniteTransition(label = "shimmer")
+
+                        repeat(5) { index ->
+                            val starIndex = index + 1
+                            // If rating is null or 0, isFilled is always false
+                            val isFilled = (record.rating ?: 0) >= starIndex
+
+                            // Delicate scale animation (1.0 to 1.08 is very subtle)
+                            val scale by infiniteTransition.animateFloat(
+                                initialValue = 1f,
+                                targetValue = 1.1f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(1200, delayMillis = index * 150, easing = EaseInOutSine),
+                                    repeatMode = RepeatMode.Reverse
+                                ), label = "scale"
+                            )
+
+                            // Delicate alpha shimmer
+                            val alpha by infiniteTransition.animateFloat(
+                                initialValue = 0.5f,
+                                targetValue = 1f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(1200, delayMillis = index * 150, easing = EaseInOutSine),
+                                    repeatMode = RepeatMode.Reverse
+                                ), label = "alpha"
+                            )
+
+                            Icon(
+                                imageVector = if (isFilled) Icons.Filled.Star else Icons.Outlined.Star,
+                                contentDescription = null,
+                                // Gold if filled, Grey if empty
+                                tint = if (isFilled) Color(0xFFFFC107) else Color.Gray.copy(alpha = 0.5f),
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .padding(horizontal = 6.dp)
+                                    .graphicsLayer {
+                                        scaleX = scale
+                                        scaleY = scale
+                                        this.alpha = alpha
+                                    }
+                            )
+                        }
+                    }
+                }
+// 5. Notes Section
+                item {
+                    Text("Notes", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(8.dp))
+
+                    if (!record.notes.isNullOrBlank()) {
+                        Text(
+                            text = record.notes,
+                            color = Color(0xFFE0E0E0),
+                            fontSize = 16.sp,
+                            lineHeight = 24.sp
+                        )
+                    } else {
+                        // Subtle empty state
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                "No note for this session",
+                                color = Color.Gray.copy(alpha = 0.6f),
+                                fontSize = 14.sp,
+                                style = androidx.compose.ui.text.TextStyle(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+                            )
                         }
                     }
                 }
 
-                // 4. Notes (If any)
-                if (!record.notes.isNullOrBlank()) {
-                    item {
-                        Text("Notes", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                        Spacer(Modifier.height(8.dp))
-                        Text(record.notes, color = Color.Gray, fontSize = 16.sp)
-                    }
-                }
             }
         }
 
