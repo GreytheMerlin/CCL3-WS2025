@@ -17,47 +17,47 @@ const participants = [
 
 const timeRateData = [
   {
-    participant: "Jona",
-    task1: "51,73",
-    task2: "1.48,68",
+    participant: "P1",
+    task1: "51.73",
+    task2: "1.48.68",
     task3: "10.01",
-    task4: "",
+    task4: "10",
     notes: "Task1+2: fix with current time; emulator problems"
   },
   {
-    participant: "Paul",
-    task1: "42,47",
+    participant: "P2",
+    task1: "42.47",
     task2: "1.48.26",
     task3: "11.53",
-    task4: "",
+    task4: "8",
     notes: "Emulator problems (wrong time on device)"
   },
   {
-    participant: "Matteo",
-    task1: "29,2",
+    participant: "P3",
+    task1: "29.2",
     task2: "1.50",
     task3: "13",
-    task4: "",
+    task4: "5",
     notes: "Phone didn’t ring when device locked"
   },
   {
-    participant: "Tom",
+    participant: "P4",
     task1: "25.12",
     task2: "5.8",
     task3: "4.4",
-    task4: "",
+    task4: "4",
     notes: ""
   },
   {
-    participant: "Jakob",
+    participant: "P5",
     task1: "17.93",
     task2: "1.30",
     task3: "8.4",
-    task4: "",
+    task4: "6",
     notes: ""
   },
   {
-    participant: "Victor",
+    participant: "P6",
     task1: "53",
     task2: "1.50",
     task3: "8",
