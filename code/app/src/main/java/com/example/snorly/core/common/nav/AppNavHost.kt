@@ -1,6 +1,8 @@
 package com.example.snorly.core.common.nav
 
 import android.util.Log
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -102,10 +104,59 @@ fun AppNavHost(
         "onboarding_route"
     }
 
+    // Helper to get tab index for directional animations
+    val mainTabs = Destination.entries.map { it.route }
+    fun getTabIndex(route: String?): Int = mainTabs.indexOf(route)
+
     NavHost(
         navController = navController,
         startDestination = startRoute, // Destination.ALARM.route
-        modifier = modifier
+        modifier = modifier,
+        enterTransition = {
+            val initialRoute = initialState.destination.route
+            val targetRoute = targetState.destination.route
+
+            val initialIndex = getTabIndex(initialRoute)
+            val targetIndex = getTabIndex(targetRoute)
+
+            if (initialIndex != -1 && targetIndex != -1) {
+                // Moving between main tabs
+                if (targetIndex > initialIndex) {
+                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(400))
+                } else {
+                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(400))
+                }
+            } else {
+                // Standard "Push" animation (Opening a sub-screen)
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(400))
+            }
+        },
+        exitTransition = {
+            val initialRoute = initialState.destination.route
+            val targetRoute = targetState.destination.route
+
+            val initialIndex = getTabIndex(initialRoute)
+            val targetIndex = getTabIndex(targetRoute)
+
+            if (initialIndex != -1 && targetIndex != -1) {
+                if (targetIndex > initialIndex) {
+                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(400))
+                } else {
+                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(400))
+                }
+            } else {
+                // Backgrounding a screen
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(400))
+            }
+        },
+        popEnterTransition = {
+            // "Coming back" animation
+            slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(400))
+        },
+        popExitTransition = {
+            // "Dismissing" animation
+            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(400))
+        }
     ) {
 
         // --- Onboarding Route (Standalone) ---

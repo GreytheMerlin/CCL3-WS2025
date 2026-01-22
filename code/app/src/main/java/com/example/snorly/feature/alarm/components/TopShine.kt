@@ -28,7 +28,7 @@ val PremiumSlateColor = Color(0xFF192135) // Deep Violet/Slate
 
 fun Modifier.premiumBackground(): Modifier = composed {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        FallbackBackground(PremiumCyanColor, PremiumSlateColor)
+        ShaderBackground(PremiumCyanColor, PremiumSlateColor)
     } else {
         FallbackBackground(PremiumCyanColor, PremiumSlateColor)
     }
