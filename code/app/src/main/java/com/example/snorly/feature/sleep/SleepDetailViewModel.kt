@@ -101,16 +101,6 @@ class SleepDetailViewModel(
         }
     }
 
-    private fun getAppNameFromPackage(packageName: String): String {
-        return try {
-            val pm = context.packageManager
-            val info = pm.getApplicationInfo(packageName, 0)
-            pm.getApplicationLabel(info).toString()
-        } catch (e: Exception) {
-            packageName // Fallback to "com.google.android..." if name lookup fails
-        }
-    }
-
     fun deleteSession(onSuccess: () -> Unit) {
         viewModelScope.launch {
             if (sleepRecord != null) {

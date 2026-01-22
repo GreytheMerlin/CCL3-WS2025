@@ -14,7 +14,6 @@ import com.example.snorly.core.data.SleepRepository
 import com.example.snorly.core.database.entities.SleepSessionEntity
 import com.example.snorly.core.health.HealthConnectManager
 import com.example.snorly.feature.sleep.model.SleepDayUiModel
-import com.example.snorly.feature.sleep.model.SleepStats
 import com.example.snorly.feature.sleep.util.SleepScoreUtils
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -25,20 +24,26 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
+enum class SleepTrackingMode { IDLE, TRACKING, GOOD_MORNING }
+
 class SleepViewModel(
     private val repository: SleepRepository,
     private val healthConnectManager: HealthConnectManager,
     private val context: Context
 ) : ViewModel() {
 
-    var isTracking by mutableStateOf(false)
+    var trackingMode by mutableStateOf(SleepTrackingMode.IDLE)
         private set
 
-    var trackingStartTime by mutableStateOf(-1L) // Add this
+    var lastSessionId by mutableStateOf<String?>(null)
+        private set
+
+    var trackingStartTime by mutableStateOf(-1L)
         private set
 
     // Use SharedPreferences to persist state "overnight"
-    private val prefs: SharedPreferences = context.getSharedPreferences("sleep_tracker_prefs", Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences =
+        context.getSharedPreferences("sleep_tracker_prefs", Context.MODE_PRIVATE)
 
     val requiredPermissions = healthConnectManager.permissions
 
@@ -65,8 +70,10 @@ class SleepViewModel(
         // This runs automatically whenever the DB changes (e.g., after a Sync or Manual Add)
         repository.allSleepSessions.onEach { sessions ->
 
-            val timeFormatter = DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())
-            val dateFormatter = DateTimeFormatter.ofPattern("EEE, MMM d").withZone(ZoneId.systemDefault())
+            val timeFormatter =
+                DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())
+            val dateFormatter =
+                DateTimeFormatter.ofPattern("EEE, MMM d").withZone(ZoneId.systemDefault())
 
             // Map Database Entities to UI Models
             sleepHistory = sessions.map { entity ->
@@ -163,69 +170,59 @@ class SleepViewModel(
 
     private fun restoreTrackingState() {
         val startTime = prefs.getLong("tracking_start_time", -1L)
-        isTracking = (startTime != -1L)
         trackingStartTime = startTime
+        // If we were tracking when the app died, go back to TRACKING
+        trackingMode = if (startTime != -1L) SleepTrackingMode.TRACKING else SleepTrackingMode.IDLE
     }
 
-    fun toggleTracking() {
-        if (isTracking) {
-            stopTracking()
-        } else {
-            startTracking()
-        }
-    }
-
-    private fun startTracking() {
+    fun startTracking() {
         val now = Instant.now().toEpochMilli()
-        // Save to disk immediately
         prefs.edit().putLong("tracking_start_time", now).apply()
         trackingStartTime = now
-        isTracking = true
+        trackingMode = SleepTrackingMode.TRACKING
 
         ContextCompat.startForegroundService(
-            context,
-            Intent(context, SleepTimerService::class.java).apply {
+            context, Intent(context, SleepTimerService::class.java).apply {
                 action = SleepTimerService.ACTION_START
-            }
-        )
+            })
     }
 
+    // In SleepViewModel.kt
     fun stopTracking() {
         viewModelScope.launch {
             val startMillis = prefs.getLong("tracking_start_time", -1L)
-
             if (startMillis != -1L) {
-                val startInstant = Instant.ofEpochMilli(startMillis)
-                val endInstant = Instant.now()
-
-                // Create the entity
                 val newSession = SleepSessionEntity(
-                    startTime = startInstant,
-                    endTime = endInstant,
-                    sourcePackage = context.packageName, // Mark as Manual/App
-                    notes = "Tracked Session"
+                    startTime = Instant.ofEpochMilli(startMillis),
+                    endTime = Instant.now(),
+                    sourcePackage = context.packageName,
+                    notes = ""
                 )
 
-                // Save via Repository (Gatekeeper will handle validation)
-                repository.saveSleepSession(newSession, isEdit = false)
+                val result = repository.saveSleepSession(newSession, isEdit = false)
+
+                result.onSuccess { generatedId ->
+                    // Ensure we have the actual ID before moving to the next state
+                    lastSessionId = generatedId.toString()
+                    trackingMode = SleepTrackingMode.GOOD_MORNING
+                }
             }
 
-            // Clear the preference
             prefs.edit().remove("tracking_start_time").apply()
             trackingStartTime = -1L
-            isTracking = false
 
-            // Trigger a sync/refresh to show the new item
-
-            context.startService(
-                Intent(context, SleepTimerService::class.java).apply {
-                    action = SleepTimerService.ACTION_STOP
-                }
-            )
-
-            syncSleepData()
+            context.startService(Intent(context, SleepTimerService::class.java).apply {
+                action = SleepTimerService.ACTION_STOP
+            })
         }
     }
+
+    // Call this when the user leaves the screen or starts a new session
+    fun resetToIdle() {
+        trackingMode = SleepTrackingMode.IDLE
+        lastSessionId = null
+    }
+
 
     class Factory(
         private val repository: SleepRepository,

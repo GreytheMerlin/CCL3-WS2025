@@ -197,7 +197,7 @@ fun SleepDetailScreen(
                 }
 
                 // 3. Info Text if not editable
-                if (!viewModel.isEditable) {
+//                if (!viewModel.isEditable) {
                     item {
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF2C2C2E)),
@@ -215,7 +215,7 @@ fun SleepDetailScreen(
                             }
                         }
                     }
-                }
+//                }
 
                 item {
                     Text("Sleep Stages", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)

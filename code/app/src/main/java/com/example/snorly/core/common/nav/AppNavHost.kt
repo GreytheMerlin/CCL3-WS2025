@@ -1,5 +1,6 @@
 package com.example.snorly.core.common.nav
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -94,7 +95,6 @@ fun AppNavHost(
     }
 
 
-
     // 4. Determine start destination
     val startRoute = if (isOnboardingCompleted == true) {
         Destination.ALARM.route
@@ -111,7 +111,11 @@ fun AppNavHost(
         // --- Onboarding Route (Standalone) ---
         composable("onboarding_route") {
             val onboardingViewModel: OnboardingViewModel = viewModel(
-                factory = OnboardingViewModelFactory(context, healthConnectManager, preferenceManager)
+                factory = OnboardingViewModelFactory(
+                    context,
+                    healthConnectManager,
+                    preferenceManager
+                )
             )
 
             OnboardingScreen(
@@ -158,7 +162,9 @@ fun AppNavHost(
                         SleepScreen(
                             viewModel = sleepViewModel,
                             onAddSleepClick = { navController.navigate("sleep_add") },
-                            onSleepItemClick = { sleepId -> navController.navigate("sleep_detail/$sleepId") })
+                            onSleepItemClick = { sleepId -> navController.navigate("sleep_detail/$sleepId") },
+                            onEditSleepClick = { sleepId -> navController.navigate("sleep_edit/$sleepId") })
+
                     }
 
                     Destination.REPORT -> {
@@ -222,11 +228,10 @@ fun AppNavHost(
                 onClose = { navController.popBackStack() },
                 onNavigateToRingtone = { navController.navigate("alarm_ringtone") },
                 onNavigateToVibration = { navController.navigate("alarm_vibration") },
-                onNavigateToChallenge = { enabled, ids->
+                onNavigateToChallenge = { enabled, ids ->
                     val idsStr = ids.joinToString(",")
                     navController.navigate("challenges_graph?enabled=$enabled&ids=$idsStr")
-                }
-                ,
+                },
 
                 )
         }
@@ -311,7 +316,8 @@ fun AppNavHost(
         }
         // === Challenges ===
         navigation(
-            startDestination = "challenges_main", route = "challenges_graph?enabled={enabled}&ids={ids}"
+            startDestination = "challenges_main",
+            route = "challenges_graph?enabled={enabled}&ids={ids}"
         ) {
             // A. Create the ViewModel scoped to this GRAPH, not the whole app.
             // When you exit "challenges_graph", this ViewModel is cleared.
@@ -323,7 +329,8 @@ fun AppNavHost(
                 val challengeViewModel: ChallengeViewModel = viewModel(parentEntry)
 
                 // ✅ read incoming args from THIS entry
-                val enabledArg = backStackEntry.arguments?.getString("enabled")?.toBooleanStrictOrNull() ?: false
+                val enabledArg =
+                    backStackEntry.arguments?.getString("enabled")?.toBooleanStrictOrNull() ?: false
                 val idsArg = backStackEntry.arguments?.getString("ids") ?: ""
                 val initialIds = if (idsArg.isBlank()) emptyList() else idsArg.split(",")
 

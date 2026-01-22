@@ -1,5 +1,6 @@
 package com.example.snorly.feature.sleep
 
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +29,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,7 +45,7 @@ import com.example.snorly.feature.sleep.components.UpgradedSleepCard
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SleepScreen(
-    viewModel: SleepViewModel, onAddSleepClick: () -> Unit, onSleepItemClick: (String) -> Unit
+    viewModel: SleepViewModel, onAddSleepClick: () -> Unit, onSleepItemClick: (String) -> Unit, onEditSleepClick: (String) -> Unit
 ) {
     val permissionsLauncher = rememberLauncherForActivityResult(
         contract = PermissionController.createRequestPermissionResultContract()
@@ -51,6 +53,14 @@ fun SleepScreen(
         // This block runs when the user closes the system dialog.
         // We tell the ViewModel to check again.
         viewModel.checkPermissionsAndSync()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            if (viewModel.trackingMode == SleepTrackingMode.GOOD_MORNING) {
+                viewModel.resetToIdle()
+            }
+        }
     }
 
     // Pull Down to Refresh State
@@ -68,18 +78,17 @@ fun SleepScreen(
             isRefreshing = viewModel.isSyncing,
             onRefresh = { viewModel.syncSleepData() },
             state = pullRefreshState,
-            modifier = Modifier.fillMaxSize().padding(top = innerPadding.calculateTopPadding())
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = innerPadding.calculateTopPadding())
         ) {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentPadding = PaddingValues(
+                modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(
                     top = 16.dp,
                     bottom = innerPadding.calculateBottomPadding() + 24.dp,
                     start = 16.dp,
                     end = 16.dp
-                ),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                ), verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
 
                 if (viewModel.isHealthConnectAvailable && !viewModel.hasPermission) {
@@ -91,125 +100,128 @@ fun SleepScreen(
                     }
                 }
 //                // Main Action Card
-//                item {
-//                    SleepTrackingCard(
-//                        isTracking = viewModel.isTracking,
-//                        onToggleTracking = { viewModel.toggleTracking() }
-//                    )
-//                }
                 item {
                     UpgradedSleepCard(
-                        isTracking = viewModel.isTracking,
+                        mode = viewModel.trackingMode,
                         startTime = viewModel.trackingStartTime,
-                        onToggleTracking = { viewModel.toggleTracking() })
+                        onStart = { viewModel.startTracking() },
+                        onWakeUp = { viewModel.stopTracking() },
+                        onLogSleep = {
+                            viewModel.lastSessionId?.let { id ->
+                                Log.e("iddebug", " id is: $id")
+                                onEditSleepClick(id)
+                                viewModel.resetToIdle()
+                            }
+                        }
+                    )
                 }
 
 
-                // TODAY'S STATS (Replaces old Averages)
-                // We show the most recent item from history as "Today/Last Night"
-                if (viewModel.sleepHistory.isNotEmpty()) {
-                    val todaysSleep = viewModel.sleepHistory.firstOrNull()
-                    if (todaysSleep != null) {
-                        item {
-                            Text(
-                                "Last Night",
-                                color = Color.White,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 18.sp
-                            )
-                        }
-                        item {
-                            //stats Card Logic
-                            Card(
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E)),
-                                shape = RoundedCornerShape(16.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Column(modifier = Modifier.padding(20.dp)) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Column(modifier = Modifier.weight(1f)) {
-                                            Text("Duration", color = Color.Gray, fontSize = 12.sp)
-                                            Text(
-                                                viewModel.latestSleepDuration,
-                                                color = Color.White,
-                                                fontSize = 32.sp,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                        }
-                                        Column(horizontalAlignment = Alignment.End) {
-                                            Text(
-                                                "Snorly Sleep Score",
-                                                color = Color.Gray,
-                                                fontSize = 12.sp
-                                            )
-                                            Text(
-                                                viewModel.latestSleepScore,
-                                                color = if (viewModel.latestSleepScore != "--") Color(
-                                                    0xFF4CAF50
-                                                ) else Color.Gray,
-                                                fontSize = 32.sp,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                        }
+            // TODAY'S STATS (Replaces old Averages)
+            // We show the most recent item from history as "Today/Last Night"
+            if (viewModel.sleepHistory.isNotEmpty()) {
+                val todaysSleep = viewModel.sleepHistory.firstOrNull()
+                if (todaysSleep != null) {
+                    item {
+                        Text(
+                            "Last Night",
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 18.sp
+                        )
+                    }
+                    item {
+                        //stats Card Logic
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E)),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(20.dp)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text("Duration", color = Color.Gray, fontSize = 12.sp)
+                                        Text(
+                                            viewModel.latestSleepDuration,
+                                            color = Color.White,
+                                            fontSize = 32.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
                                     }
-                                    Spacer(Modifier.height(16.dp))
-                                    Row {
-                                        Badge(todaysSleep.qualityLabel, todaysSleep.qualityColor)
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Text(
+                                            "Snorly Sleep Score",
+                                            color = Color.Gray,
+                                            fontSize = 12.sp
+                                        )
+                                        Text(
+                                            viewModel.latestSleepScore,
+                                            color = if (viewModel.latestSleepScore != "--") Color(
+                                                0xFF4CAF50
+                                            ) else Color.Gray,
+                                            fontSize = 32.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
                                     }
+                                }
+                                Spacer(Modifier.height(16.dp))
+                                Row {
+                                    Badge(todaysSleep.qualityLabel, todaysSleep.qualityColor)
                                 }
                             }
                         }
                     }
                 }
+            }
 
-                // 4. List Header
+            // 4. List Header
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Recent Sleep",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            // 5. Empty State or List
+            if (viewModel.sleepHistory.isEmpty()) {
                 item {
-                    Row(
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(top = 32.dp),
+                        contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            "Recent Sleep",
-                            color = Color.White,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.SemiBold
+                            "No sleep logs yet.\nTap + to add one manually.",
+                            color = Color.Gray,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
                     }
                 }
-
-                // 5. Empty State or List
-                if (viewModel.sleepHistory.isEmpty()) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 32.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                "No sleep logs yet.\nTap + to add one manually.",
-                                color = Color.Gray,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                            )
-                        }
-                    }
-                } else {
-                    items(viewModel.sleepHistory) { day ->
-                        SleepHistoryItem(
-                            data = day, onClick = {
-                                if (day.id.isNotEmpty()) onSleepItemClick(day.id)
-                            })
-                    }
+            } else {
+                items(viewModel.sleepHistory) { day ->
+                    SleepHistoryItem(
+                        data = day, onClick = {
+                            if (day.id.isNotEmpty()) onSleepItemClick(day.id)
+                        })
                 }
             }
         }
     }
+}
 }
 
 

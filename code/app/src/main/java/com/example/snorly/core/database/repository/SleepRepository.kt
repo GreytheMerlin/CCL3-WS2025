@@ -23,7 +23,7 @@ class SleepRepository(
     suspend fun getSessionById(id: Long) = dao.getSleepSessionById(id)
 
     // Returns Result.success() or Result.failure("Error message")
-    suspend fun saveSleepSession(entity: SleepSessionEntity, isEdit: Boolean): Result<Unit> {
+    suspend fun saveSleepSession(entity: SleepSessionEntity, isEdit: Boolean): Result<Long> {
 
         // A. THE GATEKEEPER CHECK
         // If editing, we pass the entity.id. If new, entity.id is 0 (or we pass -1L to be safe).
@@ -69,7 +69,7 @@ class SleepRepository(
             }
         }
 
-        return Result.success(Unit)
+        return Result.success(localId)
     }
 
     // --- THE SMART SYNC LOGIC ---
