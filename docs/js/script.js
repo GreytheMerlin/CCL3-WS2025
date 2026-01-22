@@ -4,132 +4,129 @@
  * ✅ Data pasted from your CSVs (User data + Questionares + SUS).
  */
 const participants = [
-  { pid: "P1", gender: "Male", age: 24, appStructure: 4, puzzleAppropriate: "no",  firstLook: "adding an alarm",         susScore: 87.5 },
-  { pid: "P2", gender: "Male", age: 22, appStructure: 3, puzzleAppropriate: "yes", firstLook: "Alarm",                    susScore: 100.0 },
-  { pid: "P3", gender: "Male", age: 23, appStructure: 3, puzzleAppropriate: "yes", firstLook: "Alarm clock",              susScore: 100.0 },
-  { pid: "P4", gender: "Male", age: 22, appStructure: 1, puzzleAppropriate: "yes", firstLook: "navigation",               susScore: 100.0 },
-  { pid: "P5", gender: "Male", age: 21, appStructure: 1, puzzleAppropriate: "yes", firstLook: "How to set an alarm",      susScore: 82.5 },
-  { pid: "P6", gender: "Male", age: 36, appStructure: 1, puzzleAppropriate: "yes", firstLook: "alarm how it looks like",  susScore: 97.5 }
+    { pid: "P1", gender: "Male", age: 24, appStructure: 4, puzzleAppropriate: "no",  firstLook: "adding an alarm",         susScore: 87.5 },
+    { pid: "P2", gender: "Male", age: 22, appStructure: 3, puzzleAppropriate: "yes", firstLook: "Alarm",                    susScore: 100.0 },
+    { pid: "P3", gender: "Male", age: 23, appStructure: 3, puzzleAppropriate: "yes", firstLook: "Alarm clock",              susScore: 100.0 },
+    { pid: "P4", gender: "Male", age: 22, appStructure: 1, puzzleAppropriate: "yes", firstLook: "navigation",               susScore: 100.0 },
+    { pid: "P5", gender: "Male", age: 21, appStructure: 1, puzzleAppropriate: "yes", firstLook: "How to set an alarm",      susScore: 82.5 },
+    { pid: "P6", gender: "Male", age: 36, appStructure: 1, puzzleAppropriate: "yes", firstLook: "alarm how it looks like",  susScore: 97.5 }
 ];
 
 // ---- Task Completion Times (Time Rate) ----
 // Source: observation notes provided by the team (see usability documentation)
-
 const timeRateData = [
-  {
-    participant: "P1",
-    task1: "51.73",
-    task2: "1.48.68",
-    task3: "10.01",
-    task4: "10",
-    notes: "Task1+2: fix with current time; emulator problems"
-  },
-  {
-    participant: "P2",
-    task1: "42.47",
-    task2: "1.48.26",
-    task3: "11.53",
-    task4: "8",
-    notes: "Emulator problems (wrong time on device)"
-  },
-  {
-    participant: "P3",
-    task1: "29.2",
-    task2: "1.50",
-    task3: "13",
-    task4: "5",
-    notes: "Phone didn’t ring when device locked"
-  },
-  {
-    participant: "P4",
-    task1: "25.12",
-    task2: "5.8",
-    task3: "4.4",
-    task4: "4",
-    notes: ""
-  },
-  {
-    participant: "P5",
-    task1: "17.93",
-    task2: "1.30",
-    task3: "8.4",
-    task4: "6",
-    notes: ""
-  },
-  {
-    participant: "P6",
-    task1: "53",
-    task2: "1.50",
-    task3: "8",
-    task4: "9",
-    notes: "Difficulty finding challenge; 'last sleep card'"
-  }
+    {
+        participant: "P1",
+        task1: "51.73",
+        task2: "1.48.68",
+        task3: "10.01",
+        task4: "10",
+        notes: "Task1+2: fix with current time; emulator problems"
+    },
+    {
+        participant: "P2",
+        task1: "42.47",
+        task2: "1.48.26",
+        task3: "11.53",
+        task4: "8",
+        notes: "Emulator problems (wrong time on device)"
+    },
+    {
+        participant: "P3",
+        task1: "29.2",
+        task2: "1.50",
+        task3: "13",
+        task4: "5",
+        notes: "Phone didn’t ring when device locked"
+    },
+    {
+        participant: "P4",
+        task1: "25.12",
+        task2: "100.8",
+        task3: "4.4",
+        task4: "4",
+        notes: ""
+    },
+    {
+        participant: "P5",
+        task1: "17.93",
+        task2: "1.30",
+        task3: "8.4",
+        task4: "6",
+        notes: ""
+    },
+    {
+        participant: "P6",
+        task1: "53",
+        task2: "1.50",
+        task3: "8",
+        task4: "9",
+        notes: "Difficulty finding challenge; 'last sleep card'"
+    }
 ];
 
 // Convert "51,73" -> 51.73 seconds
 // Convert "1.48,68" or "1.48.26" or "1.50" -> treat as mm.ss.xx or mm.ss
 function parseTimeToSeconds(raw) {
-  if (!raw) return null;
+    if (!raw) return null;
 
-  const s = String(raw).trim().replace(",", ".");
+    const s = String(raw).trim().replace(",", ".");
 
-  // Case 1: mm.ss.xx (e.g., 1.48.68)
-  if ((s.match(/\./g) || []).length === 2) {
-    const [mmStr, ssStr, xxStr] = s.split(".");
-    const mm = parseInt(mmStr, 10);
-    const ss = parseInt(ssStr, 10);
-    const xx = parseInt(xxStr, 10);
-    if (Number.isFinite(mm) && Number.isFinite(ss) && Number.isFinite(xx)) {
-      return mm * 60 + ss + xx / 100;
-    }
-  }
-
-  // Case 2: m.ss (minutes) ONLY when it clearly matches minutes pattern (e.g., 1.50, 5.08, 1.30)
-  if ((s.match(/\./g) || []).length === 1) {
-    const [a, b] = s.split(".");
-    const left = parseInt(a, 10);
-    const right = parseInt(b, 10);
-
-    const looksLikeMinutes =
-      a.length === 1 &&                 // 0–9 minutes
-      b.length === 2 &&                 // 2-digit seconds
-      right >= 0 && right <= 59;
-
-    if (looksLikeMinutes) {
-      return left * 60 + right;
+    // Case 1: mm.ss.xx (e.g., 1.48.68)
+    if ((s.match(/\./g) || []).length === 2) {
+        const [mmStr, ssStr, xxStr] = s.split(".");
+        const mm = parseInt(mmStr, 10);
+        const ss = parseInt(ssStr, 10);
+        const xx = parseInt(xxStr, 10);
+        if (Number.isFinite(mm) && Number.isFinite(ss) && Number.isFinite(xx)) {
+            return mm * 60 + ss + xx / 100;
+        }
     }
 
-    // otherwise treat as seconds.decimal (e.g., 51.73, 10.01, 8.4, 25.12)
+    // Case 2: m.ss (minutes) ONLY when it clearly matches minutes pattern (e.g., 1.50, 5.08, 1.30)
+    if ((s.match(/\./g) || []).length === 1) {
+        const [a, b] = s.split(".");
+        const left = parseInt(a, 10);
+        const right = parseInt(b, 10);
+
+        const looksLikeMinutes =
+            a.length === 1 &&                 // 0–9 minutes
+            b.length === 2 &&                 // 2-digit seconds
+            right >= 0 && right <= 59;
+
+        if (looksLikeMinutes) {
+            return left * 60 + right;
+        }
+
+        // otherwise treat as seconds.decimal (e.g., 51.73, 10.01, 8.4, 25.12)
+        const val = parseFloat(s);
+        return Number.isFinite(val) ? val : null;
+    }
+
+    // Case 3: plain seconds (e.g., "53")
     const val = parseFloat(s);
     return Number.isFinite(val) ? val : null;
-  }
-
-  // Case 3: plain seconds (e.g., "53")
-  const val = parseFloat(s);
-  return Number.isFinite(val) ? val : null;
 }
-
 
 function fmtSeconds(val) {
-  if (val == null) return "—";
-  return (Math.round(val * 100) / 100).toFixed(2) + " s";
+    if (val == null) return "—";
+    return (Math.round(val * 100) / 100).toFixed(2) + " s";
 }
 
-
 function renderTimeRateTable() {
-  const tbody = document.getElementById("time-rate-table-body");
-  if (!tbody) return;
+    const tbody = document.getElementById("time-rate-table-body");
+    if (!tbody) return;
 
-  tbody.innerHTML = "";
+    tbody.innerHTML = "";
 
-  timeRateData.forEach(row => {
-    const t1 = parseTimeToSeconds(row.task1);
-    const t2 = parseTimeToSeconds(row.task2);
-    const t3 = parseTimeToSeconds(row.task3);
-    const t4 = parseTimeToSeconds(row.task4);
+    timeRateData.forEach(row => {
+        const t1 = parseTimeToSeconds(row.task1);
+        const t2 = parseTimeToSeconds(row.task2);
+        const t3 = parseTimeToSeconds(row.task3);
+        const t4 = parseTimeToSeconds(row.task4);
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
       <td>${row.participant}</td>
       <td>${fmtSeconds(t1)}</td>
       <td>${fmtSeconds(t2)}</td>
@@ -137,8 +134,8 @@ function renderTimeRateTable() {
       <td>${row.task4 ? fmtSeconds(t4) : "—"}</td>
       <td>${row.notes || "—"}</td>
     `;
-    tbody.appendChild(tr);
-  });
+        tbody.appendChild(tr);
+    });
 }
 
 // Run after page load
@@ -149,287 +146,318 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const fmt = (n, d=1) => Number(n).toFixed(d);
 
 function median(sorted) {
-  const n = sorted.length;
-  if (!n) return NaN;
-  const mid = Math.floor(n / 2);
-  return (n % 2 === 0) ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+    const n = sorted.length;
+    if (!n) return NaN;
+    const mid = Math.floor(n / 2);
+    return (n % 2 === 0) ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
 }
 
 function quartiles(values) {
-  const v = values.slice().sort((a,b)=>a-b);
-  if (!v.length) return null;
+    const v = values.slice().sort((a,b)=>a-b);
+    if (!v.length) return null;
 
-  const med = median(v);
-  const mid = Math.floor(v.length / 2);
-  const lower = v.slice(0, mid);
-  const upper = (v.length % 2 === 0) ? v.slice(mid) : v.slice(mid + 1);
+    const med = median(v);
+    const mid = Math.floor(v.length / 2);
+    const lower = v.slice(0, mid);
+    const upper = (v.length % 2 === 0) ? v.slice(mid) : v.slice(mid + 1);
 
-  const q1 = median(lower.length ? lower : v);
-  const q3 = median(upper.length ? upper : v);
+    const q1 = median(lower.length ? lower : v);
+    const q3 = median(upper.length ? upper : v);
 
-  const iqr = q3 - q1;
-  const lowFence = q1 - 1.5 * iqr;
-  const highFence = q3 + 1.5 * iqr;
+    const iqr = q3 - q1;
+    const lowFence = q1 - 1.5 * iqr;
+    const highFence = q3 + 1.5 * iqr;
 
-  let wLow = v[0], wHigh = v[v.length - 1];
-  for (let i = 0; i < v.length; i++) { if (v[i] >= lowFence) { wLow = v[i]; break; } }
-  for (let i = v.length - 1; i >= 0; i--) { if (v[i] <= highFence) { wHigh = v[i]; break; } }
+    let wLow = v[0], wHigh = v[v.length - 1];
+    for (let i = 0; i < v.length; i++) { if (v[i] >= lowFence) { wLow = v[i]; break; } }
+    for (let i = v.length - 1; i >= 0; i--) { if (v[i] <= highFence) { wHigh = v[i]; break; } }
 
-  const outliers = v.filter(x => x < wLow || x > wHigh);
-  return { q1, med, q3, iqr, wLow, wHigh, outliers, sorted: v, min: v[0], max: v[v.length-1] };
+    const outliers = v.filter(x => x < wLow || x > wHigh);
+    return { q1, med, q3, iqr, wLow, wHigh, outliers, sorted: v, min: v[0], max: v[v.length-1] };
 }
 
 function stats(values) {
-  const v = values.map(Number).filter(x => !Number.isNaN(x));
-  if (!v.length) return null;
-  const min = Math.min(...v);
-  const max = Math.max(...v);
-  const mean = v.reduce((a,b)=>a+b,0) / v.length;
-  return { n: v.length, min, max, mean };
+    const v = values.map(Number).filter(x => !Number.isNaN(x));
+    if (!v.length) return null;
+    const min = Math.min(...v);
+    const max = Math.max(...v);
+    const mean = v.reduce((a,b)=>a+b,0) / v.length;
+    return { n: v.length, min, max, mean };
 }
 
 // ---------- SVG helpers ----------
 function svgEl(tag, attrs = {}, children = []) {
-  const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
-  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v));
-  for (const c of children) el.appendChild(c);
-  return el;
+    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v));
+    for (const c of children) el.appendChild(c);
+    return el;
 }
 
 function clearSvg(svg) {
-  while (svg.firstChild) svg.removeChild(svg.firstChild);
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
 }
 
 function textEl(x, y, str, opts = {}) {
-  return svgEl("text", {
-    x, y,
-    fill: opts.fill ?? "#cbd5e1",
-    "font-size": opts.size ?? 12,
-    "font-weight": opts.weight ?? "400",
-    "text-anchor": opts.anchor ?? "start",
-    "dominant-baseline": opts.baseline ?? "alphabetic",
-  }, [document.createTextNode(str)]);
+    return svgEl("text", {
+        x, y,
+        fill: opts.fill ?? "#cbd5e1",
+        "font-size": opts.size ?? 12,
+        "font-weight": opts.weight ?? "400",
+        "text-anchor": opts.anchor ?? "start",
+        "dominant-baseline": opts.baseline ?? "alphabetic",
+    }, [document.createTextNode(str)]);
 }
 
 function lineEl(x1,y1,x2,y2, opts={}) {
-  return svgEl("line", {
-    x1, y1, x2, y2,
-    stroke: opts.stroke ?? "#1e293b",
-    "stroke-width": opts.w ?? 2,
-    "stroke-linecap": "round"
-  });
+    return svgEl("line", {
+        x1, y1, x2, y2,
+        stroke: opts.stroke ?? "#1e293b",
+        "stroke-width": opts.w ?? 2,
+        "stroke-linecap": "round"
+    });
 }
 
 function rectEl(x,y,w,h, opts={}) {
-  return svgEl("rect", {
-    x, y, width: w, height: h,
-    rx: opts.rx ?? 10, ry: opts.ry ?? 10,
-    fill: opts.fill ?? "rgba(79,70,229,0.22)",
-    stroke: opts.stroke ?? "#4f46e5",
-    "stroke-width": opts.sw ?? 2
-  });
+    return svgEl("rect", {
+        x, y, width: w, height: h,
+        rx: opts.rx ?? 10, ry: opts.ry ?? 10,
+        fill: opts.fill ?? "rgba(79,70,229,0.22)",
+        stroke: opts.stroke ?? "#4f46e5",
+        "stroke-width": opts.sw ?? 2
+    });
 }
 
 function circleEl(cx,cy,r, opts={}) {
-  return svgEl("circle", {
-    cx, cy, r,
-    fill: opts.fill ?? "rgba(6,182,212,0.85)",
-    stroke: opts.stroke ?? "#06b6d4",
-    "stroke-width": opts.sw ?? 1
-  });
+    return svgEl("circle", {
+        cx, cy, r,
+        fill: opts.fill ?? "rgba(6,182,212,0.85)",
+        stroke: opts.stroke ?? "#06b6d4",
+        "stroke-width": opts.sw ?? 1
+    });
 }
 
 // ---------- Chart Logic ----------
 function drawSingleBoxplot(svgId, values, valueLabel, noteId, domainOverride=null) {
-  const svg = document.getElementById(svgId);
-  if (!svg) return; // Safely exit if chart doesn't exist on this page
-  clearSvg(svg);
+    const svg = document.getElementById(svgId);
+    if (!svg) return;
+    clearSvg(svg);
 
-  const W = 760, H = 540;
-  const pad = { l: 60, r: 20, t: 20, b: 44 };
-  const plotW = W - pad.l - pad.r;
+    // Get size from viewBox (matches your HTML: viewBox="0 0 760 540")
+    const vb = svg.viewBox.baseVal;
+    const W = vb && vb.width ? vb.width : 760;
+    const H = vb && vb.height ? vb.height : 540;
 
-  const vals = values.map(Number).filter(x => !Number.isNaN(x));
-  const q = quartiles(vals);
-  if (!q) return;
+    // Padding: more room + nicer proportions
+    const pad = { l: 80, r: 40, t: 40, b: 70 };
+    const plotW = W - pad.l - pad.r;
+    const plotH = H - pad.t - pad.b;
 
-  let minV = q.min, maxV = q.max;
-  if (domainOverride) { minV = domainOverride[0]; maxV = domainOverride[1]; }
-  const range = (maxV - minV) || 1;
-  const minA = minV - range * 0.05;
-  const maxA = maxV + range * 0.05;
+    const vals = values.map(Number).filter(x => !Number.isNaN(x));
+    const q = quartiles(vals);
+    if (!q) return;
 
-  const xScale = (v) => pad.l + ((v - minA) / (maxA - minA)) * plotW;
-  const y = 120;
+    // Domain (keep 0–100 for SUS, 1–5 for structure)
+    let minA, maxA;
 
-  // grid + ticks
-  const ticks = 6;
-  for (let i = 0; i <= ticks; i++) {
-    const v = minA + (i / ticks) * (maxA - minA);
-    const x = xScale(v);
-    svg.appendChild(lineEl(x, pad.t, x, H - pad.b, { stroke: "#111827", w: 1 }));
-    svg.appendChild(textEl(x, H - 18, fmt(v, valueLabel === "App Structure (1–5)" ? 1 : 0), {
-      anchor: "middle", size: 11, fill: "#94a3b8"
+    if (domainOverride) {
+        // IMPORTANT: Use the domain exactly so it stretches to full width
+        minA = domainOverride[0];
+        maxA = domainOverride[1];
+    } else {
+        // If no override, auto-scale with a small margin
+        const minV = q.min, maxV = q.max;
+        const range = (maxV - minV) || 1;
+        minA = minV - range * 0.05;
+        maxA = maxV + range * 0.05;
+    }
+
+
+    const xScale = (v) => pad.l + ((v - minA) / (maxA - minA)) * plotW;
+
+    // Center line vertically
+    const y = pad.t + plotH / 2;
+
+    // Make the box "fill" the chart vertically (big and readable)
+    const boxH = Math.max(120, Math.min(220, plotH * 0.5));
+    const cap = boxH * 0.35;
+
+    // grid + ticks
+    const ticks = 6;
+    for (let i = 0; i <= ticks; i++) {
+        const v = minA + (i / ticks) * (maxA - minA);
+        const x = xScale(v);
+        svg.appendChild(lineEl(x, pad.t, x, H - pad.b, { stroke: "#111827", w: 1 }));
+        svg.appendChild(textEl(x, H - 26, fmt(v, valueLabel === "App Structure (1–5)" ? 1 : 0), {
+            anchor: "middle", size: 12, fill: "#94a3b8"
+        }));
+    }
+
+    svg.appendChild(textEl(pad.l, 22, valueLabel, { size: 12, fill: "#94a3b8" }));
+
+    // whisker
+    svg.appendChild(lineEl(xScale(q.wLow), y, xScale(q.wHigh), y, { stroke: "#cbd5e1", w: 3 }));
+
+    // whisker caps (bigger)
+    svg.appendChild(lineEl(xScale(q.wLow), y - cap, xScale(q.wLow), y + cap, { stroke: "#cbd5e1", w: 3 }));
+    svg.appendChild(lineEl(xScale(q.wHigh), y - cap, xScale(q.wHigh), y + cap, { stroke: "#cbd5e1", w: 3 }));
+
+    // box
+    const x1 = xScale(q.q1);
+    const x3 = xScale(q.q3);
+    svg.appendChild(rectEl(x1, y - boxH/2, Math.max(2, x3 - x1), boxH, {
+        fill: "rgba(79,70,229,0.22)",
+        stroke: "#4f46e5",
+        sw: 3,
+        rx: 14,
+        ry: 14
     }));
-  }
 
-  svg.appendChild(textEl(pad.l, 14, valueLabel, { size: 12, fill: "#94a3b8" }));
+    // median
+    svg.appendChild(lineEl(xScale(q.med), y - boxH/2, xScale(q.med), y + boxH/2, { stroke: "#06b6d4", w: 4 }));
 
-  // whisker
-  svg.appendChild(lineEl(xScale(q.wLow), y, xScale(q.wHigh), y, { stroke: "#cbd5e1", w: 2 }));
-  svg.appendChild(lineEl(xScale(q.wLow), y - 12, xScale(q.wLow), y + 12, { stroke: "#cbd5e1", w: 2 }));
-  svg.appendChild(lineEl(xScale(q.wHigh), y - 12, xScale(q.wHigh), y + 12, { stroke: "#cbd5e1", w: 2 }));
+    // points (bigger + more spread)
+    vals.forEach((v) => {
+        const jy = y + (Math.random() - 0.5) * (boxH * 0.7);
+        svg.appendChild(circleEl(xScale(v), jy, 7));
+    });
 
-  // box
-  const boxH = 44;
-  const x1 = xScale(q.q1);
-  const x3 = xScale(q.q3);
-  svg.appendChild(rectEl(x1, y - boxH/2, Math.max(2, x3 - x1), boxH, {
-    fill: "rgba(79,70,229,0.22)",
-    stroke: "#4f46e5",
-    sw: 2,
-    rx: 12,
-    ry: 12
-  }));
+    // outliers
+    q.outliers.forEach(v =>
+        svg.appendChild(circleEl(xScale(v), y, 8, { fill: "rgba(229,231,235,0.9)", stroke: "#e5e7eb", sw: 1 }))
+    );
 
-  // median
-  svg.appendChild(lineEl(xScale(q.med), y - boxH/2, xScale(q.med), y + boxH/2, { stroke: "#06b6d4", w: 3 }));
-
-  // points (jitter)
-  vals.forEach((v, i) => {
-    const jy = y + (Math.random() - 0.5) * 26;
-    svg.appendChild(circleEl(xScale(v), jy, 5));
-  });
-
-  // outliers
-  q.outliers.forEach(v => svg.appendChild(circleEl(xScale(v), y, 6, { fill: "rgba(229,231,235,0.9)", stroke: "#e5e7eb", sw: 1 })));
-
-  // note
-  const st = stats(vals);
-  const noteEl = document.getElementById(noteId);
-  if (noteEl && st) {
-    noteEl.textContent = `n=${st.n} · mean=${fmt(st.mean, 1)} · median=${fmt(q.med, 1)} · min=${fmt(st.min, 1)} · max=${fmt(st.max, 1)}.`;
-  }
+    // note
+    const st = stats(vals);
+    const noteEl = document.getElementById(noteId);
+    if (noteEl && st) {
+        noteEl.textContent = `n=${st.n} · mean=${fmt(st.mean, 1)} · median=${fmt(q.med, 1)} · min=${fmt(st.min, 1)} · max=${fmt(st.max, 1)}. `;
+    }
 }
 
 function drawCountBars(svgId, countsObj, titleLabel, noteId) {
-  const svg = document.getElementById(svgId);
-  if (!svg) return;
-  clearSvg(svg);
+    const svg = document.getElementById(svgId);
+    if (!svg) return;
+    clearSvg(svg);
 
-  const W = 760, H = 520;
-  const pad = { l: 60, r: 20, t: 20, b: 54 };
-  const plotW = W - pad.l - pad.r;
-  const plotH = H - pad.t - pad.b;
+    const vb = svg.viewBox.baseVal;
+    const W = vb && vb.width ? vb.width : 760;
+    const H = vb && vb.height ? vb.height : 540;
 
-  const labels = Object.keys(countsObj);
-  const values = labels.map(k => countsObj[k]);
-  const maxV = Math.max(...values, 1);
+    const pad = { l: 50, r: 20, t: 40, b: 70 };
+    const plotW = W - pad.l - pad.r;
+    const plotH = H - pad.t - pad.b;
 
-  // grid lines
-  const ticks = 4;
-  for (let i = 0; i <= ticks; i++) {
-    const v = (i / ticks) * maxV;
-    const y = pad.t + (1 - v / maxV) * plotH;
-    svg.appendChild(lineEl(pad.l, y, pad.l + plotW, y, { stroke: "#111827", w: 1 }));
-    svg.appendChild(textEl(12, y + 4, `${Math.round(v)}`, { size: 11, fill: "#94a3b8" }));
-  }
+    const labels = Object.keys(countsObj);
+    const values = labels.map(k => countsObj[k]);
+    const maxV = Math.max(...values, 1);
 
-  svg.appendChild(textEl(pad.l, 14, titleLabel, { size: 12, fill: "#94a3b8" }));
+    // grid lines
+    const ticks = 4;
+    for (let i = 0; i <= ticks; i++) {
+        const v = (i / ticks) * maxV;
+        const y = pad.t + (1 - v / maxV) * plotH;
+        svg.appendChild(lineEl(pad.l, y, pad.l + plotW, y, { stroke: "#111827", w: 1 }));
+        svg.appendChild(textEl(18, y + 4, `${Math.round(v)}`, { size: 12, fill: "#94a3b8" }));
+    }
 
-  const step = plotW / labels.length;
-  const barW = Math.min(140, step * 0.6);
+    svg.appendChild(textEl(pad.l, 22, titleLabel, { size: 12, fill: "#94a3b8" }));
 
-  labels.forEach((lab, i) => {
-    const v = countsObj[lab];
-    const x = pad.l + step * i + step / 2;
-    const y0 = pad.t + plotH;
-    const yV = pad.t + (1 - v / maxV) * plotH;
+    const step = plotW / labels.length;
+    const barW = Math.min(180, step * 0.6);
 
-    svg.appendChild(rectEl(x - barW/2, yV, barW, Math.max(2, y0 - yV), {
-      fill: "rgba(79,70,229,0.22)",
-      stroke: "#4f46e5",
-      sw: 2,
-      rx: 12,
-      ry: 12
-    }));
+    labels.forEach((lab, i) => {
+        const v = countsObj[lab];
+        const x = pad.l + step * i + step / 2;
+        const y0 = pad.t + plotH;
+        const yV = pad.t + (1 - v / maxV) * plotH;
 
-    svg.appendChild(textEl(x, yV - 8, `${v}`, { anchor: "middle", size: 12, fill: "#e5e7eb", weight: "600" }));
-    svg.appendChild(textEl(x, H - 22, lab, { anchor: "middle", size: 12, fill: "#cbd5e1" }));
-  });
+        svg.appendChild(rectEl(x - barW/2, yV, barW, Math.max(2, y0 - yV), {
+            fill: "rgba(79,70,229,0.22)",
+            stroke: "#4f46e5",
+            sw: 3,
+            rx: 14,
+            ry: 14
+        }));
 
-  const noteEl = document.getElementById(noteId);
-  if (noteEl) noteEl.textContent = `Total responses: ${values.reduce((a,b)=>a+b,0)}.`;
+        svg.appendChild(textEl(x, yV - 10, `${v}`, { anchor: "middle", size: 14, fill: "#e5e7eb", weight: "600" }));
+        svg.appendChild(textEl(x, H - 28, lab, { anchor: "middle", size: 13, fill: "#cbd5e1" }));
+    });
+
+    const noteEl = document.getElementById(noteId);
+    if (noteEl) noteEl.textContent = `Total responses: ${values.reduce((a,b)=>a+b,0)}.`;
 }
 
 function drawParticipantBars(svgId, participants, valueKey, labelKey, titleLabel, noteId) {
-  const svg = document.getElementById(svgId);
-  if (!svg) return;
-  clearSvg(svg);
+    const svg = document.getElementById(svgId);
+    if (!svg) return;
+    clearSvg(svg);
 
-  const W = 760, H = 540;
-  const pad = { l: 60, r: 20, t: 20, b: 54 };
-  const plotW = W - pad.l - pad.r;
-  const plotH = H - pad.t - pad.b;
+    const vb = svg.viewBox.baseVal;
+    const W = vb && vb.width ? vb.width : 760;
+    const H = vb && vb.height ? vb.height : 540;
 
-  const labels = participants.map(p => p[labelKey]);
-  const values = participants.map(p => Number(p[valueKey])).filter(x => !Number.isNaN(x));
-  const maxV = Math.max(...values, 1);
-  const minV = Math.min(...values, 0);
-  const range = (maxV - minV) || 1;
+    const pad = { l: 80, r: 40, t: 40, b: 70 };
+    const plotW = W - pad.l - pad.r;
+    const plotH = H - pad.t - pad.b;
 
-  const minA = minV - range * 0.05;
-  const maxA = maxV + range * 0.05;
+    const labels = participants.map(p => p[labelKey]);
+    const values = participants.map(p => Number(p[valueKey])).filter(x => !Number.isNaN(x));
+    const maxV = Math.max(...values, 1);
+    const minV = Math.min(...values, 0);
+    const range = (maxV - minV) || 1;
 
-  const yScale = (v) => pad.t + (1 - (v - minA) / (maxA - minA)) * plotH;
+    const minA = minV - range * 0.05;
+    const maxA = maxV + range * 0.05;
 
-  // grid
-  const ticks = 5;
-  for (let i = 0; i <= ticks; i++) {
-    const v = minA + (i / ticks) * (maxA - minA);
-    const y = yScale(v);
-    svg.appendChild(lineEl(pad.l, y, pad.l + plotW, y, { stroke: "#111827", w: 1 }));
-    svg.appendChild(textEl(10, y + 4, fmt(v, 0), { size: 11, fill: "#94a3b8" }));
-  }
+    const yScale = (v) => pad.t + (1 - (v - minA) / (maxA - minA)) * plotH;
 
-  svg.appendChild(textEl(pad.l, 14, titleLabel, { size: 12, fill: "#94a3b8" }));
+    // grid
+    const ticks = 5;
+    for (let i = 0; i <= ticks; i++) {
+        const v = minA + (i / ticks) * (maxA - minA);
+        const y = yScale(v);
+        svg.appendChild(lineEl(pad.l, y, pad.l + plotW, y, { stroke: "#111827", w: 1 }));
+        svg.appendChild(textEl(18, y + 4, fmt(v, 0), { size: 12, fill: "#94a3b8" }));
+    }
 
-  const step = plotW / labels.length;
-  const barW = Math.min(90, step * 0.6);
+    svg.appendChild(textEl(pad.l, 22, titleLabel, { size: 12, fill: "#94a3b8" }));
 
-  participants.forEach((p, i) => {
-    const v = Number(p[valueKey]);
-    const x = pad.l + step * i + step / 2;
-    const y0 = yScale(minA);
-    const yV = yScale(v);
+    const step = plotW / labels.length;
+    const barW = Math.min(120, step * 0.6);
 
-    svg.appendChild(rectEl(x - barW/2, yV, barW, Math.max(2, y0 - yV), {
-      fill: "rgba(79,70,229,0.22)",
-      stroke: "#4f46e5",
-      sw: 2,
-      rx: 12,
-      ry: 12
-    }));
+    participants.forEach((p, i) => {
+        const v = Number(p[valueKey]);
+        const x = pad.l + step * i + step / 2;
+        const y0 = yScale(minA);
+        const yV = yScale(v);
 
-    svg.appendChild(textEl(x, yV - 8, `${v}`, { anchor: "middle", size: 12, fill: "#e5e7eb", weight: "600" }));
-    svg.appendChild(textEl(x, H - 22, p[labelKey], { anchor: "middle", size: 12, fill: "#cbd5e1" }));
-  });
+        svg.appendChild(rectEl(x - barW/2, yV, barW, Math.max(2, y0 - yV), {
+            fill: "rgba(79,70,229,0.22)",
+            stroke: "#4f46e5",
+            sw: 3,
+            rx: 14,
+            ry: 14
+        }));
 
-  const noteEl = document.getElementById(noteId);
-  if (noteEl) {
-    const st = stats(participants.map(p => p[valueKey]));
-    noteEl.textContent = st ? `mean=${fmt(st.mean, 1)} · min=${fmt(st.min, 0)} · max=${fmt(st.max, 0)}.` : "";
-  }
+        svg.appendChild(textEl(x, yV - 10, `${v}`, { anchor: "middle", size: 14, fill: "#e5e7eb", weight: "600" }));
+        svg.appendChild(textEl(x, H - 28, p[labelKey], { anchor: "middle", size: 13, fill: "#cbd5e1" }));
+    });
+
+    const noteEl = document.getElementById(noteId);
+    if (noteEl) {
+        const st = stats(participants.map(p => p[valueKey]));
+        noteEl.textContent = st ? `mean=${fmt(st.mean, 1)} · min=${fmt(st.min, 0)} · max=${fmt(st.max, 0)}.` : "";
+    }
 }
 
 // ---------- DOM Updates ----------
 function renderSummaryTable() {
-  const tbody = document.getElementById("summary-table-body");
-  if (!tbody) return;
-  tbody.innerHTML = "";
-  participants.forEach(p => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
+    const tbody = document.getElementById("summary-table-body");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    participants.forEach(p => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
       <td>${p.pid}</td>
       <td>${p.gender}</td>
       <td>${p.age}</td>
@@ -437,61 +465,64 @@ function renderSummaryTable() {
       <td>${p.puzzleAppropriate.toUpperCase()}</td>
       <td>${fmt(p.susScore, 1)}</td>
     `;
-    tbody.appendChild(tr);
-  });
+        tbody.appendChild(tr);
+    });
 }
 
 function renderFeedbackExcerpts() {
-  const ul = document.getElementById("feedback-excerpts");
-  if (!ul) return;
-  ul.innerHTML = "";
+    const ul = document.getElementById("feedback-excerpts");
+    if (!ul) return;
+    ul.innerHTML = "";
 
-  const excerpts = participants.map(p => p.firstLook).filter(Boolean);
-  const unique = [];
-  excerpts.forEach(x => {
-    const norm = x.trim().toLowerCase();
-    if (!unique.some(u => u.trim().toLowerCase() === norm)) unique.push(x.trim());
-  });
+    const excerpts = participants.map(p => p.firstLook).filter(Boolean);
+    const unique = [];
+    excerpts.forEach(x => {
+        const norm = x.trim().toLowerCase();
+        if (!unique.some(u => u.trim().toLowerCase() === norm)) unique.push(x.trim());
+    });
 
-  unique.slice(0, 5).forEach(x => {
-    const li = document.createElement("li");
-    li.textContent = `“${x}”`;
-    ul.appendChild(li);
-  });
+    unique.slice(0, 5).forEach(x => {
+        const li = document.createElement("li");
+        li.textContent = `“${x}”`;
+        ul.appendChild(li);
+    });
 }
 
 function setDemographicsSummary() {
-  const countEl = document.getElementById("participants-count");
-  const genderEl = document.getElementById("participants-gender");
-  const ageEl = document.getElementById("participants-age");
+    const countEl = document.getElementById("participants-count");
+    const genderEl = document.getElementById("participants-gender");
+    const ageEl = document.getElementById("participants-age");
 
-  const n = participants.length;
-  const genders = {};
-  participants.forEach(p => { genders[p.gender] = (genders[p.gender] || 0) + 1; });
+    const n = participants.length;
+    const genders = {};
+    participants.forEach(p => { genders[p.gender] = (genders[p.gender] || 0) + 1; });
 
-  const ages = participants.map(p => p.age);
-  const ageStats = stats(ages);
+    const ages = participants.map(p => p.age);
+    const ageStats = stats(ages);
 
-  if (countEl) countEl.textContent = `${n}`;
-  if (genderEl) genderEl.textContent = Object.entries(genders).map(([g,c]) => `${g}: ${c}`).join(", ");
-  if (ageEl && ageStats) ageEl.textContent = `mean ${fmt(ageStats.mean,1)}, min ${ageStats.min}, max ${ageStats.max}`;
+    if (countEl) countEl.textContent = `${n}`;
+    if (genderEl) genderEl.textContent = Object.entries(genders).map(([g,c]) => `${g}: ${c}`).join(", ");
+    if (ageEl && ageStats) ageEl.textContent = `mean ${fmt(ageStats.mean,1)}, min ${ageStats.min}, max ${ageStats.max}`;
 }
 
 // ---------- init (Run on load) ----------
 (function init() {
-  setDemographicsSummary();
-  renderSummaryTable();
-  renderFeedbackExcerpts();
+    setDemographicsSummary();
+    renderSummaryTable();
+    renderFeedbackExcerpts();
 
-  drawSingleBoxplot("svg-box-sus", participants.map(p => p.susScore), "SUS (0–100)", "note-box-sus", [0, 100]);
-  drawSingleBoxplot("svg-box-structure", participants.map(p => p.appStructure), "App Structure (1–5)", "note-box-structure", [1, 5]);
+    // Keep SUS axis 0–100 (per your request)
+    drawSingleBoxplot("svg-box-sus", participants.map(p => p.susScore), "SUS (0–100)", "note-box-sus", [0, 100]);
 
-  const puzzleCounts = { Yes: 0, No: 0 };
-  participants.forEach(p => {
-    if ((p.puzzleAppropriate || "").toLowerCase().startsWith("y")) puzzleCounts.Yes++;
-    else puzzleCounts.No++;
-  });
-  drawCountBars("svg-bar-puzzle", puzzleCounts, "Responses", "note-bar-puzzle");
+    // Keep structure axis 1–5
+    drawSingleBoxplot("svg-box-structure", participants.map(p => p.appStructure), "App Structure (1–5)", "note-box-structure", [1, 5]);
 
-  drawParticipantBars("svg-bar-age", participants, "age", "pid", "Age", "note-bar-age");
+    const puzzleCounts = { Yes: 0, No: 0 };
+    participants.forEach(p => {
+        if ((p.puzzleAppropriate || "").toLowerCase().startsWith("y")) puzzleCounts.Yes++;
+        else puzzleCounts.No++;
+    });
+    drawCountBars("svg-bar-puzzle", puzzleCounts, "Responses", "note-bar-puzzle");
+
+    drawParticipantBars("svg-bar-age", participants, "age", "pid", "Age", "note-bar-age");
 })();

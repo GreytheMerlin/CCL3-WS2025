@@ -75,9 +75,9 @@
 
       <h4>1) Hypotheses & Testable Questions</h4>
       <ul>
-        <li><strong>Hypothesis A:</strong> Users using the “Puzzle” dismissal method will demonstrate higher cognitive alertness immediately after dismissal compared to standard “Swipe” dismissal.</li>
-        <li><strong>Hypothesis B:</strong> Users will perceive the “Math” puzzle as more effective but more frustrating than the “Memory” puzzle.</li>
-        <li><strong>Testable question:</strong> Does the friction introduced by the puzzle cause users to force-close the app rather than solve the puzzle?</li>
+        <li><strong>H1:</strong> Users who dismiss the alarm using a puzzle will take longer to dismiss the alarm than users who dismiss with a standard swipe, but will report feeling more awake immediately afterward.</li>
+        <li><strong>H2:</strong> Users will rate the Math puzzle as more effective for waking up than the Memory puzzle, but will also rate it as more frustrating (lower satisfaction / higher perceived annoyance).</li>
+        <li><strong>Testable question:</strong> When users experience difficulty or frustration with the puzzle dismissal, do they attempt to bypass it (e.g., force-close, lower phone volume, or disable the feature) instead of completing the puzzle? </li>
       </ul>
 
       <h4>2) Planned Data to Collect (Variables)</h4>
@@ -95,7 +95,7 @@
       </ol>
 
       <h4>3) Methods & Protocol (Tasks & Materials)</h4>
-      <p><strong>Participants:</strong> 3–5 students (hallway testing / fellow students)</p>
+      <p><strong>Participants:</strong> 5-8 students (hallway testing / fellow students)</p>
       <p><strong>Materials:</strong></p>
       <ul>
         <li>Smartphone with MVP app installed</li>
@@ -137,8 +137,7 @@
             <h2>User Test Results</h2>
             <p class="muted">The charts below are generated from our collected data (demographics, questionnaire, and
                 SUS).
-                (Note: task completion time was not collected in these files — add it later if you have an observation
-                sheet.)</p>
+                (Note: Error Rate is 0 so it isn't mentioned )</p>
 
             <h3>Participants</h3>
             <p>
@@ -151,15 +150,15 @@
                 <div class="chart-card">
                     <p class="chart-title">Boxplot: SUS Score (0–100)</p>
                     <div class="chart-wrap">
-                        <svg class="chart" id="svg-box-sus" viewBox="0 0 760 280"></svg>
+                        <svg class="chart" id="svg-box-sus" viewBox="0 0 760 760"></svg>
                     </div>
                     <p class="small-note" id="note-box-sus"></p>
                 </div>
 
                 <div class="chart-card">
-                    <p class="chart-title">App Structure Rating (1–5)</p>
+                    <p class="chart-title">App Structure Rating (1 good – 5 bad)</p>
                     <div class="chart-wrap">
-                        <svg class="chart" id="svg-box-structure" viewBox="0 0 760 280"></svg>
+                        <svg class="chart" id="svg-box-structure" viewBox="0 0 760 760"></svg>
                     </div>
                     <p class="small-note" id="note-box-structure"></p>
                 </div>
@@ -167,7 +166,7 @@
                 <div class="chart-card">
                     <p class="chart-title">Puzzle Difficulty Appropriate?</p>
                     <div class="chart-wrap">
-                        <svg class="chart" id="svg-bar-puzzle" viewBox="0 0 760 280"></svg>
+                        <svg class="chart" id="svg-bar-puzzle" viewBox="0 0 760 540"></svg>
                     </div>
                     <p class="small-note" id="note-bar-puzzle"></p>
                 </div>
@@ -175,7 +174,7 @@
                 <div class="chart-card">
                     <p class="chart-title">Participant Ages</p>
                     <div class="chart-wrap">
-                        <svg class="chart" id="svg-bar-age" viewBox="0 0 760 280"></svg>
+                        <svg class="chart" id="svg-bar-age" viewBox="0 0 760 760"></svg>
                     </div>
                     <p class="small-note" id="note-bar-age"></p>
                 </div>
@@ -189,7 +188,7 @@
                         <th>Gender</th>
                         <th>Age</th>
                         <th>App Structure</th>
-                        <th>Puzzle Difficulty</th>
+                        <th>Puzzle Difficulty appropriate </th>
                         <th>SUS Score</th>
                     </tr>
                 </thead>
@@ -198,7 +197,7 @@
             
 <h3>Task Completion Times (Time Rate)</h3>
 <p class="muted">
-  Times are based on the observation notes (Task 1–3 for most participants; Victor includes Task 4).
+  Times are based on the observation.
 </p>
 
 <table class="table">
@@ -214,19 +213,46 @@
   </thead>
   <tbody id="time-rate-table-body"></tbody>
 </table>
-            
+
+            <h3>Limitations:</h3>
+            <ul>
+                <li>Small sample size (n=6)</li>
+                <li>Mostly male participants</li>
+                <li>Some tests done on emulator, not real devices</li>
+                <li>No long-term real sleep usage was measured</li>
+
+            </ul>
+
             <h3>Most Relevant Feedback</h3>
-            <ul id="feedback-excerpts"></ul>
+            <ul id="">
+                <li> Emulator Problems (wrong time on device) </li>
+                <li> Phone didnt ring when device locked </li>
+                <li> Difficulty finding challenge </li>
+                <li> Restarted the challenges when flipping the phone </li>
+
+            </ul>
 
             <h3>Updates Made Based on Feedback</h3>
             <ul>
                 <li> Improved name clarity </li>
                 <li> Improved UI and UX </li>
                 <li> Changed state storage so it doesn’t restart challenge when flipping the phone </li>
-                <li></li>
+
             </ul>
+            <h3>Conclusion</h3>
+            <p>The usability test indicates very high overall usability (mean SUS ≈ 95), which is considered excellent. Participants were able to complete the core tasks with little difficulty. However, the low ratings for app structure and multiple comments about navigation indicate that the information architecture needs improvement. The puzzle-based dismissal was perceived as effective, but some users showed initial confusion, suggesting the need for clearer onboarding and UI guidance.</p>
+
+            <h3>Evaluation of Hypotheses</h3>
+           <ul>
+               <li> H1: Partially supported. While puzzle dismissal increases interaction time, participants reported feeling more awake, but this was not quantitatively measured.</li>
+               <li> H2: Not fully tested, as only one puzzle type was evaluated in this iteration.</li>
+               <li>Testable question: No participant force-closed the app, but two participants showed signs of confusion, indicating potential frustration risk.</li>
+
+           </ul>
         </div>
-        </div>
+
+
+
     </main>
 
     <footer>
