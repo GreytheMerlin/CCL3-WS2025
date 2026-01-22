@@ -8,7 +8,6 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="true" />
-    <!--    Health Connect permission to read and write sleep data  -->
     <uses-permission android:name="android.permission.health.READ_SLEEP"/>
     <uses-permission android:name="android.permission.health.WRITE_SLEEP"/>
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
@@ -32,7 +31,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Snorly">
+        android:theme="@style/Theme.App.Starting">
 
         <activity-alias
             android:name="ViewPermissionUsageActivity"
@@ -79,7 +78,7 @@
             android:name="com.example.snorly.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Snorly">
+            android:theme="@style/Theme.App.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
