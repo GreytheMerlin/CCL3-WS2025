@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun CascadingIcon(
-    imageVector: androidx.compose.ui.graphics.vector.ImageVector,
+    imageVector: androidx.compose.ui.graphics.vector.ImageVector ,
     isActive: Boolean,
     index: Int // 0, 1, 2... determines delay
 ) {

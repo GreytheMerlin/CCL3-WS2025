@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Info
@@ -35,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.snorly.feature.alarm.Alarm
+import com.example.snorly.R
 
 @Composable
 fun AlarmCard(
@@ -142,10 +144,13 @@ fun AlarmCard(
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
 
                     CascadingIcon(Icons.Outlined.DateRange, alarm.isActive, 0)
-                    CascadingIcon(Icons.Outlined.Info, alarm.isActive, 1)
+                    CascadingIcon(Icons.Outlined.BugReport, alarm.isActive, 1)
                     CascadingIcon(Icons.Filled.Notifications, alarm.isActive, 2)
                 }
             }
+            //R.drawable.psychology_24px
+
+
 
             // RIGHT: switch (hidden in selection mode)
             if (!selectionMode) {
