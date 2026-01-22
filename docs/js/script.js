@@ -235,7 +235,7 @@ function drawParticipantBars(svgId, participants, valueKey, labelKey, titleLabel
   if (!svg) return;
   clearSvg(svg);
 
-  const W = 760, H = 280;
+  const W = 760, H = 540;
   const pad = { l: 60, r: 20, t: 20, b: 54 };
   const plotW = W - pad.l - pad.r;
   const plotH = H - pad.t - pad.b;
