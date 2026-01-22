@@ -68,15 +68,14 @@ fun SleepScreen(
             isRefreshing = viewModel.isSyncing,
             onRefresh = { viewModel.syncSleepData() },
             state = pullRefreshState,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize().padding(top = innerPadding.calculateTopPadding())
         ) {
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
+                    .fillMaxSize(),
                 contentPadding = PaddingValues(
                     top = 16.dp,
-                    bottom = innerPadding.calculateBottomPadding() + 80.dp,
+                    bottom = innerPadding.calculateBottomPadding() + 24.dp,
                     start = 16.dp,
                     end = 16.dp
                 ),
