@@ -49,7 +49,7 @@ fun RingtoneScreen(
                     title = "Composer", subtitle = "Create custom",
                     icon = Icons.Default.Build,
                     color1 = Color(0xFFD4AF37), color2 = Color(0xFF3E2723),
-                    shaderCode = ShaderLibrary.SILK_FOG,
+                    shaderCode = ShaderLibrary.LED_MATRIX,
                     onClick = { onCategoryClick("composer") }
                 )
             }
@@ -98,8 +98,8 @@ fun RingtoneScreen(
                 OrganicShaderCard(
                     title = "Animals", subtitle = "Wild calls",
                     icon = Icons.Default.MusicNote,
-                    color1 = Color(0xFFFF6F00), color2 = Color(0xFFBF360C),
-                    shaderCode = ShaderLibrary.HEATMAP,
+                    color1 = Color(0xFFFF6F00), color2 = Color(0xFF330F04),
+                    shaderCode = ShaderLibrary.LIQUID_FLOW,
                     count = "${ RingtoneData.getSoundsForCategory("animals").size} sounds", onClick = { onCategoryClick("animals") }
                 )
             }
@@ -120,7 +120,7 @@ fun RingtoneScreen(
                 OrganicShaderCard(
                     title = "Funny", subtitle = "Ambient noise",
                     icon = Icons.Default.Bedtime,
-                    color1 = Color(0xFF304FFE), color2 = Color(0xFF1A237E),
+                    color1 = Color(0xFF304FFE), color2 = Color(0xFF131959),
                     shaderCode = ShaderLibrary.FOCUS,
                     count = "${ RingtoneData.getSoundsForCategory("funny").size} sounds", onClick = { onCategoryClick("funny") }
                 )
@@ -141,11 +141,11 @@ fun RingtoneScreen(
             // High contrast works best here. Bright edge, dark center.
             item {
                 OrganicShaderCard(
-                    title = "AI", subtitle = "AI Speech",
+                    title = "Motivational Speech", subtitle = "AI Speech",
                     icon = Icons.Outlined.ErrorOutline,
-                    color2 = Color(0xFF5A965A), // Bright Neon Red (Edge)
-                    color1 = Color(0xFF253622), // Pure Black (Center)
-                    shaderCode = ShaderLibrary.INVERTED_PULSE, // <--- New Shader
+                    color2 = Color(0xFF2D628D), // Bright Neon Red (Edge)
+                    color1 = Color(0xFF060C1E), // Pure Black (Center)
+                    shaderCode = ShaderLibrary.SILK_FOG, // <--- New Shader
                     count = "${ RingtoneData.getSoundsForCategory("ai").size} sounds",
                     onClick = { onCategoryClick("ai") }
                 )
