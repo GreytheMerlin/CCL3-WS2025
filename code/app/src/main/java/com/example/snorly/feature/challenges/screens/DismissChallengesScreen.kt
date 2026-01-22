@@ -81,7 +81,14 @@ fun DismissChallengesScreen(
                 Text("Enable Challenges", style = MaterialTheme.typography.titleMedium)
                 Switch(
                     checked = state.isEnabled,
-                    onCheckedChange = { viewModel.toggleFeature(it) }
+                    onCheckedChange = { viewModel.toggleFeature(it) },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = MaterialTheme.colorScheme.background,
+                        checkedTrackColor = MaterialTheme.colorScheme.primary,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        uncheckedTrackColor = MaterialTheme.colorScheme.surface,
+                        uncheckedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                    )
                 )
             }
 

@@ -5,7 +5,7 @@ data class AlarmCreateUiState(
 
     val hour: Int = 6,
     val minute: Int = 0,
-    val label: String = "Alarm Name",
+    val label: String = "",
     val ringtone: String = "Default",
     val ringtoneUri: String = "",
     val vibration: String = "Zig Zag",

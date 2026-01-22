@@ -224,6 +224,9 @@ fun AlarmCreateScreen(
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value = state.label,
+                placeholder = {
+                    Text(text = "Label", color = Color.Gray)
+                },
                 onValueChange = alarmViewModel::setLabel,
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,

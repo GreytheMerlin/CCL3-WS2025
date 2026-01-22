@@ -35,6 +35,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -76,30 +77,33 @@ fun SleepDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                title = { }, navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White
+                    )
+                }
+            }, actions = {
+                // Only allow edits if Snorly owns the data
+                IconButton(onClick = {
+                    // FIXED: Use local 'id' converted to String, not 'metadata.id'
+                    if (record != null) onEdit(record.id.toString())
+                }) {
+                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.White)
+                }
+                if (viewModel.isEditable) {
+
+                    IconButton(onClick = { showDeleteDialog = true }) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = Color.Red
+                        )
                     }
-                },
-                actions = {
-                    // Only allow edits if Snorly owns the data
-                    if (viewModel.isEditable) {
-                        IconButton(onClick = {
-                            // FIXED: Use local 'id' converted to String, not 'metadata.id'
-                            if (record != null) onEdit(record.id.toString())
-                        }) {
-                            Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.White)
-                        }
-                        IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = bg)
+                }
+            }, colors = TopAppBarDefaults.topAppBarColors(containerColor = bg)
             )
-        },
-        containerColor = bg
+        }, containerColor = bg
     ) { innerPadding ->
 
         if (viewModel.isLoading) {
@@ -119,7 +123,10 @@ fun SleepDetailScreen(
             ) {
                 // 1. Header (Big Duration)
                 item {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Text(viewModel.formattedDate, color = Color.Gray, fontSize = 14.sp)
                         Spacer(Modifier.height(8.dp))
                         Text(
@@ -139,7 +146,9 @@ fun SleepDetailScreen(
                                 Text(
                                     text = "Quality: ${viewModel.sleepQuality}",
                                     color = Color.White,
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                    modifier = Modifier.padding(
+                                        horizontal = 16.dp, vertical = 8.dp
+                                    ),
                                     fontWeight = FontWeight.Medium,
                                     fontSize = 12.sp
                                 )
@@ -149,20 +158,30 @@ fun SleepDetailScreen(
 
                             // Source App Badge
                             Surface(
-                                color = if (viewModel.isEditable) Color(0xFF0F3D64) else Color(0xFF3E2723), // Blue for Snorly, Brown/Red for others
+                                color = if (viewModel.isEditable) Color(0xFF0F3D64) else Color(
+                                    0xFF3E2723
+                                ), // Blue for Snorly, Brown/Red for others
                                 shape = RoundedCornerShape(100),
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                    modifier = Modifier.padding(
+                                        horizontal = 12.dp, vertical = 8.dp
+                                    ), verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     if (!viewModel.isEditable) {
-                                        Icon(Icons.Default.Info, contentDescription = null, tint = Color(0xFFFFAB91), modifier = Modifier.size(12.dp))
+                                        Icon(
+                                            Icons.Default.Info,
+                                            contentDescription = null,
+                                            tint = Color(0xFFFFAB91),
+                                            modifier = Modifier.size(12.dp)
+                                        )
                                         Spacer(Modifier.width(4.dp))
                                     }
                                     Text(
                                         text = "Source: ${viewModel.sourceAppName}",
-                                        color = if (viewModel.isEditable) Color(0xFF90CAF9) else Color(0xFFFFAB91),
+                                        color = if (viewModel.isEditable) Color(0xFF90CAF9) else Color(
+                                            0xFFFFAB91
+                                        ),
                                         fontWeight = FontWeight.Medium,
                                         fontSize = 12.sp
                                     )
@@ -187,17 +206,27 @@ fun SleepDetailScreen(
                     ) {
                         Column {
                             Text("Bedtime", color = Color.Gray, fontSize = 12.sp)
-                            Text(startStr, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                startStr,
+                                color = Color.White,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                         Column(horizontalAlignment = Alignment.End) {
                             Text("Wake up", color = Color.Gray, fontSize = 12.sp)
-                            Text(endStr, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                endStr,
+                                color = Color.White,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }
 
                 // 3. Info Text if not editable
-//                if (!viewModel.isEditable) {
+                if (!viewModel.isEditable) {
                     item {
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Color(0xFF2C2C2E)),
@@ -205,7 +234,9 @@ fun SleepDetailScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(modifier = Modifier.padding(16.dp)) {
-                                Icon(Icons.Default.Info, contentDescription = null, tint = Color.Gray)
+                                Icon(
+                                    Icons.Default.Info, contentDescription = null, tint = Color.Gray
+                                )
                                 Spacer(Modifier.width(12.dp))
                                 Text(
                                     "This sleep session was recorded by ${viewModel.sourceAppName}. Please use that app to edit details.",
@@ -215,10 +246,15 @@ fun SleepDetailScreen(
                             }
                         }
                     }
-//                }
+                }
 
                 item {
-                    Text("Sleep Stages", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "Sleep Stages",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                     Spacer(Modifier.height(12.dp))
 
                     if (viewModel.sleepStages.isNotEmpty()) {
@@ -227,18 +263,39 @@ fun SleepDetailScreen(
                             shape = RoundedCornerShape(16.dp)
                         ) {
                             Column(Modifier.padding(16.dp)) {
-                                val totalDurationMin = Duration.between(record.startTime, record.endTime).toMinutes()
+                                val totalDurationMin =
+                                    Duration.between(record.startTime, record.endTime).toMinutes()
 
                                 // Group stages by type
                                 val stagesByType = viewModel.sleepStages.groupBy { it.stage }
 
-                                StageRow("Deep", stagesByType[SleepSessionRecord.STAGE_TYPE_DEEP], totalDurationMin, Color(0xFF3F51B5))
+                                StageRow(
+                                    "Deep",
+                                    stagesByType[SleepSessionRecord.STAGE_TYPE_DEEP],
+                                    totalDurationMin,
+                                    Color(0xFF3F51B5)
+                                )
                                 Spacer(Modifier.height(12.dp))
-                                StageRow("Light", stagesByType[SleepSessionRecord.STAGE_TYPE_LIGHT], totalDurationMin, Color(0xFF03A9F4))
+                                StageRow(
+                                    "Light",
+                                    stagesByType[SleepSessionRecord.STAGE_TYPE_LIGHT],
+                                    totalDurationMin,
+                                    Color(0xFF03A9F4)
+                                )
                                 Spacer(Modifier.height(12.dp))
-                                StageRow("REM", stagesByType[SleepSessionRecord.STAGE_TYPE_REM], totalDurationMin, Color(0xFF9C27B0))
+                                StageRow(
+                                    "REM",
+                                    stagesByType[SleepSessionRecord.STAGE_TYPE_REM],
+                                    totalDurationMin,
+                                    Color(0xFF9C27B0)
+                                )
                                 Spacer(Modifier.height(12.dp))
-                                StageRow("Awake", stagesByType[SleepSessionRecord.STAGE_TYPE_AWAKE], totalDurationMin, Color(0xFFFF9800))
+                                StageRow(
+                                    "Awake",
+                                    stagesByType[SleepSessionRecord.STAGE_TYPE_AWAKE],
+                                    totalDurationMin,
+                                    Color(0xFFFF9800)
+                                )
                             }
                         }
                     } else {
@@ -248,10 +305,19 @@ fun SleepDetailScreen(
                             shape = RoundedCornerShape(16.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Info, contentDescription = null, tint = Color.Gray)
+                            Row(
+                                Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.Info, contentDescription = null, tint = Color.Gray
+                                )
                                 Spacer(Modifier.width(12.dp))
-                                Text("No detailed stages available.", color = Color.Gray, fontSize = 14.sp)
+                                Text(
+                                    "No detailed stages available.",
+                                    color = Color.Gray,
+                                    fontSize = 14.sp
+                                )
                             }
                         }
                     }
@@ -259,7 +325,12 @@ fun SleepDetailScreen(
 
                 // disaply star rating
                 item {
-                    Text("Rating", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "Rating",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                     Spacer(Modifier.height(16.dp))
 
                     Row(
@@ -279,9 +350,11 @@ fun SleepDetailScreen(
                                 initialValue = 1f,
                                 targetValue = 1.1f,
                                 animationSpec = infiniteRepeatable(
-                                    animation = tween(1200, delayMillis = index * 150, easing = EaseInOutSine),
-                                    repeatMode = RepeatMode.Reverse
-                                ), label = "scale"
+                                    animation = tween(
+                                        1200, delayMillis = index * 150, easing = EaseInOutSine
+                                    ), repeatMode = RepeatMode.Reverse
+                                ),
+                                label = "scale"
                             )
 
                             // Delicate alpha shimmer
@@ -289,9 +362,11 @@ fun SleepDetailScreen(
                                 initialValue = 0.5f,
                                 targetValue = 1f,
                                 animationSpec = infiniteRepeatable(
-                                    animation = tween(1200, delayMillis = index * 150, easing = EaseInOutSine),
-                                    repeatMode = RepeatMode.Reverse
-                                ), label = "alpha"
+                                    animation = tween(
+                                        1200, delayMillis = index * 150, easing = EaseInOutSine
+                                    ), repeatMode = RepeatMode.Reverse
+                                ),
+                                label = "alpha"
                             )
 
                             Icon(
@@ -306,14 +381,18 @@ fun SleepDetailScreen(
                                         scaleX = scale
                                         scaleY = scale
                                         this.alpha = alpha
-                                    }
-                            )
+                                    })
                         }
                     }
                 }
 // 5. Notes Section
                 item {
-                    Text("Notes", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "Notes",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                     Spacer(Modifier.height(8.dp))
 
                     if (!record.notes.isNullOrBlank()) {
@@ -335,8 +414,9 @@ fun SleepDetailScreen(
                             )
                         }
                     }
-                }
+                    Spacer(modifier = Modifier.height(80.dp))
 
+                }
             }
         }
 
@@ -350,8 +430,7 @@ fun SleepDetailScreen(
                         onClick = {
                             viewModel.deleteSession(onSuccess = onDeleteSuccess)
                             showDeleteDialog = false
-                        }
-                    ) {
+                        }) {
                         Text("Delete", color = Color.Red)
                     }
                 },
@@ -359,7 +438,8 @@ fun SleepDetailScreen(
                     TextButton(onClick = { showDeleteDialog = false }) {
                         Text("Cancel")
                     }
-                }
+                },
+                containerColor = MaterialTheme.colorScheme.surface,
             )
         }
     }
@@ -367,10 +447,7 @@ fun SleepDetailScreen(
 
 @Composable
 fun StageRow(
-    label: String,
-    stages: List<SleepSessionRecord.Stage>?,
-    totalMin: Long,
-    color: Color
+    label: String, stages: List<SleepSessionRecord.Stage>?, totalMin: Long, color: Color
 ) {
     val durationMin = stages?.sumOf { Duration.between(it.startTime, it.endTime).toMinutes() } ?: 0
     val percentage = if (totalMin > 0) durationMin.toFloat() / totalMin else 0f
@@ -381,8 +458,7 @@ fun StageRow(
 
     Column {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(label, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             Text(timeStr, color = Color.Gray, fontSize = 14.sp)
