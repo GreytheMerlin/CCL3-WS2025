@@ -2,6 +2,7 @@ package com.example.snorly.feature.challenges.viewmodel
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,55 +23,60 @@ data class ChallengeUiState(
     val isEnabled: Boolean = false,
     val activeChallenges: List<Challenge> = emptyList(),
     // Computed property: All challenges minus the active ones
-    val availableChallenges: List<Challenge> = emptyList()
+    val availableChallenges: List<Challenge> = emptyList(),
+    val initialized: Boolean = false
 )
 
-class ChallengeViewModel(application: Application): AndroidViewModel(application) {
-
+class ChallengeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val alarmDao = AppDatabase.getDatabase(application).alarmDao()
+
     private val _uiState = MutableStateFlow(ChallengeUiState())
     val uiState: StateFlow<ChallengeUiState> = _uiState.asStateFlow()
-    val input = false;
 
-    init {
-        // Init with some default data
-        if(input){
-            _uiState.update { it.copy(isEnabled = true) }
-            val defaults = ChallengeDataSource.allChallenges.take(3)
-            refreshLists(defaults)
+    /** Call this ONCE when opening the screen */
+    fun initFromSelection(enabled: Boolean, activeIds: List<String>) {
+        if (_uiState.value.initialized) return
 
+        val active = activeIds
+            .mapNotNull { id -> ChallengeDataSource.allChallenges.find { it.id == id } }
 
+        _uiState.update {
+            it.copy(
+                isEnabled = enabled,
+                initialized = true
+            )
         }
-        else{
-        val defaults = ChallengeDataSource.allChallenges.take(2) // First 2 active by default
-        refreshLists(defaults)
 
-            }
+        refreshLists(active)
     }
 
-
-    // LoadForEdit
-    private fun loadForEdit(alarmId: Long) = viewModelScope.launch {
-        _uiState.update { it.copy(isEnabled = true) }
-
-        runCatching { alarmDao.getById(alarmId) }
-            .onSuccess { alarmId ->
-
-                _uiState
-
-
-            }
-    }
-
-
-
-    // Toggle the main switch
     fun toggleFeature(enabled: Boolean) {
         _uiState.update { it.copy(isEnabled = enabled) }
+
+        if (!enabled) {
+            // OFF -> clear active list
+            refreshLists(emptyList())
+            return
+        }
+
+        // ON -> if empty, auto add Math
+        if (_uiState.value.activeChallenges.isEmpty()) {
+            getDefaultMathChallenge()?.let { math ->
+                addChallenge(math)
+            }
+        }
     }
 
-    // Add a challenge from "Available" to "Active"
+    private fun getDefaultMathChallenge(): Challenge? {
+
+
+        var x = ChallengeDataSource.allChallenges.find { it.title.equals("Math Problem", ignoreCase = true) }
+        Log.d("challenge", "${x}")
+        return x
+    }
+
+
     fun addChallenge(challenge: Challenge) {
         val currentActive = _uiState.value.activeChallenges.toMutableList()
         if (!currentActive.contains(challenge)) {
@@ -79,24 +85,20 @@ class ChallengeViewModel(application: Application): AndroidViewModel(application
         }
     }
 
-    // Remove from "Active"
     fun removeChallenge(challenge: Challenge) {
         val currentActive = _uiState.value.activeChallenges.toMutableList()
         currentActive.remove(challenge)
         refreshLists(currentActive)
     }
 
-    // Handle Drag & Drop Reordering
     fun moveChallenge(fromIndex: Int, toIndex: Int) {
         val currentList = _uiState.value.activeChallenges.toMutableList()
         if (fromIndex in currentList.indices && toIndex in currentList.indices) {
             Collections.swap(currentList, fromIndex, toIndex)
-            // We just update the list order, no need to recalculate available
             _uiState.update { it.copy(activeChallenges = currentList) }
         }
     }
 
-    // Helper to keep the "Available" list in sync
     private fun refreshLists(active: List<Challenge>) {
         val all = ChallengeDataSource.allChallenges
         val available = all.filter { !active.contains(it) }

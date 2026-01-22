@@ -54,22 +54,11 @@
       padding-bottom: 8px;
     }
 
-    ul {
-      padding-left: 20px;
-    }
+    ul { padding-left: 20px; }
+    li { margin-bottom: 8px; }
 
-    li {
-      margin-bottom: 8px;
-    }
-
-    a {
-      color: #38bdf8;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
+    a { color: #38bdf8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
 
     .muted {
       color: #94a3b8;
@@ -92,11 +81,7 @@
       box-shadow: 0 0 18px rgba(0,0,0,0.25);
     }
 
-    .prototype-grid img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
+    .prototype-grid img { width: 100%; height: auto; display: block; }
 
     .prototype-grid figcaption {
       padding: 12px 14px;
@@ -104,7 +89,6 @@
       color: #cbd5e1;
     }
 
-    /* Small pill/badge for placeholders */
     .badge {
       display: inline-block;
       padding: 4px 10px;
@@ -116,6 +100,70 @@
       margin-top: 6px;
     }
 
+    /* ✅ Charts layout */
+    .results-grid {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .chart-card {
+      background: #0b1224;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 0 18px rgba(0,0,0,0.25);
+    }
+
+    .chart-title {
+      margin: 0 0 6px 0;
+      font-size: 1rem;
+      color: #e5e7eb;
+    }
+
+    .chart-subtitle {
+      margin: 0 0 10px 0;
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+
+    .chart-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 10px;
+    }
+
+    svg.chart {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+    }
+
+    .small-note {
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    /* ✅ Table */
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 0.95rem;
+    }
+    .table th, .table td {
+      border-bottom: 1px solid #1e293b;
+      padding: 10px 8px;
+      text-align: left;
+    }
+    .table th { color: #cbd5e1; font-weight: 600; }
+    .table td { color: #e5e7eb; }
+
     footer {
       text-align: center;
       padding: 20px;
@@ -126,13 +174,11 @@
 </head>
 <body>
 
-  <!-- HEADER -->
   <header>
     <h1>Snorly</h1>
     <p>Sleep Tracker & Alarm Clock App</p>
   </header>
 
-  <!-- MAIN CONTENT -->
   <main>
 
     <!-- PROJECT DETAILS -->
@@ -186,16 +232,14 @@
 
       <h3>Hi-fi Prototype (User Flow)</h3>
       <p class="muted">Add your high-fidelity prototype screens and a clear user flow here.</p>
+
       <div class="prototype-grid">
         <figure>
-          <!-- Put your image in: /images/prototype.png (or change the src below) -->
           <img src="images/prototype.png" alt="Snorly prototype screens (Alarm, Sleep, Report, Settings)" />
           <figcaption>
             Prototype overview: Alarm setup, sleep tracking dashboard, sleep reports, and settings.
           </figcaption>
         </figure>
-
-        <!-- Optional: add a second image that shows a flow diagram -->
         <!--
         <figure>
           <img src="images/userflow.png" alt="Snorly user flow diagram" />
@@ -213,13 +257,13 @@
       <h3>Repository (Source Code)</h3>
       <p class="muted">Replace the link below with your GitHub repository URL.</p>
       <ul>
-        <li><a href="https://github.com/GreytheMerlin/CCL3-WS2025" target="_blank" rel="noopener">GitHub Repository Link (TODO)</a></li>
+        <li><a href="#" target="_blank" rel="noopener">GitHub Repository Link (TODO)</a></li>
       </ul>
 
       <h3>APK Download</h3>
-      <p class="muted">You said you’ll add the APK later — put it in a visible folder (e.g., /apk/) and link it here.</p>
+      <p class="muted">Put the APK into a visible folder (e.g., /apk/) and link it here.</p>
       <ul>
-        <li><a href="#" download>Download APK (TODO: APK file)</a></li>
+        <li><a href="#" download>Download APK (TODO: link your APK file)</a></li>
       </ul>
       <span class="badge">Example path: apk/Snorly.apk</span>
     </div>
@@ -227,15 +271,32 @@
     <!-- FINAL REFLECTIONS -->
     <div class="card">
       <h2>Final Reflection</h2>
-      <p class="muted">Fill in each student reflection. Keep it honest and specific (challenges, contribution, improvements).</p>
+      <p class="muted">Fill in each student reflection (challenges, contribution, improvements).</p>
 
-      <h3>Pesendorfer Lukas</h3>
-      <ul>
-        <li><strong>Challenges:</strong> <span class="muted">TODO</span></li>
-        <li><strong>My Contribution:</strong> <span class="muted">TODO</span></li>
-        <li><strong>Concept vs Final App:</strong> <span class="muted">TODO</span></li>
-        <li><strong>Possible Improvements:</strong> <span class="muted">TODO</span></li>
-      </ul>
+<h3>Pesendorfer Lukas</h3>
+<ul>
+  <li><strong>Challenges:</strong>
+    Choosing and correctly implementing the required Android permissions (especially around alarms/notifications and background behavior).
+    Another major challenge was managing multiple UI states across different screens in Jetpack Compose and making sure they stay consistent when returning to the main screen.
+    Finally, it was challenging to persist those states reliably by mapping them into SQLite (designing the right structure and ensuring updates were saved correctly).
+  </li>
+
+  <li><strong>My Contribution:</strong>
+    I implemented the full alarm feature, including alarm creation and configuration, and the puzzle/challenge-based dismissal flow.
+    This includes the logic for triggering the alarm, handling the dismissal interaction, and connecting the related settings/state to the app’s data flow.
+  </li>
+
+  <li><strong>Concept vs Final App:</strong>
+    The final app matches the initial concept well: it combines sleep tracking with an alarm that uses interactive challenges to prevent oversleeping.
+    The alarm-and-challenge interaction remained the core idea and is implemented as a working feature in the MVP.
+  </li>
+
+  <li><strong>Possible Improvements:</strong>
+    Add more challenge types (and more difficulty options) so users can choose what works best for them.
+    Also add theme changes based on time of day (e.g., calmer night theme, brighter morning theme) to improve readability and overall experience.
+  </li>
+</ul>
+
 
       <h3>Tuerk Laurens</h3>
       <ul>
@@ -250,7 +311,6 @@
     <div class="card">
       <h2>Documentation of Usability Test</h2>
 
-      <!-- PART 1: HEURISTIC EVALUATION -->
       <h3>Usability Test Plan & Heuristic Evaluation</h3>
 
       <h3 style="margin-top: 18px;">Part 1: Heuristic Evaluation</h3>
@@ -299,7 +359,6 @@
         <li><strong>Recommendation:</strong> Add a “Preview Puzzle” button on the Settings screen.</li>
       </ul>
 
-      <!-- PART 2: USER TEST PLAN -->
       <h3 style="margin-top: 24px;">Part 2: User Test Plan (Lab/Field Test)</h3>
 
       <h4>1) Hypotheses & Testable Questions</h4>
@@ -325,8 +384,8 @@
         <li><strong>User Satisfaction (Qualitative):</strong> Simplified SUS-style prompt: “I found this alarm annoying in a helpful way.”</li>
       </ol>
 
-      <h4>3) Methods Used (Tasks & Materials)</h4>
-      <p><strong>Participants:</strong> 5-7 students (hallway testing / fellow students)</p>
+      <h4>3) Methods & Protocol (Tasks & Materials)</h4>
+      <p><strong>Participants:</strong> 3–5 students (hallway testing / fellow students)</p>
       <p><strong>Materials:</strong></p>
       <ul>
         <li>Smartphone with MVP app installed</li>
@@ -343,16 +402,16 @@
             <li><strong>Observation focus:</strong> Can they find the settings?</li>
           </ul>
         </li>
-        <li><strong>Task 2: Sleep Simulation</strong>
+        <li><strong>Task 2: The Sleep Simulation</strong>
           <ul>
             <li><strong>Prompt:</strong> “Start the sleep tracking feature and lock the phone. Wait for the alarm.”</li>
             <li><strong>Observation focus:</strong> Do they know how to start sleep tracking? Does the app stay active?</li>
           </ul>
         </li>
-        <li><strong>Task 3: Wake Up</strong>
+        <li><strong>Task 3: The Wake Up</strong>
           <ul>
             <li><strong>Prompt:</strong> “When the alarm rings, turn it off completely.”</li>
-            <li><strong>Observation focus:</strong> Do they struggle with touch targets? Do they try to swipe out of habit?</li>
+            <li><strong>Observation focus:</strong> Watch their fingers. Do they struggle with touch targets? Do they try to swipe it away out of habit?</li>
           </ul>
         </li>
       </ul>
@@ -365,40 +424,502 @@
       </ol>
     </div>
 
-    <!-- USER TEST RESULTS -->
-    <div class="card">
+    <!-- USER TEST RESULTS (BOXPLOTS + CHARTS) -->
+    <div class="card" id="user-test-results">
       <h2>User Test Results</h2>
-      <p class="muted">Placeholder — add your real results after you run the test.</p>
+      <p class="muted">
+        Here are “proper” visuals: boxplots (with outliers + individual points) and summary bar charts.
+        Edit the dataset at the bottom of the page to match your real participants.
+      </p>
 
       <h3>Participants (Count & Demographics)</h3>
-      <span class="badge">TODO: e.g., 5 participants, age range, student/non-student, etc.</span>
+      <p>
+        <strong>Count:</strong> <span id="participants-count" class="muted">TODO</span><br />
+        <strong>Demographics:</strong> <span id="participants-demo" class="muted">TODO</span>
+      </p>
 
-      <h3>Quantitative Summary (Charts/Tables)</h3>
-      <p class="muted">Add tables or screenshots of charts here.</p>
-      <span class="badge">TODO: images/results-table.png or embed a small HTML table</span>
+      <div class="results-grid">
+        <!-- Boxplot: Time -->
+        <div class="chart-card">
+          <p class="chart-title">Boxplot: Time to Dismiss (seconds)</p>
+          <p class="chart-subtitle">Shows median + quartiles + whiskers + outliers + individual points</p>
+          <div class="chart-wrap">
+            <svg class="chart" id="svg-box-time" viewBox="0 0 760 360" role="img" aria-label="Boxplot for time to dismiss"></svg>
+          </div>
+          <p class="small-note" id="note-box-time"></p>
+        </div>
+
+        <!-- Boxplot: Errors -->
+        <div class="chart-card">
+          <p class="chart-title">Boxplot: Error Rate (failed attempts)</p>
+          <p class="chart-subtitle">Useful to see frustration/mistakes spread</p>
+          <div class="chart-wrap">
+            <svg class="chart" id="svg-box-errors" viewBox="0 0 760 360" role="img" aria-label="Boxplot for error rate"></svg>
+          </div>
+          <p class="small-note" id="note-box-errors"></p>
+        </div>
+
+        <!-- Bar: Force close -->
+        <div class="chart-card">
+          <p class="chart-title">Bar Chart: Force Close Rate (%)</p>
+          <p class="chart-subtitle">Percent of participants who quit/force-closed</p>
+          <div class="chart-wrap">
+            <svg class="chart" id="svg-bar-force" viewBox="0 0 760 360" role="img" aria-label="Bar chart for force close rate"></svg>
+          </div>
+          <p class="small-note" id="note-bar-force"></p>
+        </div>
+
+        <!-- Bar: Alertness -->
+        <div class="chart-card">
+          <p class="chart-title">Bar Chart: Alertness (1–5)</p>
+          <p class="chart-subtitle">Mean with min/max lines + individual points</p>
+          <div class="chart-wrap">
+            <svg class="chart" id="svg-bar-alert" viewBox="0 0 760 360" role="img" aria-label="Bar chart for alertness"></svg>
+          </div>
+          <p class="small-note" id="note-bar-alert"></p>
+        </div>
+      </div>
+
+      <h3>Raw Data Table (Per Participant)</h3>
+      <p class="muted">This table is generated from the dataset. Replace the sample rows with your real test data.</p>
+      <table class="table" aria-label="User test raw results table">
+        <thead>
+          <tr>
+            <th>Participant</th>
+            <th>Condition</th>
+            <th>Context</th>
+            <th>Time (s)</th>
+            <th>Errors</th>
+            <th>Force Closed</th>
+            <th>Alertness (1–5)</th>
+          </tr>
+        </thead>
+        <tbody id="raw-table-body"></tbody>
+      </table>
 
       <h3>Key Feedback Excerpts</h3>
-      <ul>
-        <li><span class="muted">TODO: “Most relevant comment #1”</span></li>
-        <li><span class="muted">TODO: “Most relevant comment #2”</span></li>
-        <li><span class="muted">TODO: “Most relevant comment #3”</span></li>
+      <ul id="feedback-list">
+        <li class="muted">TODO: “Most relevant comment #1”</li>
+        <li class="muted">TODO: “Most relevant comment #2”</li>
+        <li class="muted">TODO: “Most relevant comment #3”</li>
       </ul>
 
       <h3>Updates Made Based on Feedback</h3>
-      <ul>
-        <li><span class="muted">TODO: Example: Added tracking indicator / improved AM-PM toggle / added preview puzzle</span></li>
+      <ul id="updates-list">
+        <li class="muted">TODO: Example: Added tracking indicator / improved time selection clarity / added puzzle preview</li>
       </ul>
     </div>
 
-
-  
+    <!-- DOCUMENTATION INDEX -->
+    <div class="card">
+      <h2>Documentation Index</h2>
+      <ul>
+        <li><a href="#">Day 1 – Project Idea & Planning</a></li>
+        <!-- Add new days here -->
+      </ul>
+    </div>
 
   </main>
 
-  <!-- FOOTER -->
   <footer>
     Snorly Project Documentation — CCL 2025
   </footer>
+
+  <script>
+    /**
+     * ✅ EDIT THIS DATASET
+     * Add one row per participant per condition you tested.
+     * If you only tested one condition per participant, that’s fine too.
+     *
+     * Fields:
+     * - pid: participant id (P1, P2...)
+     * - condition: "Swipe" | "Math" | "Memory" (or your names)
+     * - context: "Day" | "Morning" (or your names)
+     * - timeSec: seconds to dismiss
+     * - errors: number of failed attempts / mistakes
+     * - forceClosed: true/false
+     * - alertness: 1..5 (self report)
+     */
+    const userTest = {
+      participants: {
+        count: "3", // TODO
+        demographics: "Students, 19–24 years old (example)", // TODO
+      },
+      rows: [
+        { pid: "P1", condition: "Swipe",  context: "Day",     timeSec: 7,  errors: 0, forceClosed: false, alertness: 2.0 },
+        { pid: "P1", condition: "Math",   context: "Day",     timeSec: 16, errors: 2, forceClosed: false, alertness: 3.5 },
+        { pid: "P1", condition: "Memory", context: "Day",     timeSec: 21, errors: 3, forceClosed: false, alertness: 3.0 },
+
+        { pid: "P2", condition: "Swipe",  context: "Morning", timeSec: 9,  errors: 0, forceClosed: false, alertness: 2.5 },
+        { pid: "P2", condition: "Math",   context: "Morning", timeSec: 20, errors: 1, forceClosed: false, alertness: 4.0 },
+        { pid: "P2", condition: "Memory", context: "Morning", timeSec: 28, errors: 4, forceClosed: true,  alertness: 3.5 },
+
+        { pid: "P3", condition: "Swipe",  context: "Day",     timeSec: 8,  errors: 0, forceClosed: false, alertness: 2.4 },
+        { pid: "P3", condition: "Math",   context: "Day",     timeSec: 18, errors: 3, forceClosed: false, alertness: 3.8 },
+        { pid: "P3", condition: "Memory", context: "Day",     timeSec: 17, errors: 2, forceClosed: false, alertness: 3.6 },
+      ]
+    };
+
+    // ---------- Utilities ----------
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const fmt = (n, d=1) => Number(n).toFixed(d);
+
+    function uniq(arr) {
+      return Array.from(new Set(arr));
+    }
+
+    // Quartiles (Tukey method-ish): median of lower/upper halves
+    function median(sorted) {
+      const n = sorted.length;
+      if (n === 0) return NaN;
+      const mid = Math.floor(n / 2);
+      return (n % 2 === 0) ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+    }
+
+    function quartiles(values) {
+      const v = values.slice().sort((a,b)=>a-b);
+      if (v.length === 0) return null;
+
+      const med = median(v);
+      const mid = Math.floor(v.length / 2);
+
+      const lower = v.slice(0, mid);
+      const upper = (v.length % 2 === 0) ? v.slice(mid) : v.slice(mid + 1);
+
+      const q1 = median(lower.length ? lower : v);
+      const q3 = median(upper.length ? upper : v);
+
+      const iqr = q3 - q1;
+
+      // whiskers = within 1.5*IQR
+      const lowFence = q1 - 1.5 * iqr;
+      const highFence = q3 + 1.5 * iqr;
+
+      let wLow = v[0];
+      let wHigh = v[v.length - 1];
+
+      for (let i = 0; i < v.length; i++) {
+        if (v[i] >= lowFence) { wLow = v[i]; break; }
+      }
+      for (let i = v.length - 1; i >= 0; i--) {
+        if (v[i] <= highFence) { wHigh = v[i]; break; }
+      }
+
+      const outliers = v.filter(x => x < wLow || x > wHigh);
+
+      return { min: v[0], max: v[v.length-1], q1, med, q3, iqr, wLow, wHigh, outliers, sorted: v };
+    }
+
+    function groupBy(arr, key) {
+      const m = new Map();
+      arr.forEach(r => {
+        const k = r[key];
+        if (!m.has(k)) m.set(k, []);
+        m.get(k).push(r);
+      });
+      return m;
+    }
+
+    function stats(values) {
+      const v = values.slice().map(Number).filter(x => !Number.isNaN(x));
+      if (!v.length) return null;
+      const min = Math.min(...v);
+      const max = Math.max(...v);
+      const mean = v.reduce((a,b)=>a+b,0)/v.length;
+      return { n: v.length, min, max, mean };
+    }
+
+    // ---------- SVG helpers ----------
+    function svgEl(tag, attrs = {}, children = []) {
+      const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v));
+      for (const c of children) el.appendChild(c);
+      return el;
+    }
+
+    function clearSvg(svg) {
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+    }
+
+    function text(svg, x, y, str, opts = {}) {
+      return svgEl("text", {
+        x, y,
+        fill: opts.fill ?? "#cbd5e1",
+        "font-size": opts.size ?? 12,
+        "font-weight": opts.weight ?? "400",
+        "text-anchor": opts.anchor ?? "start",
+        "dominant-baseline": opts.baseline ?? "alphabetic",
+      }, [document.createTextNode(str)]);
+    }
+
+    function line(x1,y1,x2,y2, opts={}) {
+      return svgEl("line", {
+        x1, y1, x2, y2,
+        stroke: opts.stroke ?? "#1e293b",
+        "stroke-width": opts.w ?? 2,
+        "stroke-linecap": "round"
+      });
+    }
+
+    function rect(x,y,w,h, opts={}) {
+      return svgEl("rect", {
+        x, y, width: w, height: h,
+        rx: opts.rx ?? 10, ry: opts.ry ?? 10,
+        fill: opts.fill ?? "rgba(79,70,229,0.25)",
+        stroke: opts.stroke ?? "#4f46e5",
+        "stroke-width": opts.sw ?? 2
+      });
+    }
+
+    function circle(cx,cy,r, opts={}) {
+      return svgEl("circle", {
+        cx, cy, r,
+        fill: opts.fill ?? "rgba(6,182,212,0.9)",
+        stroke: opts.stroke ?? "#06b6d4",
+        "stroke-width": opts.sw ?? 1
+      });
+    }
+
+    // ---------- Chart: Boxplot ----------
+    function drawBoxplot(svgId, rows, valueKey, titleNoteId) {
+      const svg = document.getElementById(svgId);
+      if (!svg) return;
+      clearSvg(svg);
+
+      const W = 760, H = 360;
+      const pad = { l: 70, r: 20, t: 24, b: 44 };
+      const plotW = W - pad.l - pad.r;
+      const plotH = H - pad.t - pad.b;
+
+      const conditions = uniq(rows.map(r => r.condition));
+
+      // gather values
+      const all = rows.map(r => Number(r[valueKey])).filter(x => !Number.isNaN(x));
+      const minV = Math.min(...all, 0);
+      const maxV = Math.max(...all, 1);
+
+      // add a tiny margin
+      const range = (maxV - minV) || 1;
+      const minA = minV - range * 0.05;
+      const maxA = maxV + range * 0.05;
+
+      const xScale = (v) => pad.l + ((v - minA) / (maxA - minA)) * plotW;
+      const yStep = plotH / conditions.length;
+      const yCenter = (i) => pad.t + yStep * i + yStep / 2;
+
+      // background grid + x-axis ticks
+      const ticks = 6;
+      for (let i = 0; i <= ticks; i++) {
+        const v = minA + (i / ticks) * (maxA - minA);
+        const x = xScale(v);
+        svg.appendChild(line(x, pad.t, x, pad.t + plotH, { stroke: "#111827", w: 1 }));
+        svg.appendChild(text(svg, x, H - 18, fmt(v, valueKey === "alertness" ? 1 : 0), { anchor: "middle", size: 11, fill: "#94a3b8" }));
+      }
+
+      // axis label
+      svg.appendChild(text(svg, pad.l, 16, "Value →", { size: 12, fill: "#94a3b8" }));
+
+      // for each condition: whiskers + box + median + points
+      const grouped = groupBy(rows, "condition");
+
+      conditions.forEach((cond, idx) => {
+        const y = yCenter(idx);
+        const vals = (grouped.get(cond) || []).map(r => Number(r[valueKey])).filter(x => !Number.isNaN(x));
+        const q = quartiles(vals);
+        if (!q) return;
+
+        // condition label
+        svg.appendChild(text(svg, 10, y + 4, cond, { size: 12, fill: "#cbd5e1" }));
+
+        // whisker line
+        svg.appendChild(line(xScale(q.wLow), y, xScale(q.wHigh), y, { stroke: "#cbd5e1", w: 2 }));
+
+        // whisker caps
+        svg.appendChild(line(xScale(q.wLow), y - 10, xScale(q.wLow), y + 10, { stroke: "#cbd5e1", w: 2 }));
+        svg.appendChild(line(xScale(q.wHigh), y - 10, xScale(q.wHigh), y + 10, { stroke: "#cbd5e1", w: 2 }));
+
+        // box
+        const boxH = 34;
+        const x1 = xScale(q.q1);
+        const x3 = xScale(q.q3);
+        svg.appendChild(rect(x1, y - boxH/2, Math.max(2, x3 - x1), boxH, {
+          fill: "rgba(79,70,229,0.22)",
+          stroke: "#4f46e5",
+          sw: 2,
+          rx: 10,
+          ry: 10
+        }));
+
+        // median line
+        svg.appendChild(line(xScale(q.med), y - boxH/2, xScale(q.med), y + boxH/2, { stroke: "#06b6d4", w: 3 }));
+
+        // points (jitter)
+        const jitter = 10;
+        (grouped.get(cond) || []).forEach((r, i2) => {
+          const v = Number(r[valueKey]);
+          if (Number.isNaN(v)) return;
+          const jy = y + ((i2 % 2 === 0) ? -1 : 1) * (Math.random() * jitter);
+          svg.appendChild(circle(xScale(v), jy, 4, { fill: "rgba(6,182,212,0.85)", stroke: "#06b6d4", sw: 1 }));
+        });
+
+        // outliers emphasize
+        q.outliers.forEach(v => {
+          svg.appendChild(circle(xScale(v), y, 5, { fill: "rgba(229,231,235,0.9)", stroke: "#e5e7eb", sw: 1 }));
+        });
+      });
+
+      const noteEl = document.getElementById(titleNoteId);
+      if (noteEl) {
+        noteEl.textContent = `N=${rows.length} rows total. Box = Q1..Q3, line = median, whiskers = 1.5×IQR, dots = participants.`;
+      }
+    }
+
+    // ---------- Chart: Bar (with points + min/max) ----------
+    function drawBarChart(svgId, rows, valueKey, opts) {
+      const svg = document.getElementById(svgId);
+      if (!svg) return;
+      clearSvg(svg);
+
+      const W = 760, H = 360;
+      const pad = { l: 60, r: 24, t: 24, b: 56 };
+      const plotW = W - pad.l - pad.r;
+      const plotH = H - pad.t - pad.b;
+
+      const conditions = uniq(rows.map(r => r.condition));
+      const grouped = groupBy(rows, "condition");
+
+      // compute values per condition
+      const per = conditions.map(c => {
+        const vals = (grouped.get(c) || []).map(r => {
+          if (valueKey === "forceClosePct") return r.forceClosed ? 1 : 0;
+          return Number(r[valueKey]);
+        }).filter(x => !Number.isNaN(x));
+        return { condition: c, vals, st: stats(vals) };
+      });
+
+      // y domain
+      let yMin = 0, yMax = 1;
+      if (valueKey === "forceClosePct") { yMin = 0; yMax = 1; }
+      else {
+        const allVals = per.flatMap(x => x.vals);
+        yMin = Math.min(...allVals, 0);
+        yMax = Math.max(...allVals, 1);
+      }
+      const range = (yMax - yMin) || 1;
+      yMin = yMin - range * 0.05;
+      yMax = yMax + range * 0.05;
+
+      const xStep = plotW / conditions.length;
+      const xCenter = (i) => pad.l + xStep * i + xStep / 2;
+
+      const yScale = (v) => pad.t + (1 - (v - yMin) / (yMax - yMin)) * plotH;
+
+      // grid + y ticks
+      const ticks = 5;
+      for (let i = 0; i <= ticks; i++) {
+        const v = yMin + (i / ticks) * (yMax - yMin);
+        const y = yScale(v);
+        svg.appendChild(line(pad.l, y, pad.l + plotW, y, { stroke: "#111827", w: 1 }));
+        svg.appendChild(text(svg, 8, y + 4, (valueKey === "forceClosePct") ? `${Math.round(v*100)}%` : fmt(v, 1), { size: 11, fill: "#94a3b8" }));
+      }
+
+      // y label
+      svg.appendChild(text(svg, pad.l, 16, opts.yLabel || "Value", { size: 12, fill: "#94a3b8" }));
+
+      // bars
+      const barW = Math.min(90, xStep * 0.55);
+
+      per.forEach((p, i) => {
+        if (!p.st) return;
+        const mean = p.st.mean;
+        const x = xCenter(i);
+        const y0 = yScale(yMin);
+        const yM = yScale(mean);
+
+        // bar
+        svg.appendChild(rect(x - barW/2, yM, barW, Math.max(2, y0 - yM), {
+          fill: "rgba(79,70,229,0.22)",
+          stroke: "#4f46e5",
+          sw: 2,
+          rx: 12,
+          ry: 12
+        }));
+
+        // min/max line (like "range whisker")
+        svg.appendChild(line(x, yScale(p.st.min), x, yScale(p.st.max), { stroke: "#cbd5e1", w: 2 }));
+        svg.appendChild(line(x - 10, yScale(p.st.min), x + 10, yScale(p.st.min), { stroke: "#cbd5e1", w: 2 }));
+        svg.appendChild(line(x - 10, yScale(p.st.max), x + 10, yScale(p.st.max), { stroke: "#cbd5e1", w: 2 }));
+
+        // individual points with jitter
+        p.vals.forEach((v, j) => {
+          const jitter = (Math.random() - 0.5) * (barW * 0.5);
+          svg.appendChild(circle(x + jitter, yScale(v), 4, { fill: "rgba(6,182,212,0.85)", stroke: "#06b6d4", sw: 1 }));
+        });
+
+        // value label
+        const label = (valueKey === "forceClosePct")
+          ? `${Math.round(mean * 100)}%`
+          : fmt(mean, 1);
+
+        svg.appendChild(text(svg, x, yM - 8, label, { anchor: "middle", size: 12, fill: "#e5e7eb", weight: "600" }));
+
+        // x label
+        svg.appendChild(text(svg, x, H - 20, p.condition, { anchor: "middle", size: 12, fill: "#cbd5e1" }));
+      });
+    }
+
+    // ---------- Render Table ----------
+    function renderRawTable(rows) {
+      const tbody = document.getElementById("raw-table-body");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+      rows.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${r.pid}</td>
+          <td>${r.condition}</td>
+          <td>${r.context}</td>
+          <td>${r.timeSec}</td>
+          <td>${r.errors}</td>
+          <td>${r.forceClosed ? "Yes" : "No"}</td>
+          <td>${fmt(r.alertness, 1)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ---------- Init ----------
+    (function init() {
+      // participants
+      const countEl = document.getElementById("participants-count");
+      const demoEl = document.getElementById("participants-demo");
+      if (countEl) countEl.textContent = userTest.participants.count;
+      if (demoEl) demoEl.textContent = userTest.participants.demographics;
+
+      // charts
+      drawBoxplot("svg-box-time", userTest.rows, "timeSec", "note-box-time");
+      drawBoxplot("svg-box-errors", userTest.rows, "errors", "note-box-errors");
+
+      drawBarChart("svg-bar-force", userTest.rows, "forceClosePct", {
+        yLabel: "Force Close Rate"
+      });
+
+      drawBarChart("svg-bar-alert", userTest.rows, "alertness", {
+        yLabel: "Alertness (1–5)"
+      });
+
+      // notes
+      const forcePct = (userTest.rows.filter(r => r.forceClosed).length / Math.max(1, userTest.rows.length)) * 100;
+      const noteForce = document.getElementById("note-bar-force");
+      if (noteForce) noteForce.textContent = `Overall force-close events in dataset: ${Math.round(forcePct)}% of rows (note: rows≠unique participants).`;
+
+      const noteAlert = document.getElementById("note-bar-alert");
+      if (noteAlert) noteAlert.textContent = `Bars show mean; thin line shows min→max; dots show each participant’s rating.`;
+
+      // table
+      renderRawTable(userTest.rows);
+    })();
+  </script>
 
 </body>
 </html>

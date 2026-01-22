@@ -41,14 +41,14 @@ fun DismissChallengesScreen(
 
     fun handleBack() {
         val result = if (state.isEnabled) {
-            state.activeChallenges.map { it.title }
+            state.activeChallenges.map { it.id }   
         } else {
             emptyList()
         }
-
         onResult(result)
         onBack()
     }
+
     // 1. Setup Reorderable State
     val reorderableState = rememberReorderableLazyListState(listState) { from, to ->
         // This callback runs when items are moved

@@ -28,7 +28,7 @@ fun AddChallengeScreen(
     viewModel: ChallengeViewModel
 ) {
     val state by viewModel.uiState.collectAsState()
-    Log.d("CHALLENGES","${state.availableChallenges} ${viewModel}")
+
     Scaffold(
         topBar = { BackTopBar("Add Challenge", onBack) }
     ) { innerPadding ->
