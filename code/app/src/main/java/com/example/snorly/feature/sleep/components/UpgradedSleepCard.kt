@@ -72,7 +72,7 @@ const val SCI_FI_SHADER = """
         
         half3 idleBlob1 = half3(0.2, 0.6, 0.9);
         half3 activeBlob1 = half3(0.8, 0.1, 0.1);
-        half3 morningBlob1 = half3(0.7, 0.9, 0.5); // Sun Glow
+        half3 morningBlob1 = half3(0.0, 0.0, 0.0); // Sun Glow
         
         // Mix Idle and Active exactly like before
         half3 baseBg = mix(idleBg, activeBg, uActive);
