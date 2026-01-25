@@ -33,8 +33,5 @@ interface AlarmDao {
     @Query("SELECT * FROM alarms WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): AlarmEntity
 
-    @Query("UPDATE alarms SET challengesEnabled = :enabled, challenge = :challengeString WHERE id = :alarmId")
-    suspend fun updateChallenges(alarmId: Long, enabled: Boolean, challengeString: String)
-
     companion object
 }

@@ -48,8 +48,8 @@ fun RingtoneScreen(
                 OrganicShaderCard(
                     title = "Composer", subtitle = "Create custom",
                     icon = Icons.Default.Build,
-                    color1 = Color(0xFF0BBDA8), color2 = Color(0xFF3164B0),
-                    shaderCode = ShaderLibrary.LIQUID,
+                    color1 = Color(0xFFD4AF37), color2 = Color(0xFF3E2723),
+                    shaderCode = ShaderLibrary.LED_MATRIX,
                     onClick = { onCategoryClick("composer") }
                 )
             }
