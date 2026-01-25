@@ -44,7 +44,8 @@ class ChallengeViewModel(application: Application) : AndroidViewModel(applicatio
         _uiState.update {
             it.copy(
                 isEnabled = enabled,
-                initialized = true
+                initialized = true,
+                activeChallenges = active
             )
         }
 
@@ -53,20 +54,35 @@ class ChallengeViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun toggleFeature(enabled: Boolean) {
         _uiState.update { it.copy(isEnabled = enabled) }
+//
+//        if (!enabled) {
+//            // OFF -> clear active list
+//            refreshLists(emptyList())
+//            return
+//        }
+//
+//        // ON -> if empty, auto add Math
+//        if (_uiState.value.activeChallenges.isEmpty()) {
+//            getDefaultMathChallenge()?.let { math ->
+//                addChallenge(math)
+//            }
+//        }
+    }
 
-        if (!enabled) {
-            // OFF -> clear active list
-            refreshLists(emptyList())
-            return
-        }
+    // safe function to save to persist
+    fun saveToDatabase(alarmId: Long) {
+        val state = _uiState.value
+        val challengeString = state.activeChallenges.joinToString("||") { it.id } // Create "1||3"
 
-        // ON -> if empty, auto add Math
-        if (_uiState.value.activeChallenges.isEmpty()) {
-            getDefaultMathChallenge()?.let { math ->
-                addChallenge(math)
-            }
+        viewModelScope.launch {
+            alarmDao.updateChallenges(
+                alarmId = alarmId,
+                enabled = state.isEnabled,
+                challengeString = challengeString
+            )
         }
     }
+
 
     private fun getDefaultMathChallenge(): Challenge? {
 
@@ -81,6 +97,7 @@ class ChallengeViewModel(application: Application) : AndroidViewModel(applicatio
         val currentActive = _uiState.value.activeChallenges.toMutableList()
         if (!currentActive.contains(challenge)) {
             currentActive.add(challenge)
+            _uiState.update { it.copy(isEnabled = true) } // set the isEnabled challenge state to true
             refreshLists(currentActive)
         }
     }
@@ -101,7 +118,10 @@ class ChallengeViewModel(application: Application) : AndroidViewModel(applicatio
 
     private fun refreshLists(active: List<Challenge>) {
         val all = ChallengeDataSource.allChallenges
-        val available = all.filter { !active.contains(it) }
+        // Ensure we are filtering based on IDs to avoid reference comparison issues
+        val activeIds = active.map { it.id }.toSet()
+        val available = all.filter { it.id !in activeIds }
+//        val available = all.filter { !active.contains(it) }
 
         _uiState.update {
             it.copy(
