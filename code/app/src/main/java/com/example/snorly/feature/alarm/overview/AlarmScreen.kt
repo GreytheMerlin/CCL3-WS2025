@@ -76,7 +76,7 @@ fun AlarmScreen(
                             start = 16.dp,
                             end = 16.dp,
                             top = innerPadding.calculateTopPadding(),
-                            bottom = innerPadding.calculateBottomPadding()
+                            bottom = innerPadding.calculateBottomPadding() + 88.dp
                         ),
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         modifier = Modifier.fillMaxSize()

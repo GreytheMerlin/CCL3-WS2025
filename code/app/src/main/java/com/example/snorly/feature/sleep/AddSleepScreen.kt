@@ -21,8 +21,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -64,21 +66,39 @@ fun AddSleepScreen(
     var showTimePickerSheet by remember { mutableStateOf(false) }
     var activePickerType by remember { mutableStateOf<PickerType>(PickerType.Start) }
 
+    val displayError = viewModel.activeErrorMessage
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Log Sleep", color = Color.White, fontWeight = FontWeight.SemiBold) },
+                title = {
+                    Text(
+                        "Log Sleep",
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.saveSleep(onSuccess = onSaveSuccess) }) {
-                        Icon(Icons.Default.Check, contentDescription = "Save", tint = Color(0xFF4CAF50))
+                    val canSave = viewModel.validationError == null
+                    IconButton(
+                        onClick = { viewModel.saveSleep(onSuccess = onSaveSuccess) },
+                        enabled = canSave
+                    ) {
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = "Save",
+                            tint = if (canSave) Color(
+                                0xFF4A90E2
+                            ).copy(alpha = 0.3f) else Color(0xFF4A90E2)
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = bg)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = bg)
             )
         },
         containerColor = bg
@@ -101,65 +121,125 @@ fun AddSleepScreen(
                 ) {
                     // TIME SECTION
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Time", color = Color.Gray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            "Time",
+                            color = Color.Gray,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
 
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        TimeCard(
-                            label = "Bedtime",
-                            date = viewModel.startDate,
-                            time = viewModel.startTime,
-                            onClick = {
-                                activePickerType = PickerType.Start
-                                showTimePickerSheet = true
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            TimeCard(
+                                label = "Bedtime",
+                                date = viewModel.startDate,
+                                time = viewModel.startTime,
+                                onClick = {
+                                    activePickerType = PickerType.Start
+                                    showTimePickerSheet = true
+                                }
+                            )
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                val duration = viewModel.sleepDuration
+                                val hours = duration.toHours()
+                                val mins = duration.toMinutes() % 60
+
+                                Icon(
+                                    imageVector = Icons.Default.ArrowForward, // Or a custom "Link" icon
+                                    contentDescription = null,
+                                    tint = if (hours >= 24 || duration.isNegative) Color(0xFFFF5252) else Color.Gray,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = if (duration.isNegative) "!" else "${hours}h ${mins}m",
+                                    color = if (hours >= 24 || duration.isNegative) Color(0xFFFF5252) else Color.White,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
-                        )
-                        TimeCard(
-                            label = "Wake up",
-                            date = viewModel.endDate,
-                            time = viewModel.endTime,
-                            onClick = {
-                                activePickerType = PickerType.End
-                                showTimePickerSheet = true
-                            }
-                        )
-                    }}
+                            TimeCard(
+                                label = "Wake up",
+                                date = viewModel.endDate,
+                                time = viewModel.endTime,
+                                onClick = {
+                                    activePickerType = PickerType.End
+                                    showTimePickerSheet = true
+                                }
+                            )
+                        }
+                    }
 
                     // RATING SECTION
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Quality Rating", color = Color.Gray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                    RatingInput(
-                        rating = viewModel.rating,
-                        onRatingChanged = { viewModel.rating = it }
-                    )}
+                        Text(
+                            "Quality Rating",
+                            color = Color.Gray,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        RatingInput(
+                            rating = viewModel.rating,
+                            onRatingChanged = { viewModel.rating = it }
+                        )
+                    }
 
                     // NOTES SECTION
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Notes", color = Color.Gray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                    OutlinedTextField(
-                        value = viewModel.notes,
-                        onValueChange = { viewModel.notes = it },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(120.dp),
-                        placeholder = { Text("How did you sleep?", color = Color.Gray) },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = Color(0xFF1C1C1E),
-                            unfocusedContainerColor = Color(0xFF1C1C1E),
-                            focusedBorderColor = Color(0xFF2C2C2E),
-                            unfocusedBorderColor = Color(0xFF2C2C2E),
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    )}
-
-                    if (viewModel.errorMessage != null) {
                         Text(
-                            text = viewModel.errorMessage!!,
-                            color = Color(0xFFFF5252),
+                            "Notes",
+                            color = Color.Gray,
                             fontSize = 14.sp,
-                            modifier = Modifier.padding(top = 8.dp)
+                            fontWeight = FontWeight.Bold
                         )
+                        OutlinedTextField(
+                            value = viewModel.notes,
+                            onValueChange = { viewModel.notes = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(120.dp),
+                            placeholder = { Text("How did you sleep?", color = Color.Gray) },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = Color(0xFF1C1C1E),
+                                unfocusedContainerColor = Color(0xFF1C1C1E),
+                                focusedBorderColor = Color(0xFF2C2C2E),
+                                unfocusedBorderColor = Color(0xFF2C2C2E),
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                    }
+
+                    // Error & Warning
+
+                    AnimatedVisibility(
+                        visible = displayError != null,
+                        enter = fadeIn() + slideInVertically(),
+                        exit = fadeOut() + slideOutVertically()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info, // Or a Warning icon
+                                contentDescription = null,
+                                tint = Color(0xFFFF5252),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = displayError ?: "",
+                                color = Color(0xFFFF5252),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
             }
@@ -230,7 +310,10 @@ fun LockedBottomSheet(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF1C1C1E), RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .background(
+                        Color(0xFF1C1C1E),
+                        RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+                    )
                     .clickable(enabled = false) {}
                     .padding(bottom = 32.dp)
             ) {

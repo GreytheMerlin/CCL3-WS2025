@@ -167,7 +167,13 @@ fun CustomDateTimePicker(
     onCancel: () -> Unit,
     onSave: (LocalDate, LocalTime) -> Unit
 ) {
-    var selectedDate by remember { mutableStateOf(initialDate) }
+
+    val today = remember { LocalDate.now() }
+
+    // We ensure the initial selection isn't accidentally in the future and that the last day is today
+    var selectedDate by remember {
+        mutableStateOf(if (initialDate.isAfter(today)) today else initialDate)
+    }
     var selectedHour by remember { mutableStateOf(initialTime.hour) }
     var selectedMinute by remember { mutableStateOf(initialTime.minute) }
 
@@ -185,7 +191,9 @@ fun CustomDateTimePicker(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val dateOptions = remember { (-15..15).map { initialDate.plusDays(it.toLong()) } }
+            val dateOptions = remember {
+                (-14..0).map { today.plusDays(it.toLong()) }
+            }
             WheelPicker(
                 items = dateOptions,
                 initialItem = initialDate,
