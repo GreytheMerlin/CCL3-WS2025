@@ -1,6 +1,5 @@
 package com.example.snorly.feature.sleep
 
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,11 +20,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -45,7 +41,10 @@ import com.example.snorly.feature.sleep.components.UpgradedSleepCard
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SleepScreen(
-    viewModel: SleepViewModel, onAddSleepClick: () -> Unit, onSleepItemClick: (String) -> Unit, onEditSleepClick: (String) -> Unit
+    viewModel: SleepViewModel,
+    onAddSleepClick: () -> Unit,
+    onSleepItemClick: (String) -> Unit,
+    onEditSleepClick: (String) -> Unit
 ) {
     val permissionsLauncher = rememberLauncherForActivityResult(
         contract = PermissionController.createRequestPermissionResultContract()
@@ -104,124 +103,126 @@ fun SleepScreen(
                     UpgradedSleepCard(
                         mode = viewModel.trackingMode,
                         startTime = viewModel.trackingStartTime,
+                        errorMessage = viewModel.sleepCardError,
                         onStart = { viewModel.startTracking() },
                         onWakeUp = { viewModel.stopTracking() },
                         onLogSleep = {
                             viewModel.lastSessionId?.let { id ->
-                                Log.e("iddebug", " id is: $id")
+//                                Log.e("idbug", " id is: $id")
                                 onEditSleepClick(id)
                                 viewModel.resetToIdle()
                             }
-                        }
+                        },
+                        onErrorDismiss = { viewModel.resetToIdle() }
                     )
                 }
 
 
-            // TODAY'S STATS (Replaces old Averages)
-            // We show the most recent item from history as "Today/Last Night"
-            if (viewModel.sleepHistory.isNotEmpty()) {
-                val todaysSleep = viewModel.sleepHistory.firstOrNull()
-                if (todaysSleep != null) {
-                    item {
-                        Text(
-                            "Last Night",
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 18.sp
-                        )
-                    }
-                    item {
-                        //stats Card Logic
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E)),
-                            shape = RoundedCornerShape(16.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(modifier = Modifier.padding(20.dp)) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text("Duration", color = Color.Gray, fontSize = 12.sp)
-                                        Text(
-                                            viewModel.latestSleepDuration,
-                                            color = Color.White,
-                                            fontSize = 32.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
+                // TODAY'S STATS (Replaces old Averages)
+                // We show the most recent item from history as "Today/Last Night"
+                if (viewModel.sleepHistory.isNotEmpty()) {
+                    val todaysSleep = viewModel.sleepHistory.firstOrNull()
+                    if (todaysSleep != null) {
+                        item {
+                            Text(
+                                "Last Night",
+                                color = Color.White,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 18.sp
+                            )
+                        }
+                        item {
+                            //stats Card Logic
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1E)),
+                                shape = RoundedCornerShape(16.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(modifier = Modifier.padding(20.dp)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text("Duration", color = Color.Gray, fontSize = 12.sp)
+                                            Text(
+                                                viewModel.latestSleepDuration,
+                                                color = Color.White,
+                                                fontSize = 32.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                        Column(horizontalAlignment = Alignment.End) {
+                                            Text(
+                                                "Snorly Sleep Score",
+                                                color = Color.Gray,
+                                                fontSize = 12.sp
+                                            )
+                                            Text(
+                                                viewModel.latestSleepScore,
+                                                color = if (viewModel.latestSleepScore != "--") Color(
+                                                    0xFF4CAF50
+                                                ) else Color.Gray,
+                                                fontSize = 32.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
                                     }
-                                    Column(horizontalAlignment = Alignment.End) {
-                                        Text(
-                                            "Snorly Sleep Score",
-                                            color = Color.Gray,
-                                            fontSize = 12.sp
-                                        )
-                                        Text(
-                                            viewModel.latestSleepScore,
-                                            color = if (viewModel.latestSleepScore != "--") Color(
-                                                0xFF4CAF50
-                                            ) else Color.Gray,
-                                            fontSize = 32.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
+                                    Spacer(Modifier.height(16.dp))
+                                    Row {
+                                        Badge(todaysSleep.qualityLabel, todaysSleep.qualityColor)
                                     }
-                                }
-                                Spacer(Modifier.height(16.dp))
-                                Row {
-                                    Badge(todaysSleep.qualityLabel, todaysSleep.qualityColor)
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            // 4. List Header
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "Recent Sleep",
-                        color = Color.White,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-
-            // 5. Empty State or List
-            if (viewModel.sleepHistory.isEmpty()) {
+                // 4. List Header
                 item {
-                    Box(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 32.dp),
-                        contentAlignment = Alignment.Center
+                            .padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "No sleep logs yet.\nTap + to add one manually.",
-                            color = Color.Gray,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            "Recent Sleep",
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
                 }
-            } else {
-                items(viewModel.sleepHistory) { day ->
-                    SleepHistoryItem(
-                        data = day, onClick = {
-                            if (day.id.isNotEmpty()) onSleepItemClick(day.id)
-                        })
+
+                // 5. Empty State or List
+                if (viewModel.sleepHistory.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "No sleep logs yet.\nTap + to add one manually.",
+                                color = Color.Gray,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                        }
+                    }
+                } else {
+                    items(viewModel.sleepHistory) { day ->
+                        SleepHistoryItem(
+                            data = day, onClick = {
+                                if (day.id.isNotEmpty()) onSleepItemClick(day.id)
+                            })
+                    }
                 }
             }
         }
     }
-}
 }
 
 
