@@ -18,6 +18,7 @@ data class AlarmCreateUiState(
     val snoozeMinutes: Int = 5,
 
     val selectedChallenges: List<String> = emptyList(),
+    val challengeEnabled: Boolean = false,
 
     val isSaving: Boolean = false,
     val error: String? = null,

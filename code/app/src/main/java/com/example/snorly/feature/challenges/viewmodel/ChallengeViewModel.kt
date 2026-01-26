@@ -56,7 +56,7 @@ class ChallengeViewModel(application: Application) : AndroidViewModel(applicatio
 
         if (!enabled) {
             // OFF -> clear active list
-            refreshLists(emptyList())
+//            refreshLists(emptyList())
             return
         }
 
