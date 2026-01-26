@@ -81,6 +81,13 @@ class ChallengeViewModel(application: Application) : AndroidViewModel(applicatio
         val currentActive = _uiState.value.activeChallenges.toMutableList()
         if (!currentActive.contains(challenge)) {
             currentActive.add(challenge)
+
+            // If this is the first item or the feature was off, turn it on.
+            val shouldEnable = if (!_uiState.value.isEnabled) true else _uiState.value.isEnabled
+            _uiState.update {
+                it.copy(isEnabled = shouldEnable)
+            }
+
             refreshLists(currentActive)
         }
     }

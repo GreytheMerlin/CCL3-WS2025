@@ -23,11 +23,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DragHandle
-import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -86,16 +85,6 @@ fun DismissChallengesScreen(
 
     Scaffold(
         topBar = { BackTopBar(title = "Dismiss Challenges", onBackClick = { handleBack() }) },
-        floatingActionButton = {
-            if (state.isEnabled) {
-                FloatingActionButton(
-                    onClick = onAddClick,
-                    containerColor = MaterialTheme.colorScheme.primary
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add")
-                }
-            }
-        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -104,40 +93,40 @@ fun DismissChallengesScreen(
         ) {
 
             if (state.activeChallenges.isNotEmpty()) {
-            // ... Master Toggle (Same as before) ...
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Enable Challenges", style = MaterialTheme.typography.titleMedium)
-                Switch(
-                    checked = state.isEnabled,
-                    onCheckedChange = { viewModel.toggleFeature(it) },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colorScheme.background,
-                        checkedTrackColor = MaterialTheme.colorScheme.primary,
-                        uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        uncheckedTrackColor = MaterialTheme.colorScheme.surface,
-                        uncheckedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                // ... Master Toggle (Same as before) ...
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Enable Challenges", style = MaterialTheme.typography.titleMedium)
+                    Switch(
+                        checked = state.isEnabled,
+                        onCheckedChange = { viewModel.toggleFeature(it) },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.background,
+                            checkedTrackColor = MaterialTheme.colorScheme.primary,
+                            uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            uncheckedTrackColor = MaterialTheme.colorScheme.surface,
+                            uncheckedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                        )
                     )
+                }
+
+                // Header logic
+                val headerText =
+                    if (state.isEnabled) "Active Challenges (Drag to reorder)" else "Challenges (Disabled)"
+                Text(
+                    headerText,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (state.isEnabled) 1f else 0.6f),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
-            }
-
-            // Header logic
-            val headerText =
-                if (state.isEnabled) "Active Challenges (Drag to reorder)" else "Challenges (Disabled)"
-            Text(
-                headerText,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (state.isEnabled) 1f else 0.6f),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
 
 
-            // 2. The Reorderable LazyColumn
+                // 2. The Reorderable LazyColumn
                 LazyColumn(
                     state = listState,
                     contentPadding = PaddingValues(16.dp),
@@ -164,6 +153,24 @@ fun DismissChallengesScreen(
                                 // Pass the drag handle modifier down
                                 dragModifier = if (state.isEnabled) Modifier.draggableHandle() else Modifier
                             )
+                        }
+                    }
+                    if (state.isEnabled && state.availableChallenges.isNotEmpty() ) {
+                        item {
+                            Spacer(Modifier.height(8.dp)) // Extra breathing room after the last card
+                            Button(
+                                onClick = onAddClick,
+                                shape = RoundedCornerShape(12.dp),
+//                                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surface),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Add Challenge", fontWeight = FontWeight.Bold)
+                            }
+                            Spacer(Modifier.height(16.dp))
                         }
                     }
                 }
@@ -216,7 +223,11 @@ fun ActiveChallengeCard(
                     .background(challenge.color.copy(alpha = if (enabled) 0.2f else 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(challenge.icon, contentDescription = null, tint = challenge.color.copy(alpha = contentAlpha))
+                Icon(
+                    challenge.icon,
+                    contentDescription = null,
+                    tint = challenge.color.copy(alpha = contentAlpha)
+                )
             }
 
             Spacer(Modifier.width(16.dp))
@@ -234,12 +245,12 @@ fun ActiveChallengeCard(
                 )
             }
 
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = "Remove",
-                        tint = MaterialTheme.colorScheme.error.copy(alpha = contentAlpha)
-                    )
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Remove",
+                    tint = MaterialTheme.colorScheme.error.copy(alpha = contentAlpha)
+                )
             }
         }
     }
