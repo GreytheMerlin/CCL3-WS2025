@@ -403,10 +403,10 @@ fun AppNavHost(
                     onBack = { navController.popBackStack() },
                     onAddClick = { navController.navigate("challenges_add") },
                     viewModel = challengeViewModel,
-                    onResult = { selectedIds ->
-                        navController.previousBackStackEntry?.savedStateHandle?.set(
-                            "selected_challenges_result", selectedIds
-                        )
+                    onResult = { isEnabled, selectedIds ->
+                        val previousHandle = navController.previousBackStackEntry?.savedStateHandle
+                        previousHandle?.set("selected_challenges_result", selectedIds)
+                        previousHandle?.set("challenges_enabled_result", isEnabled)
                     })
             }
 

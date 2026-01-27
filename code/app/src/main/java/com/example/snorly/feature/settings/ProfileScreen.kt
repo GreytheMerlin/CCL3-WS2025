@@ -1,7 +1,17 @@
 package com.example.snorly.feature.settings
 
 import android.util.Log
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -10,8 +20,21 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,8 +43,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.snorly.feature.settings.components.CircularSleepPicker
-import org.checkerframework.checker.units.qual.h
-import org.checkerframework.checker.units.qual.m
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -29,8 +50,7 @@ import java.time.temporal.ChronoUnit
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    viewModel: ProfileViewModel,
-    onBack: () -> Unit
+    viewModel: ProfileViewModel, onBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -56,25 +76,29 @@ fun ProfileScreen(
                 title = { Text("Edit Schedule", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(
+                            Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White
+                        )
                     }
                 },
                 actions = {
                     IconButton(onClick = {
                         val fmt = DateTimeFormatter.ofPattern("HH:mm")
                         viewModel.saveProfile(
-                            bedTime = bedTime.format(fmt),
-                            wakeTime = wakeTime.format(fmt)
+                            bedTime = bedTime.format(fmt), wakeTime = wakeTime.format(fmt)
                         )
                         onBack()
                     }) {
-                        Icon(Icons.Default.Check, contentDescription = "Save", tint = Color(0xFF4CAF50))
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = "Save",
+                            tint = Color(0xFF4A90E2)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black),
             )
-        },
-        containerColor = Color.Black
+        }, containerColor = Color.Black
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -86,14 +110,26 @@ fun ProfileScreen(
 
             // 1. Digital Display (Top)
             Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Bedtime, null, tint = Color.LightGray, modifier = Modifier.size(16.dp))
+                        Icon(
+                            Icons.Default.Bedtime,
+                            null,
+                            tint = Color.LightGray,
+                            modifier = Modifier.size(16.dp)
+                        )
                         Spacer(Modifier.width(4.dp))
-                        Text("BEDTIME", color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            "BEDTIME",
+                            color = Color.Gray,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                     Text(
                         text = bedTime.format(DateTimeFormatter.ofPattern("HH:mm")),
@@ -105,9 +141,19 @@ fun ProfileScreen(
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.WbSunny, null, tint = Color(0xFFFFD54F), modifier = Modifier.size(16.dp))
+                        Icon(
+                            Icons.Default.WbSunny,
+                            null,
+                            tint = Color(0xFFFFD54F),
+                            modifier = Modifier.size(16.dp)
+                        )
                         Spacer(Modifier.width(4.dp))
-                        Text("WAKE UP", color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            "WAKE UP",
+                            color = Color.Gray,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                     Text(
                         text = wakeTime.format(DateTimeFormatter.ofPattern("HH:mm")),
@@ -122,8 +168,7 @@ fun ProfileScreen(
             Box(
                 modifier = Modifier
                     .weight(1f) // Fill available center space
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth(), contentAlignment = Alignment.Center
             ) {
                 // Background Center Text (Duration)
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -138,13 +183,10 @@ fun ProfileScreen(
 
                 // The Wheel
                 CircularSleepPicker(
-                    bedTime = bedTime,
-                    wakeTime = wakeTime,
-                    onSelectionChange = { newBed, newWake ->
+                    bedTime = bedTime, wakeTime = wakeTime, onSelectionChange = { newBed, newWake ->
                         bedTime = newBed
                         wakeTime = newWake
-                    },
-                    modifier = Modifier.fillMaxWidth(0.9f)
+                    }, modifier = Modifier.fillMaxWidth(0.9f)
                 )
             }
 
@@ -183,14 +225,16 @@ fun ProfileScreen(
 // --- HELPERS (Make sure these are included at the bottom of the file) ---
 
 data class MedicalFeedback(
-    val message: String,
-    val color: Color,
-    val icon: ImageVector
+    val message: String, val color: Color, val icon: ImageVector
 )
 
 fun parseLocalTime(s: String?, defH: Int, defM: Int): LocalTime {
     return if (s.isNullOrBlank()) LocalTime.of(defH, defM)
-    else try { LocalTime.parse(s) } catch (e: Exception) { LocalTime.of(defH, defM) }
+    else try {
+        LocalTime.parse(s)
+    } catch (e: Exception) {
+        LocalTime.of(defH, defM)
+    }
 }
 
 fun calculateDuration(start: LocalTime, end: LocalTime): Int {
@@ -207,16 +251,19 @@ fun getMedicalFeedback(hours: Double): MedicalFeedback {
             Color(0xFFFF5252), // Red
             Icons.Default.Warning
         )
+
         hours < 7.0 -> MedicalFeedback(
             "You are slightly under the recommended range (7-9h). Aim for 7+ hours for better recovery.",
             Color(0xFFFFC107), // Orange
             Icons.Default.Info
         )
+
         hours in 7.0..9.0 -> MedicalFeedback(
             "Great schedule! 7-9 hours is the medically recommended range for optimal health.",
             Color(0xFF4CAF50), // Green
             Icons.Default.Check
         )
+
         else -> MedicalFeedback(
             "Long sleep duration. If you consistently need >9 hours, ensure quality is high.",
             Color(0xFF64B5F6), // Blue

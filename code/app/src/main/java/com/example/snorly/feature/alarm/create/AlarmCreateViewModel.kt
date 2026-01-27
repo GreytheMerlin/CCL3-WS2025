@@ -49,7 +49,7 @@ class AlarmCreateViewModel(application: Application) : AndroidViewModel(applicat
     fun setEnableSnooze(v: Boolean) = _uiState.update { it.copy(enableSnooze = v, saved = false) }
     fun setSnoozeMinutes(v: Int) = _uiState.update { it.copy(snoozeMinutes = v, saved = false) }
     fun setSelectedChallenges(v: List<String>) = _uiState.update { it.copy(selectedChallenges = v, saved = false) }
-
+    fun setChallengeEnabled(v: Boolean) = _uiState.update { it.copy(challengeEnabled = v, saved = false) }
 
     fun save() = viewModelScope.launch {
         val state = _uiState.value
@@ -67,6 +67,7 @@ class AlarmCreateViewModel(application: Application) : AndroidViewModel(applicat
                 vibration = state.vibration,
                 days = state.repeatDays,
                 challenge = state.selectedChallenges,
+                challengeEnabled = state.challengeEnabled,
                 isActive = true,
                 snoozeMinutes = state.snoozeMinutes
             )
@@ -114,6 +115,7 @@ class AlarmCreateViewModel(application: Application) : AndroidViewModel(applicat
                         vibration = alarm.vibration,
                         repeatDays = alarm.days,
                         selectedChallenges = alarm.challenge,
+                        challengeEnabled = alarm.challengeEnabled,
                         snoozeMinutes = alarm.snoozeMinutes,
                         // dynamicWake / wakeUpChecker are not in DB currently -> keep defaults
                         // enableSnooze is in UI state, but not in entity -> keep defaults

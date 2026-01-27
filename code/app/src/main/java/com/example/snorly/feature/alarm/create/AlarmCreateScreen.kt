@@ -90,6 +90,8 @@ fun AlarmCreateScreen(
             }
         }
     }
+
+    // Challenge result
     LaunchedEffect(Unit) {
         val handle = navController.currentBackStackEntry?.savedStateHandle ?: return@LaunchedEffect
 
@@ -97,6 +99,17 @@ fun AlarmCreateScreen(
             if (result != null) {
                 alarmViewModel.setSelectedChallenges(result)
                 handle["selected_challenges_result"] = null
+            }
+        }
+    }
+    // Challenge enabled toggle
+    LaunchedEffect(Unit) {
+        val handle = navController.currentBackStackEntry?.savedStateHandle ?: return@LaunchedEffect
+
+        handle.getStateFlow<Boolean?>("challenges_enabled_result", null).collect { enabled ->
+            if (enabled != null) {
+                alarmViewModel.setChallengeEnabled(enabled)
+                handle["challenges_enabled_result"] = null
             }
         }
     }
@@ -142,15 +155,19 @@ fun AlarmCreateScreen(
     fun challengeTitle(id: String): String =
         ChallengeDataSource.allChallenges.find { it.id == id }?.title ?: id
 
-    val dismissChallengeText =
+    // Challenge enabled toggle + selectedChallenges
+    val dismissChallengeText = if (!state.challengeEnabled) {
+        ""
+    } else {
         when (state.selectedChallenges.size) {
-            0 -> "Off"
+            0 -> "Enabled (No tasks)"
             1 -> firstChallengeTitle ?: "Challenge"
             else -> {
                 val firstTitle = challengeTitle(state.selectedChallenges.first())
                 "$firstTitle +${state.selectedChallenges.size - 1}"
             }
         }
+    }
 
 
     Scaffold(
@@ -272,7 +289,7 @@ fun AlarmCreateScreen(
                     value = dismissChallengeText,
                     onClick = {
                         onNavigateToChallenge(
-                            state.selectedChallenges.isNotEmpty(),
+                            state.challengeEnabled,
                             state.selectedChallenges
                         )
                     }

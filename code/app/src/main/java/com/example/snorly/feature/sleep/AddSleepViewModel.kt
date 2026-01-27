@@ -1,5 +1,7 @@
 package com.example.snorly.feature.sleep
 
+import android.util.Log
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -27,14 +29,56 @@ class AddSleepViewModel(
     var endDate by mutableStateOf(LocalDate.now())
     var endTime by mutableStateOf(LocalTime.of(7, 0))
 
-    // New Fields
     var rating by mutableIntStateOf(0) // 0 means unrated
     var notes by mutableStateOf("")
 
+    var isEditable by mutableStateOf(false)
+        private set
+
     var isLoading by mutableStateOf(false)
+
+    // This combines all front-end logic errors into one reactive string
+    val validationError: String? by derivedStateOf {
+        val now = java.time.Instant.now()
+        val startInstant = ZonedDateTime.of(startDate, startTime, ZoneId.systemDefault()).toInstant()
+        val endInstant = ZonedDateTime.of(endDate, endTime, ZoneId.systemDefault()).toInstant()
+        val duration = Duration.between(startInstant, endInstant)
+
+        when {
+            // 1. Future Check
+            startInstant.isAfter(now) || endInstant.isAfter(now) ->
+                "Time travel alert! Sleep cannot be in the future."
+
+            // 2. Negative/Zero Duration
+            !endInstant.isAfter(startInstant) ->
+                "Wake up time must be after bedtime."
+
+            // 3. Maximum Duration (24h proofing)
+            duration.toHours() >= 24 ->
+                "Sleep cannot exceed 24 hours. Please check your dates."
+
+            // 4. Minimum Duration
+            duration.toMinutes() < 1 ->
+                "Sleep session is too short (min. 1 minute)."
+
+            else -> null
+        }
+    }
+
+    // We keep errorMessage only for BACKEND errors (like database conflicts)
     var errorMessage by mutableStateOf<String?>(null)
 
+    // Combined property for the UI to display
+    val activeErrorMessage: String?
+        get() = validationError ?: errorMessage
+
     private var existingEntity: SleepSessionEntity? = null
+
+    val sleepDuration: Duration
+        get() = Duration.between(
+            ZonedDateTime.of(startDate, startTime, ZoneId.systemDefault()).toInstant(),
+            ZonedDateTime.of(endDate, endTime, ZoneId.systemDefault()).toInstant()
+        )
 
     init {
         if (editId != null && editId != -1L) {
@@ -52,6 +96,11 @@ class AddSleepViewModel(
                 val startZone = session.startTime.atZone(ZoneId.systemDefault())
                 val endZone = session.endTime.atZone(ZoneId.systemDefault())
 
+                Log.d("SnorlyDebug", "Session ID: ${session.id}, Source: ${session.sourcePackage}")
+                isEditable = session.sourcePackage == "com.example.snorly"
+                Log.d("SnorlyDebug", "Is Editable: $isEditable")
+
+
                 startDate = startZone.toLocalDate()
                 startTime = startZone.toLocalTime()
                 endDate = endZone.toLocalDate()
@@ -66,6 +115,14 @@ class AddSleepViewModel(
     }
 
     fun saveSleep(onSuccess: () -> Unit) {
+
+        // If our reactive validation finds an error, we don't even try to save.
+        val error = validationError
+        if (error != null) {
+            errorMessage = error // Sync the error message for the UI
+            return
+        }
+
         viewModelScope.launch {
             isLoading = true
             errorMessage = null
@@ -73,17 +130,7 @@ class AddSleepViewModel(
             val startInstant = ZonedDateTime.of(startDate, startTime, ZoneId.systemDefault()).toInstant()
             val endInstant = ZonedDateTime.of(endDate, endTime, ZoneId.systemDefault()).toInstant()
 
-            // 1. Logic Validation
-            if (!endInstant.isAfter(startInstant)) {
-                errorMessage = "Wake up time must be after bedtime."
-                isLoading = false
-                return@launch
-            }
-            if (Duration.between(startInstant, endInstant).toMinutes() < 1) {
-                errorMessage = "Sleep must be at least 1 minute."
-                isLoading = false
-                return@launch
-            }
+
 
             // 2. Prepare Entity
             val entityToSave = existingEntity?.copy(

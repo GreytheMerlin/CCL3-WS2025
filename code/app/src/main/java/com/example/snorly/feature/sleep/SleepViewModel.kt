@@ -24,7 +24,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
-enum class SleepTrackingMode { IDLE, TRACKING, GOOD_MORNING }
+enum class SleepTrackingMode { IDLE, TRACKING, GOOD_MORNING, ERROR }
 
 class SleepViewModel(
     private val repository: SleepRepository,
@@ -63,6 +63,9 @@ class SleepViewModel(
     var latestSleepDuration by mutableStateOf("--")
         private set
     var latestSleepScore by mutableStateOf("--")
+        private set
+
+    var sleepCardError by mutableStateOf<String?>(null)
         private set
 
     init {
@@ -176,6 +179,7 @@ class SleepViewModel(
     }
 
     fun startTracking() {
+        sleepCardError = null
         val now = Instant.now().toEpochMilli()
         prefs.edit().putLong("tracking_start_time", now).apply()
         trackingStartTime = now
@@ -192,19 +196,50 @@ class SleepViewModel(
         viewModelScope.launch {
             val startMillis = prefs.getLong("tracking_start_time", -1L)
             if (startMillis != -1L) {
-                val newSession = SleepSessionEntity(
-                    startTime = Instant.ofEpochMilli(startMillis),
-                    endTime = Instant.now(),
-                    sourcePackage = context.packageName,
-                    notes = ""
-                )
+                val startTimeInstant = Instant.ofEpochMilli(startMillis)
+                val endTimeInstant = Instant.now()
 
-                val result = repository.saveSleepSession(newSession, isEdit = false)
+                // --- DURATION LOGIC SAFEGUARDS ---
+                val duration = Duration.between(startTimeInstant, endTimeInstant)
+                val minutes = duration.toMinutes()
+                val hours = duration.toHours()
 
-                result.onSuccess { generatedId ->
-                    // Ensure we have the actual ID before moving to the next state
-                    lastSessionId = generatedId.toString()
-                    trackingMode = SleepTrackingMode.GOOD_MORNING
+                when {
+                    // 1. Too Short: Prevent "accidental" clicks from creating junk data
+                    minutes < 1 -> {
+                        sleepCardError =
+                            "Session too short. Snorly needs at least 1 minute to track."
+                        trackingMode = SleepTrackingMode.ERROR
+                    }
+
+                    // 2. Too Long: Catch cases where the user forgot to stop the timer for days
+                    hours >= 24 -> {
+                        sleepCardError = "Session exceeded 24h. Please log this sleep manually."
+                        trackingMode = SleepTrackingMode.ERROR
+                    }
+
+                    else -> {
+                        // 3. Logic is sound, proceed to Save/Database Check
+                        val newSession = SleepSessionEntity(
+                            startTime = startTimeInstant,
+                            endTime = endTimeInstant,
+                            sourcePackage = context.packageName,
+                            notes = ""
+                        )
+                        val result = repository.saveSleepSession(newSession, isEdit = false)
+
+                        result.fold( //
+                            onSuccess = { generatedId ->
+                                lastSessionId = generatedId.toString()
+                                trackingMode = SleepTrackingMode.GOOD_MORNING
+                                sleepCardError = null // Clear any errors on success
+                            }, onFailure = { exception ->
+                                // 4. CAPTURE CONFLICTS: If there's an overlap or DB error
+                                sleepCardError = exception.message
+                                    ?: "Conflict: This time slot is already taken."
+                                trackingMode = SleepTrackingMode.ERROR
+                            })
+                    }
                 }
             }
 
