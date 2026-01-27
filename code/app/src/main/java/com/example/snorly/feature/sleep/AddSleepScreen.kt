@@ -120,55 +120,65 @@ fun AddSleepScreen(
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
                     // TIME SECTION
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            "Time",
-                            color = Color.Gray,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            TimeCard(
-                                label = "Bedtime",
-                                date = viewModel.startDate,
-                                time = viewModel.startTime,
-                                onClick = {
-                                    activePickerType = PickerType.Start
-                                    showTimePickerSheet = true
-                                }
+                    if (viewModel.isEditable) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                "Time",
+                                color = Color.Gray,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
                             )
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                val duration = viewModel.sleepDuration
-                                val hours = duration.toHours()
-                                val mins = duration.toMinutes() % 60
 
-                                Icon(
-                                    imageVector = Icons.Default.ArrowForward, // Or a custom "Link" icon
-                                    contentDescription = null,
-                                    tint = if (hours >= 24 || duration.isNegative) Color(0xFFFF5252) else Color.Gray,
-                                    modifier = Modifier.size(16.dp)
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                TimeCard(
+                                    label = "Bedtime",
+                                    date = viewModel.startDate,
+                                    time = viewModel.startTime,
+                                    onClick = {
+                                        if (viewModel.isEditable) { // Only show picker if editable
+                                            activePickerType = PickerType.Start
+                                            showTimePickerSheet = true
+                                        }
+                                    }
                                 )
-                                Text(
-                                    text = if (duration.isNegative) "!" else "${hours}h ${mins}m",
-                                    color = if (hours >= 24 || duration.isNegative) Color(0xFFFF5252) else Color.White,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    val duration = viewModel.sleepDuration
+                                    val hours = duration.toHours()
+                                    val mins = duration.toMinutes() % 60
+
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowForward, // Or a custom "Link" icon
+                                        contentDescription = null,
+                                        tint = if (hours >= 24 || duration.isNegative) Color(
+                                            0xFFFF5252
+                                        ) else Color.Gray,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Text(
+                                        text = if (duration.isNegative) "!" else "${hours}h ${mins}m",
+                                        color = if (hours >= 24 || duration.isNegative) Color(
+                                            0xFFFF5252
+                                        ) else Color.White,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                TimeCard(
+                                    label = "Wake up",
+                                    date = viewModel.endDate,
+                                    time = viewModel.endTime,
+                                    onClick = {
+                                        if (viewModel.isEditable) { // Only show picker if editable
+                                            activePickerType = PickerType.End
+                                            showTimePickerSheet = true
+                                        }
+                                    }
                                 )
                             }
-                            TimeCard(
-                                label = "Wake up",
-                                date = viewModel.endDate,
-                                time = viewModel.endTime,
-                                onClick = {
-                                    activePickerType = PickerType.End
-                                    showTimePickerSheet = true
-                                }
-                            )
                         }
                     }
 

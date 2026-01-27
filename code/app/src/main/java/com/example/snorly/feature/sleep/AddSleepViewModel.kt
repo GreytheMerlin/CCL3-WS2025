@@ -1,5 +1,6 @@
 package com.example.snorly.feature.sleep
 
+import android.util.Log
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -28,9 +29,11 @@ class AddSleepViewModel(
     var endDate by mutableStateOf(LocalDate.now())
     var endTime by mutableStateOf(LocalTime.of(7, 0))
 
-    // New Fields
     var rating by mutableIntStateOf(0) // 0 means unrated
     var notes by mutableStateOf("")
+
+    var isEditable by mutableStateOf(false)
+        private set
 
     var isLoading by mutableStateOf(false)
 
@@ -92,6 +95,11 @@ class AddSleepViewModel(
 
                 val startZone = session.startTime.atZone(ZoneId.systemDefault())
                 val endZone = session.endTime.atZone(ZoneId.systemDefault())
+
+                Log.d("SnorlyDebug", "Session ID: ${session.id}, Source: ${session.sourcePackage}")
+                isEditable = session.sourcePackage == "com.example.snorly"
+                Log.d("SnorlyDebug", "Is Editable: $isEditable")
+
 
                 startDate = startZone.toLocalDate()
                 startTime = startZone.toLocalTime()
