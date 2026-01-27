@@ -48,8 +48,8 @@ fun RingtoneScreen(
                 OrganicShaderCard(
                     title = "Composer", subtitle = "Create custom",
                     icon = Icons.Default.Build,
-                    color1 = Color(0xFFD4AF37), color2 = Color(0xFF3E2723),
-                    shaderCode = ShaderLibrary.LED_MATRIX,
+                    color1 = Color(0xFFFFD700), color2 = Color(0xFF0D6161),
+                    shaderCode = ShaderLibrary.SHARP_GRADIENT,
                     onClick = { onCategoryClick("composer") }
                 )
             }
@@ -141,13 +141,13 @@ fun RingtoneScreen(
             // High contrast works best here. Bright edge, dark center.
             item {
                 OrganicShaderCard(
-                    title = "Motivational Speech", subtitle = "AI Speech",
+                    title = "Motivational", subtitle = "Motivational Speech",
                     icon = Icons.Outlined.ErrorOutline,
                     color2 = Color(0xFF2D628D), // Bright Neon Red (Edge)
                     color1 = Color(0xFF060C1E), // Pure Black (Center)
                     shaderCode = ShaderLibrary.SILK_FOG, // <--- New Shader
-                    count = "${ RingtoneData.getSoundsForCategory("ai").size} sounds",
-                    onClick = { onCategoryClick("ai") }
+                    count = "${ RingtoneData.getSoundsForCategory("motivational").size} sounds",
+                    onClick = { onCategoryClick("motivational") }
                 )
             }
 /*
