@@ -1,12 +1,31 @@
 package com.example.snorly.feature.alarm.wakeup
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,9 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.snorly.R
-
-import com.example.snorly.core.database.AppDatabase
-import com.example.snorly.core.database.entities.AlarmEntity
 
 @Composable
 fun AlarmRingingScreen(
@@ -46,6 +62,7 @@ fun AlarmRingingScreen(
             // your loading UI
             LoadingFullScreen()
         }
+
         state.error != null -> {
             // fallback screen
             RingingScreen(
@@ -58,6 +75,7 @@ fun AlarmRingingScreen(
                 onSnooze = {}
             )
         }
+
         else -> {
             RingingScreen(
                 timeText = state.timeText,
@@ -174,6 +192,7 @@ private fun RingingScreen(
         }
     }
 }
+
 @Composable
 private fun PillOutlineButton(
     text: String,
@@ -186,17 +205,27 @@ private fun PillOutlineButton(
             .fillMaxWidth()
             .height(64.dp),
         shape = RoundedCornerShape(999.dp),
-        border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp)
+        border = BorderStroke(1.dp, borderColor),
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = Color.White
+        )
     ) {
         Icon(
             imageVector = Icons.Outlined.Schedule,
             contentDescription = null,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(20.dp),
+            tint = Color.White
         )
         Spacer(Modifier.width(10.dp))
-        Text(text, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+        Text(
+            text,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White
+        )
     }
 }
+
 @Composable
 fun LoadingFullScreen() {
     Surface(Modifier.fillMaxSize()) {
