@@ -1,6 +1,14 @@
 package com.example.snorly.feature.challenges.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +32,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -42,6 +49,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -83,6 +92,9 @@ fun DismissChallengesScreen(
         viewModel.moveChallenge(from.index, to.index)
     }
 
+    // haptics
+    val haptic = LocalHapticFeedback.current
+
     Scaffold(
         topBar = { BackTopBar(title = "Dismiss Challenges", onBackClick = { handleBack() }) },
     ) { innerPadding ->
@@ -90,96 +102,120 @@ fun DismissChallengesScreen(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
+                .animateContentSize()
         ) {
-
-            if (state.activeChallenges.isNotEmpty()) {
-                // ... Master Toggle (Same as before) ...
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Enable Challenges", style = MaterialTheme.typography.titleMedium)
-                    Switch(
-                        checked = state.isEnabled,
-                        onCheckedChange = { viewModel.toggleFeature(it) },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = MaterialTheme.colorScheme.background,
-                            checkedTrackColor = MaterialTheme.colorScheme.primary,
-                            uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            uncheckedTrackColor = MaterialTheme.colorScheme.surface,
-                            uncheckedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                        )
-                    )
-                }
-
-                // Header logic
-                val headerText =
-                    if (state.isEnabled) "Active Challenges (Drag to reorder)" else "Challenges (Disabled)"
-                Text(
-                    headerText,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (state.isEnabled) 1f else 0.6f),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-
-
-                // 2. The Reorderable LazyColumn
-                LazyColumn(
-                    state = listState,
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    // Use itemsIndexed to get the key and index
-                    itemsIndexed(
-                        state.activeChallenges,
-                        key = { _, item -> item.id }) { index, challenge ->
-
-                        // 3. Wrap item in ReorderableItem
-                        ReorderableItem(reorderableState, key = challenge.id) { isDragging ->
-
-                            // Visual feedback when dragging (elevation)
-                            val elevation by animateDpAsState(if (isDragging) 8.dp else 0.dp)
-
-                            ActiveChallengeCard(
-                                modifier = Modifier
-                                    .shadow(elevation),
-                                challenge = challenge,
-                                enabled = state.isEnabled,
-                                onDelete = { viewModel.removeChallenge(challenge) },
-                                // Pass the drag handle modifier down
-                                dragModifier = if (state.isEnabled) Modifier.draggableHandle() else Modifier
+            AnimatedContent(
+                targetState = state.activeChallenges.isNotEmpty(),
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(500)) togetherWith fadeOut(animationSpec = tween(300))
+                },
+                label = "EmptyStateTransition"
+            ) { hasItems ->
+                // hasItems is the boolean state.activeChallenges.isNotEmpty()
+                if (hasItems) {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        // ... Master Toggle (Same as before) ...
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Enable Challenges", style = MaterialTheme.typography.titleMedium)
+                            Switch(
+                                checked = state.isEnabled, onCheckedChange = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) // Light tick
+                                    viewModel.toggleFeature(it)
+                                }, colors = SwitchDefaults.colors(
+                                    checkedThumbColor = MaterialTheme.colorScheme.background,
+                                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    uncheckedTrackColor = MaterialTheme.colorScheme.surface,
+                                    uncheckedBorderColor = MaterialTheme.colorScheme.outline.copy(
+                                        alpha = 0.5f
+                                    )
+                                )
                             )
                         }
-                    }
-                    if (state.isEnabled && state.availableChallenges.isNotEmpty() ) {
-                        item {
-                            Spacer(Modifier.height(8.dp)) // Extra breathing room after the last card
-                            Button(
-                                onClick = onAddClick,
-                                shape = RoundedCornerShape(12.dp),
-//                                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surface),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(56.dp)
-                            ) {
-                                Icon(Icons.Default.Add, contentDescription = null)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Add Challenge", fontWeight = FontWeight.Bold)
+
+                        // Header logic
+                        val headerText =
+                            if (state.isEnabled) "Active Challenges (Drag to reorder)" else "Challenges (Disabled)"
+                        Text(
+                            headerText,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (state.isEnabled) 1f else 0.6f),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+
+
+                        // 2. The Reorderable LazyColumn
+                        LazyColumn(
+                            state = listState,
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            // Use itemsIndexed to get the key and index
+                            itemsIndexed(
+                                state.activeChallenges,
+                                key = { _, item -> item.id }) { index, challenge ->
+
+                                // Wrap item in ReorderableItem
+                                ReorderableItem(
+                                    reorderableState, key = challenge.id
+                                ) { isDragging ->
+
+                                    // Visual feedback when dragging (elevation)
+                                    val elevation by animateDpAsState(if (isDragging) 8.dp else 0.dp)
+
+                                    ActiveChallengeCard(
+                                        modifier = Modifier
+                                            .shadow(elevation)
+                                            .animateItem(
+                                                fadeInSpec = tween(300),
+                                                fadeOutSpec = tween(300),
+                                                placementSpec = spring(stiffness = Spring.StiffnessLow)
+                                            ),
+                                        challenge = challenge,
+                                        enabled = state.isEnabled,
+                                        onDelete = {
+                                            // TRIGGER HAPTIC ON DELETE
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            viewModel.removeChallenge(challenge)
+                                        },
+                                        // Pass the drag handle modifier down
+                                        dragModifier = if (state.isEnabled) Modifier.draggableHandle() else Modifier
+                                    )
+                                }
                             }
-                            Spacer(Modifier.height(16.dp))
-                        }
+                            if (state.isEnabled && state.availableChallenges.isNotEmpty()) {
+                                item {
+                                    Spacer(Modifier.height(8.dp)) // Extra breathing room after the last card
+                                    Button(
+                                        onClick = onAddClick, shape = RoundedCornerShape(12.dp),
+//                                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surface),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(56.dp)
+                                    ) {
+                                        Icon(Icons.Default.Add, contentDescription = null)
+                                        Spacer(Modifier.width(8.dp))
+                                        Text("Add Challenge", fontWeight = FontWeight.Bold)
+                                    }
+                                    Spacer(Modifier.height(16.dp))
+                                }
+                            }
+                        }}
+                    } else {
+                        ChallengeEmptyState(onAddClick = onAddClick)
                     }
                 }
-            } else {
-                ChallengeEmptyState(onAddClick = onAddClick)
             }
         }
     }
-}
+
 
 @Composable
 fun ActiveChallengeCard(
@@ -194,16 +230,14 @@ fun ActiveChallengeCard(
 
     Card(
         modifier = modifier.fillMaxWidth(), // Apply the reorderable modifier here
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
+        shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
                 alpha = if (enabled) 1f else 0.5f
             )
         )
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically
         ) {
             // 4. Apply the drag handle modifier to the Icon
             Icon(
@@ -245,7 +279,7 @@ fun ActiveChallengeCard(
                 )
             }
 
-            IconButton(onClick = onDelete) {
+            IconButton(onClick = onDelete, enabled = enabled) {
                 Icon(
                     Icons.Default.Delete,
                     contentDescription = "Remove",
