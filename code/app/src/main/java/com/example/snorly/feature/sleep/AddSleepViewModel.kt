@@ -32,7 +32,7 @@ class AddSleepViewModel(
     var rating by mutableIntStateOf(0) // 0 means unrated
     var notes by mutableStateOf("")
 
-    var isEditable by mutableStateOf(false)
+    var isEditable by mutableStateOf(true)
         private set
 
     var isLoading by mutableStateOf(false)

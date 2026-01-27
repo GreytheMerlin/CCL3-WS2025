@@ -94,7 +94,7 @@ fun AddSleepScreen(
                             contentDescription = "Save",
                             tint = if (canSave) Color(
                                 0xFF4A90E2
-                            ).copy(alpha = 0.3f) else Color(0xFF4A90E2)
+                            ) else Color(0xFF4A90E2).copy(alpha = 0.3f)
                         )
                     }
                 },
@@ -139,10 +139,8 @@ fun AddSleepScreen(
                                     date = viewModel.startDate,
                                     time = viewModel.startTime,
                                     onClick = {
-                                        if (viewModel.isEditable) { // Only show picker if editable
                                             activePickerType = PickerType.Start
                                             showTimePickerSheet = true
-                                        }
                                     }
                                 )
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -172,10 +170,8 @@ fun AddSleepScreen(
                                     date = viewModel.endDate,
                                     time = viewModel.endTime,
                                     onClick = {
-                                        if (viewModel.isEditable) { // Only show picker if editable
                                             activePickerType = PickerType.End
                                             showTimePickerSheet = true
-                                        }
                                     }
                                 )
                             }
